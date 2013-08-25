@@ -1,0 +1,67 @@
+body {
+    margin: 0;
+    font: 13px/1.5em "Helvetica Neue", helvetica, Arial, sans-serif;
+    letter-spacing:0.03em;
+}
+
+h3 {
+    padding: 10px 0;
+    border-bottom: #ccc solid 1px;
+}
+
+.main {
+    background: transparent;
+    width: 960px;
+    margin: 10px auto;   
+}
+
+.info {
+    background: transparent;
+    border-bottom: #ccc solid 1px;
+}
+
+table {
+    width: 960px;
+}
+
+th {
+    font-size: 0.8333em;
+    font-weight: normal;
+}
+
+td {
+    font-size: 0.7667em;
+    padding: 0 1em;
+}
+
+.title {
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.odd {
+    background: #eee;
+}
+
+.even {
+    background: #fff;
+}
+
+.graph {
+    background: #eee;
+    border: #ccc solid 1px;
+
+}
+
+#freezer_graph, #pressure_graph, #level_graph, #fill_point_graph, .graph img, #bulk_tank_weight_graph {
+    background: #fff;
+}
+
+.controller {
+    padding: 5px 30px 0px 30px;
+    background: #eee;
+    border-left: #ccc solid 1px;
+    border-right: #ccc solid 1px;
+    border-bottom: #ccc solid 1px;
+}
+

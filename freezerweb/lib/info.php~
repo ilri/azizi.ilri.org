@@ -1,0 +1,41 @@
+<?php
+
+$info = <<<INFO
+<p>
+	The system is based on 3 x <a href='http://www.jenconsusa.com/products_specs_1.cfm?id=123'>LABS-80K freezers supplied by Jencons </a> and 1 x <a href='http://www.statebourne.com/bio_system_series.html'>Bio system 36 supplied by Statebourne Cryogenics</a>. Monitoring and filling is through M505 controllers by <a href='http://www.mowden.co.uk/'>Mowden Controls</a>. Data from  the controllers is logged onto a MySQL database, made available over the web and watched for errors by custom Perl scripts running under <a href='http://www.ubuntu.com/'>ubuntu</a> on an ancient P4 PC called out of retirement.
+</p>
+
+<p>
+	The bulk tank pressure is determined by a pair of <a href='http://www.roxspur.com/pressure/hps.php'>HPS sensors from Roxpur</a>, connected to a <a href='http://labjack.com/u6'>Labjack U6 analogue - digital converter</a> (and much more). In the future we expect to use the labjack for monitoring other aspects of the system. Bulk tank contents is calculated from the pressure difference between the top and bottom of the tank.
+</p>
+
+<p>
+	All of these suppliers have been very helpful and have provided excellent support for their equipment.
+</p>
+
+<p>
+	The primary Perl script interrogates each unit approximately every 4 seonds.  Data is logged onto the database every 30 minutes, unless there is a change in the unit's state, in which case data is logged immediately.
+</p>
+
+<p>
+		At the same time, images are grabbed from 2 of 3 (depending on the event) <a href='http://www.axis.com/products/cam_m1031w/'>Axis M1031 ip cameras</a>.
+</p>
+
+<p>
+	Samples are entirely in vapour phase nitrogen. The periodic spikes in temperature are caused by liquid nitrogen fills which boil off vapour and lower the temperature seen by the upper sensor by approximately 10C. Fills are synchronised between tanks to reduce liquid nitrogen consumption. The shorter and sharper spikes affecting a single unit are caused by defogging injections of liquid nitrogen when a lid is opened.
+</p>
+
+<p></p>
+<p>
+	Use filtering below to select the freezers and time period displayed. Generally items are selected if they <strong><em>contain</em></strong> the search terms in the appropriate field; the more you specify the fewer records you will see.
+</p>
+
+<p>
+	Comments to s.kemp@cgiar.org.
+</p>
+INFO;
+	$link = "<a href='javascript:contract()'>less info</a>"
+
+	echo $info
+	echo $link
+?>

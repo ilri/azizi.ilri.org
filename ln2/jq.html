@@ -1,0 +1,78 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+    <script src="/jquery-1.3.2.min.js" type="text/javascript"></script>
+    
+    
+
+   <script>
+   // When the page is ready
+ 
+   
+ $(document).ready(function() {
+     $('div.showhide,div.blither').hide();
+
+
+   $("a.more").click(function(event){
+     $('div.showhide,div.blither').toggle("slow");
+     event.preventDefault();
+   });
+
+
+   });
+ </script>
+
+ </head>
+ <body>
+
+  <center>
+
+<IMG SRC="http://azizi.ilri.cgiar.org/WTPlogo.jpg" WIDTH="200" BORDER="0" ALT="AZIZI">
+  <br>
+      <h2>AZIZI LN<sub>2</sub> Freezer data</h2>
+
+<br>
+        <h2>Online display of freezer information captured from the 
+            Azizi ultra cold storage system at ILRI</h2>
+      </center>
+<p>
+  
+
+
+<div class="blither">      
+
+<p>The system is based on 3 x  
+<a href="http://www.jenconsusa.com/products_specs_1.cfm?id=123">LABS-80K freezers supplied by Jencons </a> and 1 x 
+<a href="http://www.statebourne.com/bio_system_series.html">Bio system 36 supplied by Statebourne Cryogenics</a>.
+Monitoring and filling is through M505 controllers by <a href="http://www.mowden.co.uk/">Mowden Controls</a>.
+Data from  the controllers is logged onto a MySQL database, made available over the web and watched for errors 
+by custom Perl scripts running under  
+<a href="http://www.ubuntu.com/">ubuntu</a> on an ancient P4 PC called out of retirement.</p>
+
+<p>The primary Perl script interrogates each unit approximately every 4 seonds.  Data is logged onto the database every 30 minutes, 
+unless there is a change in the unit's state, in which case data is logged immediately.</p>
+
+
+<p>Samples are entirely in vapour phase nitrogen. The periodic spikes in temperature are caused by liquid nitrogen fills 
+which boil off vapour and lower the temperature seen by the upper sensor by approximately 10C. Fills are synchronised between 
+tanks to reduce liquid nitrogen consumption. The shorter and sharper spikes affecting a single unit are caused by defogging injections of
+liquid nitrogen when a lid is opened.</p>
+
+<p><p>Use filtering below to select the freezers and time period displayed. 
+   Generally items are selected if they <b><i>contain</i></b> the search 
+   terms in the appropriate field; the more you specify the fewer records you will see. 
+   
+<p>
+Comments to s.kemp@cgiar.org. 
+
+
+     
+
+</div>
+
+   <a href="" class=more>..system details...</a>
+
+ </body>
+ </html>
