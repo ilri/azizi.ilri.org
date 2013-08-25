@@ -1,13 +1,12 @@
 <?php
-	//require_once('settings.php');
-	require_once('/etc/php5/include/frzr_config.php');
-
-	$conn = mysql_connect($dbhost, $dbuser, $dbpass) or die (mysql_error());
-	mysql_select_db($dbname) or die (mysql_error());
+   require_once 'azizi_config';
+	$conn = mysql_connect(Config::$dbhost, Config::$dbuser, Config::$dbpass) or die (mysql_error());
+	mysql_select_db(Config::$dbname) or die (mysql_error());
+   
 	$query = "SELECT a.TankId, a.owner, a.description, a.location, a.contents, b.EventDate, b.temp FROM units AS a LEFT JOIN (SELECT TankID, MAX(EventDate) AS EventDate, temp FROM log GROUP BY TankID) AS b ON a.TankId = b.TankID;";
-	
+
 	$result = mysql_query($query);
-	
+
 	echo "<table>";
 	echo "<tr class='odd'><th colspan ='5' class='title'>Unit Descriptions</td><th colspan='2' class='title'>Latest Report</td></tr>";
 	echo "<tr class='even'><th>Tank ID</td><th>Owner</td><th>Description</td><th>Location</td><th>Contents</td><th>Measure Time</td><th>Temp</td></tr>";

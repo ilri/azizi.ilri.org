@@ -1,17 +1,17 @@
 <?php
-  
+
 function get_tanks() {
   // Get login information
-  //require_once('settings.php');
-  require_once('/etc/php5/include/frzr_config.php');
-  
+   require_once 'azizi_config';
+
+	$conn = mysql_connect(Config::$dbhost, Config::$dbuser, Config::$dbpass) or die (mysql_error());
+
   // Set the variables that we need
   $days = isset($_GET['days']) ? $_GET['days'] : 7;
 
   // Open the mysql connection
-  $conn = mysql_connect($dbhost, $dbuser, $dbpass) or die (mysql_error());
-  mysql_select_db($dbname) or die (mysql_error());
-  
+  mysql_select_db(Config::$dbname) or die (mysql_error());
+
   // Get the tanks that we're looking at
   $tank_query = 'SELECT TankID FROM units;';
   $results = mysql_query($tank_query);

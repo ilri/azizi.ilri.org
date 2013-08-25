@@ -1,20 +1,17 @@
 <?php
-  // Get login information
-  require_once('frzr_config.php');
-  
+   require_once 'azizi_config';
+	$conn = mysql_connect(Config::$dbhost, Config::$dbuser, Config::$dbpass) or die (mysql_error());
   // Set the variables that we need
   $days = isset($_GET['days']) ? $_GET['days'] : 7;
 
-  // Open the mysql connection
-  $conn = mysql_connect($dbhost, $dbuser, $dbpass) or die (mysql_error());
-  mysql_select_db($dbname) or die (mysql_error());
-  
-  // Get data from the database 
-//  $query = 'SELECT `timestamp`, analog0 * 0.05 ' . 
-//           'FROM pressure ' . 
-//           'WHERE analog0 > 10 ' . 
-//           '  AND (TO_DAYS(NOW())*24+HOUR(NOW())) - ' . 
-//                 '(TO_DAYS(`timestamp`)*24+HOUR(`timestamp`)) < ' . $days * 24 . ' ' . 
+  mysql_select_db(Config::$dbname) or die (mysql_error());
+
+  // Get data from the database
+//  $query = 'SELECT `timestamp`, analog0 * 0.05 ' .
+//           'FROM pressure ' .
+//           'WHERE analog0 > 10 ' .
+//           '  AND (TO_DAYS(NOW())*24+HOUR(NOW())) - ' .
+//                 '(TO_DAYS(`timestamp`)*24+HOUR(`timestamp`)) < ' . $days * 24 . ' ' .
 //           'ORDER BY timestamp DESC';
 $selDays = $days * 24;
 $query = "select `timestamp`, `analog0`*0.05 from pressure where `analog0` > 10 and (TO_DAYS(NOW())*24+HOUR(NOW())) - (TO_DAYS(`timestamp`)*24+HOUR(`timestamp`)) < $selDays order by `timestamp`";
@@ -26,7 +23,7 @@ $query = "select `timestamp`, `analog0`*0.05 from pressure where `analog0` > 10 
 
   // print header
   header('Content-type: text/csv');
-  header('Content-Disposition: attachment; filename="pressure_data.csv";' ); 
+  header('Content-Disposition: attachment; filename="pressure_data.csv";' );
   print "Date,Pressure\n";
 
   $timeLimit = date('Y-m-d H:i:s', strtotime("-{$days} days"));

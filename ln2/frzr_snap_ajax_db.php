@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 
 
@@ -15,7 +15,7 @@ $high_p_colour = "#ff8c00";
 $high_temp_colour = "#FF3300";
 $low_temp_colour =  "#87ceeb";   # warning colours used for lab freezers
 
-$old = 2;         # triggers alert colour if latest report is more than this many HOURS old
+$old = 2;         # triggers alert colour if latest report is more than this many HOURS old .... replaced by reportAgeLimit
 $old_phone = 2;   # declares problem if phone status is more than this many HOURS old
 
 
@@ -81,11 +81,11 @@ $s=date('s') / 10;
 
 ### is the email/sms monitoring tool running ?
 
-$sql = "select time, success, 
+$sql = "select time, success,
         date_format(NOW(), '%H:%i:%s') as servertime,
         time<DATE_SUB(NOW(), INTERVAL $old_phone HOUR) as old
-        from phone_status order by time desc limit 1;"; 
-        
+        from phone_status order by time desc limit 1;";
+
 $rs = mysql_query($sql,$conn);
 
 if ($row = mysql_fetch_array($rs)){
@@ -95,12 +95,12 @@ if ($row = mysql_fetch_array($rs)){
         if ($row["success"] == 1) {echo(" sms alerting <img src='/ln2/ok.jpg' height='15'>");}
            else {echo(" sms alerting <img src='/ln2/not_ok.jpg' height='15'>");}
     } else {
-            echo(" Monitoring system is down  <img src='/ln2/not_ok.jpg' height='20'> ");   
+            echo(" Monitoring system is down  <img src='/ln2/not_ok.jpg' height='20'> ");
        }
 
 }
 
-echo ('<table cellpadding="4" cellspacing="1" border=0 >');   
+echo ('<table cellpadding="4" cellspacing="1" border=0 >');
 echo('<tr><td align = "left">');
 ####outer table
 
@@ -118,23 +118,23 @@ foreach ($tanklist as $tank){
 	if($active == 0){
 		continue;	//This tank is not active... so dont display it on the browser
 	}
-  
-$sql = "select TankID,  
+
+$sql = "select TankID,
 
         if (   DATE(CreatedOn) = DATE(NOW()),  date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
 
-        ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600)  as hours_old, 
-        temp, 
-        level, 
+        ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600)  as hours_old,
+        temp,
+        level,
         lid,
-        if (lid=0,'shut','open') as lidstate, 
+        if (lid=0,'shut','open') as lidstate,
         fill,
         if (fill=0,'off','on') as fillstate,
         thermocouple_error,
         if (thermocouple_error=0,'ok','FAULT') as thermocouple_state,
         alarms,
         if (alarms='0','none',alarms) as alarmstate
-        from log where TankID='".$tank."' order by CreatedOn desc limit 1;"; 
+        from log where TankID='".$tank."' order by CreatedOn desc limit 1;";
 
 
 $rs = mysql_query($sql,$conn);
@@ -149,20 +149,20 @@ while ($row = mysql_fetch_array($rs))
  if ($row["level"] == 'high')   $use_colour = $warn_colour;
 
  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["level"] . "</td>");
- 
+
   ($row["lid"] != '0') ? $use_colour = $warn_colour : $use_colour = $normal_colour;
  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["lidstate"] . "</td>");
- 
+
    ($row["fill"] != '0') ? $use_colour = $warn_colour : $use_colour = $normal_colour;
  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["fillstate"] . "</td>");
- 
-  
- 
- 
- 
+
+
+
+
+
     ($row["alarms"] != '0') ? $use_colour = $alert_colour : $use_colour = $normal_colour;
  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["alarmstate"] . "</td>");
- 
+
  ($row["hours_old"] > $old) ? $use_colour = $alert_colour : $use_colour = $normal_colour;
 
  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["smart_date"] .  "</td></tr>\n");
@@ -181,11 +181,11 @@ echo('</td><td align = "right">');
 ############## bulk tank status ?
 
 
-$sql = "select 
+$sql = "select
 
         if (   DATE(timestamp) = DATE(NOW()),  date_format(timestamp, '%H:%i'), date_format(timestamp, '%e %b  %H:%i')) as smart_date,
 
-        ((unix_timestamp(now()) - unix_timestamp(timestamp))/3600)  as hours_old, 
+        ((unix_timestamp(now()) - unix_timestamp(timestamp))/3600)  as hours_old,
         format((analog0 * 0.05),1) as bar,
         format((analog1-analog0)/$conversion_factor,0) as contents,
         format((analog1-analog0),2) as diff,
@@ -199,7 +199,7 @@ $sql = "select
          if (fill_point < 0,'LN2 flowing', 'warm') as fill_point
         from pressure
         order by timestamp desc limit 1;";
-        
+
 $rs = mysql_query($sql,$conn);
 $row = mysql_fetch_array($rs);
 
@@ -288,23 +288,23 @@ echo("<tr bgcolor='#AAAAAA'><td>Contents</td><td>Pressure</td>$door_header_text 
 
  ($row["bar"] > $max_bar) ? $use_colour = $high_p_colour : $use_colour = $normal_colour;
  if ($row["bar"] < $min_bar){$use_colour = $low_p_colour;}
- 
-  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["bar"] . " bar</td>\n");
-  
-  
-    
-##  ($row["switch_state"] != 'open') ? $use_colour = $alert_colour : $use_colour = $normal_colour; 
-##  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["switch_state"] .  "</td>\n");
- 
-echo($door_table_text); 
-echo($switch_state_table_text ); 
-echo($vent_valve_table_text ); 
-echo($vent_alarm_table_text ); 
 
-  
-    ($row["O2"]  < $min_O2) ? $use_colour = $alert_colour : $use_colour = $normal_colour; 
+  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["bar"] . " bar</td>\n");
+
+
+
+##  ($row["switch_state"] != 'open') ? $use_colour = $alert_colour : $use_colour = $normal_colour;
+##  echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["switch_state"] .  "</td>\n");
+
+echo($door_table_text);
+echo($switch_state_table_text );
+echo($vent_valve_table_text );
+echo($vent_alarm_table_text );
+
+
+    ($row["O2"]  < $min_O2) ? $use_colour = $alert_colour : $use_colour = $normal_colour;
   echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["O2"] .  "%</td>\n");
-  
+
 echo($fill_point_table_text);
 
 
@@ -326,19 +326,19 @@ echo("</table><p>\n");
 
 
 echo("</td></tr>\n");
-echo('<tr><td align = "left" colspan = "2">'); 
+echo('<tr><td align = "left" colspan = "2">');
 ####outer table
 
 
 ############## LN2 plant
 
-$sql =" SELECT 
+$sql =" SELECT
 
- format((SUM( IF (a.LN2_plant >= 1,    
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+ format((SUM( IF (a.LN2_plant >= 1,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 0) as running,
 
-format ((SUM( IF (a.LN2_plant < 1,     
+format ((SUM( IF (a.LN2_plant < 1,
 TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 0)  as stopped
 
@@ -354,19 +354,19 @@ $up_duty = round( (100*$row["running"])/ ($row["running"]+$row["stopped"]), 0);
 
 
 echo("<br>The LN plant ran for <b>".$up_duty ."%</b> of the time in the last " .$plant_time." days." );
- 
+
 ##############
 
-$sql =" SELECT 
+$sql =" SELECT
 
 
- ((SUM( IF (a.LN2_plant >= 1,    
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+ ((SUM( IF (a.LN2_plant >= 1,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60)) as running,
 
- 
-((SUM( IF (a.LN2_plant < 1,     
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+
+((SUM( IF (a.LN2_plant < 1,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60))  as stopped
 
 FROM pressure a
@@ -383,7 +383,7 @@ $row["running"] = number_format($row["running"]);
 
 
 echo(" It has logged a total of <b>".$row["running"] ." hours</b> since " .$plant_start_time." (". $up_duty."% duty).");
- 
+
 ##############LN2 plnt
 
 
@@ -394,14 +394,14 @@ echo(" It has logged a total of <b>".$row["running"] ." hours</b> since " .$plan
 
 ############## fill point use
 
-$sql =" SELECT 
+$sql =" SELECT
 
- format((SUM( IF (a.fill_point < 0,    
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+ format((SUM( IF (a.fill_point < 0,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 1) as running,
 
-format ((SUM( IF (a.fill_point >= 0,     
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+format ((SUM( IF (a.fill_point >= 0,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 1)  as stopped
 
 
@@ -420,14 +420,14 @@ $fp_str = " The external fill point was used for ".$row["running"] ." hours in t
 
 
 
-$sql =" SELECT 
+$sql =" SELECT
 
- format((SUM( IF (a.fill_point < 0,    
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+ format((SUM( IF (a.fill_point < 0,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 1) as running,
 
-format ((SUM( IF (a.fill_point >= 0,     
-TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b 
+format ((SUM( IF (a.fill_point >= 0,
+TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b
 WHERE b.id = a.id - 1))), 0))) / (60*60), 1)  as stopped
 
 
@@ -442,7 +442,7 @@ $row = mysql_fetch_array($rs);
 $up_duty = round( (100*$row["running"])/ ($row["running"]+$row["stopped"]), 0);
 
 $fp_str.="  Since ".$fill_point_start_time." it has been in use for ".$row["running"].  " hours.";
- 
+
 
 echo("<br>$fp_str");
 
@@ -472,32 +472,32 @@ echo("<tr bgcolor='#AAAAAA'><td>id</td><td>location</td><td>description</td><td>
 
 #################### another terrfying SQL from Martin
 
-    $sql = "SELECT fl.freezer , 
+    $sql = "SELECT fl.freezer ,
       fu.location,
       fu.description,
       fu.contents,
-      FORMAT((fl.temp),1) AS temp, 
-      fu.max_temp, 
+      FORMAT((fl.temp),1) AS temp,
+      fu.max_temp,
       fu.min_temp,
       ((UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(fl.created))/3600) AS hours_old,
-      IF (   DATE(fl.created) = DATE(NOW()),  
-             DATE_FORMAT(fl.created, '%H:%i'), 
+      IF (   DATE(fl.created) = DATE(NOW()),
+             DATE_FORMAT(fl.created, '%H:%i'),
              DATE_FORMAT(fl.created, '%e %b  %H:%i')) AS smart_date
-FROM freezer_log fl 
+FROM freezer_log fl
 
-JOIN freezer_units fu 
- ON fl.freezer = fu.unitid 
- 
+JOIN freezer_units fu
+ ON fl.freezer = fu.unitid
+
 JOIN (SELECT freezer, MAX(created) created
      FROM freezer_log GROUP BY freezer) fl2
  ON fl.freezer = fl2.freezer
 AND fl.created = fl2.created
 where fu.type = 'freezer' and fu.in_use = TRUE
 GROUP BY freezer";
-    
-    
-    
-            
+
+
+
+
     $rs = mysql_query($sql,$conn);
     while ($row = mysql_fetch_array($rs))
     {
@@ -506,18 +506,18 @@ GROUP BY freezer";
       echo("<td  bgcolor=\"" .$normal_colour . "\">" . $row["location"] . "</td>\n");
       echo("<td  bgcolor=\"" .$normal_colour . "\"><a href=\"labfreezer/?id=" . $row["freezer"] . "\">" . $row["description"] . "</a></td>\n");
 
-      
+
       if ($row["temp"] < $row["min_temp"])      {$use_colour = $low_temp_colour;}
       elseif  ($row["temp"] > $row["max_temp"]) {$use_colour = $high_temp_colour;}
       else                                      {$use_colour = $normal_colour;}
-      
+
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["temp"] .  "</td>\n");
-      
+
       ($row["hours_old"] > $freezer_old) ? $use_colour = $alert_colour : $use_colour = $normal_colour;
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["smart_date"] .  "</td></tr>\n");
 
-    }   
-    
+    }
+
 echo("</table>\n");
 
 
@@ -542,41 +542,41 @@ echo("</td><td align = right>\n");
 <?php
 #################### another terrfying SQL from Martin
 
-    $sql = "SELECT fl.freezer , 
+    $sql = "SELECT fl.freezer ,
       fu.location,
       fu.description,
       fu.contents,
-      FORMAT((fl.temp),1) AS temp, 
+      FORMAT((fl.temp),1) AS temp,
       FORMAT((fl.O2),1) AS O2,
       FORMAT((fl.CO2),1) AS CO2,
-      fu.max_temp, 
+      fu.max_temp,
       fu.min_temp,
 
-      fu.max_co2, 
+      fu.max_co2,
       fu.min_co2,
-      
-      fu.max_o2, 
-      fu.min_o2,
-      
-      ((UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(fl.created))/3600) AS hours_old,
-      IF (   DATE(fl.created) = DATE(NOW()),  
-             DATE_FORMAT(fl.created, '%H:%i'), 
-             DATE_FORMAT(fl.created, '%e %b  %H:%i')) AS smart_date
-FROM freezer_log fl 
 
-JOIN freezer_units fu 
- ON fl.freezer = fu.unitid 
- 
+      fu.max_o2,
+      fu.min_o2,
+
+      ((UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(fl.created))/3600) AS hours_old,
+      IF (   DATE(fl.created) = DATE(NOW()),
+             DATE_FORMAT(fl.created, '%H:%i'),
+             DATE_FORMAT(fl.created, '%e %b  %H:%i')) AS smart_date
+FROM freezer_log fl
+
+JOIN freezer_units fu
+ ON fl.freezer = fu.unitid
+
 JOIN (SELECT freezer, MAX(created) created
      FROM freezer_log GROUP BY freezer) fl2
  ON fl.freezer = fl2.freezer
 AND fl.created = fl2.created
 where fu.type = 'room' and fu.in_use = TRUE
 GROUP BY freezer";
-    
-    
-    
-            
+
+
+
+
     $rs = mysql_query($sql,$conn);
     while ($row = mysql_fetch_array($rs))
     {
@@ -585,30 +585,30 @@ GROUP BY freezer";
       echo("<td  bgcolor=\"" .$normal_colour . "\">" . $row["location"] . "</td>\n");
       echo("<td  bgcolor=\"" .$normal_colour . "\"><a href=\"labfreezer/?id=" . $row["freezer"] . "\">" . $row["description"] . "</a></td>\n");
 
-      
+
       if ($row["temp"] < $row["min_temp"])      {$use_colour = $low_temp_colour;}
       elseif  ($row["temp"] > $row["max_temp"]) {$use_colour = $high_temp_colour;}
       else                                      {$use_colour = $normal_colour;}
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["temp"] .  "</td>\n");
- 
- 
+
+
       if (($row["CO2"] < $row["min_co2"]))      {$use_colour = $low_temp_colour;}
       elseif  ($row["CO2"] > $row["max_co2"]) {$use_colour = $high_temp_colour;}
       else                                      {$use_colour = $normal_colour;}
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["CO2"] .  "</td>\n");
-      
+
       if (($row["O2"] < $row["min_o2"]))      {$use_colour = $low_temp_colour;}
       elseif  ($row["O2"] > $row["max_o2"]) {$use_colour = $high_temp_colour;}
       else                                      {$use_colour = $normal_colour;}
 
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["O2"] .  "</td>\n");
 
-      
+
       ($row["hours_old"] > $freezer_old) ? $use_colour = $alert_colour : $use_colour = $normal_colour;
       echo("<td  bgcolor=\"" . $use_colour . "\">" . $row["smart_date"] .  "</td></tr>\n");
 
-    }   
-    
+    }
+
 echo("</table>\n");
 
 
@@ -619,13 +619,13 @@ echo("</table>\n");
 
 /*
 
-$sql =  "select 
+$sql =  "select
 
         if (   DATE(date) = DATE(NOW()),  date_format(date, '%H:%i'), date_format(date, '%e %b  %H:%i')) as smart_date,
 
-        unitid, 
-        ((unix_timestamp(now()) - unix_timestamp(date))/3600)  as hours_old, 
-        temp from cluster order by date desc limit 1 ";  
+        unitid,
+        ((unix_timestamp(now()) - unix_timestamp(date))/3600)  as hours_old,
+        temp from cluster order by date desc limit 1 ";
 
 $rs = mysql_query($sql,$conn);
 
@@ -673,7 +673,7 @@ echo("</table>\n");
 	$row = mysql_fetch_array($rs);
 
 	# turn it into a SimpleXMLObject
-	$xml = simplexml_load_string($row[xml_data]);
+	$xml = simplexml_load_string($row['xml_data']);
 
 	#echo ('<p> </p><p><u>HPC status</u></p>');
 	# is the HPC's hardware RAID status current?
@@ -682,7 +682,7 @@ echo("</table>\n");
 	# are all disks online (all 16 should be "Online")?
 	(count($xml->xpath('//disk[status="Online"]')) != 16) ? $pic =  " <img src='/ln2/not_ok.jpg' height='20'>" : $pic =  " <img src='/ln2/ok.jpg' height='20'>";
 	echo (' status'. $pic . '</h2>');
-	
+
 	if (count($xml->xpath('//disk[status="Online"]')) != 16){     ## show status of disks only if NOT all OK
 	  echo ('<table cellpadding="4" cellspacing="1">');
 

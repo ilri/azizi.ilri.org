@@ -1,0 +1,31 @@
+body { margin: 0;	padding: 0;	font-family: 'Open Sans', "Lucida Grande", arial, helvetica, verdana, sans-serif; color: #000000; background-color: #FFFFFF; }
+#top, #info, #links, #extra{ width: 97%; margin: 20px 1.5% 2px 1.5%; }
+#top{ margin-bottom: 30px; height: 160px; padding-top: 20px;}
+#title, #search, #ngombe_image { float: left; width: 33.3%; }
+#title{ font-size: 3.3em; }
+#search{width:31%; margin-left: 2%; padding-top: 20px;}
+.center { text-align: center; }
+.float_left{ float: left; }
+.hidden{ display: none; }
+.bold{ font-weight: bold; }
+.text_right{ text-align: right; }
+#ngombe_image{text-align: right; width: 23%; margin-right: 10%;}
+#links{margin-bottom: 20px;}
+#links span{padding: 2px 10px;}
+.ln2_fridges, .ancilliary, .fridge_freezers, .equipments_rooms, .general{ margin: 20px;}
+.general{ width: 100%; text-align: center; }
+.ancilliary{ min-height: 270px;}
+.ln2_fridges{ margin-left: 110px; }
+#equipment_status{ width: 1050px; margin: 5px auto; }
+#outline { position: relative; height: 800px; width: 800px; margin: 18px auto 0; border: solid 1px #999; }
+#caption { width: 260px; left: 48px; top: 318px; position: absolute; visibility: visible; }
+#text { left: 336px; top: 318px; position: absolute; width: 400px; visibility: visible; margin-top: 10px; }
+p { color: #666; font-size: 16px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin-top: 0; }
+h1 { color: #666; font-size: 20px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: 500; line-height: 32px; margin-top: 4px; }
+h2 { color: #666; font-size: 18px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin: 0px; }
+h3 { color: #666; font-size: 60px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: bold; text-align: center; letter-spacing: -1px; width: auto; }
+h4 { font-weight: bold; text-align: center; margin: 1.33em 0; }
+a { color: #666; text-decoration: underline; }
+a.frzr { color: #778fbd; text-decoration: none; }
+/*Show the value of the title attribute when hovered*/
+abbr[title]:hover:after{ content: attr(title); }

@@ -1,109 +1,73 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 	<head>
 		<meta http-equiv="content-type" content="text/html;charset=utf-8" />
-		<meta name="generator" content="Steve" />
-		<title>Azizi server</title>
-	    <link rel="stylesheet" type="text/css" href="azizi.css" />
-<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,800' rel='stylesheet' type='text/css'>
-	    
-<script type="text/javascript">
-      function ajaxFunction()
-      {
-        var xmlhttp;
-        if (window.XMLHttpRequest)
-        {
-          xmlhttp=new XMLHttpRequest();
-        }
-        else if (window.ActiveXObject)
-        {
-          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");   // code for IE6, IE5
-        }
-        else
-        {
-          alert("Your browser does not support XMLHTTP!");
-        }
-        xmlhttp.onreadystatechange = function()
-        {
-          if(xmlhttp.readyState == 4)
-          {
-            var output = document.getElementById('Ajax');
-            output.innerHTML = xmlhttp.responseText;
-          }
-        }
-        xmlhttp.open("GET", "ln2/frzr_snap_ajax_db.php", true);
-        xmlhttp.send(null);
+		<meta name="Description" content="Azizi is the ILRI biorepository/biobank system. It is an ultra low cold storage system for storing biological materials collected by researchers in ILRI over the years." />
+      <meta name="robots" content="index,follow" />
+		<title>Azizi Biorepository</title>
+	   <link rel="stylesheet" type="text/css" href="/azizi/css/azizi.css" />
+	   <link rel="stylesheet" type="text/css" href="/azizi/css/bootstrap.min.css" />
+      <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,800' rel='stylesheet' type='text/css' />
+      <script type='text/javascript' src='/common/jquery/jquery-1.8.3.min.js'></script>
+      <script type='text/javascript' src='/common/sprintf.js'></script>
+      <script type='text/javascript' src='/azizi/js/azizi.js'></script>
+	</head>
 
-	mTimer = setTimeout("ajaxFunction()", 10000); 
-     }
-    </script>
-<!--Google analytics-->
-<script type="text/javascript">
+  <body>
+     <div id="top">
+        <div id="search"><input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" /></div>
+        <div id="title" class="center bold">Azizi Biorepository</div>
+        <div id="ngombe_image"><img src="/azizi/images/WTPlogo.jpg" width="150" alt="azizi"  border="0" /></div>
+     </div>
+     <div id="info">
+        <p>
+           Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI. The system supports a number of activities and projects including
+           <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://avid.icipe.org/" target="_blank">AVID</a>,
+  			  <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank"> a group of projects targeting innate resistance to trypanosomiasis</a>,
+			  the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase liquid nitrogen
+           with uniquely roubust, secure and well monitored ultra-cold conditions for long-term storage.
+        </p>
+        <p>This page provides links to resources and real-time monitoring of critical systems.</p>
+     </div>
+     <div id="links" class="center">
+	    <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
+   	 <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
+	    <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
+	    <span><a href="/graphs/">Graphical summary of AVID sample collection</a></span>
+	    <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
+     </div>
 
+	  <div id='equipment_status'>
+         <div class="status center hidden">
+            System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>  Cluster Status <span class="hpc_status"></span>
+         </div>
+         <div class="ln2_fridges float_left"></div>
+         <div class="ancilliary"></div>
+         <div class="general hidden">
+            The LN plant ran for <span class="latest_plant_uptime bold"></span>&#37; of the time in the last <span class="latest_plant_days"></span> days. It has logged a total of <span class="total_plant_hours bold"></span> hours since 2011-02-16 (<span class="total_plant_uptime"></span>% duty).<br />
+            The external fill point was used for <span class="latest_fillpoint_hours"></span> hours in the last <span class="latest_fillpoint_days"></span> days. Since 2011-03-16 it has been in use for <span class="total_fillpoint_hours"></span> hours.
+         </div>
+         <div class="fridge_freezers float_left"></div>
+         <div class="equipments_rooms"></div>
+     </div>
+
+     <div id="extra">
+         <p><abbr title=" - Azizi is a Swahili word meaning a treasure, a valued thing, a rarity.">why azizi ?</abbr></p>
+     </div>
+	</body>
+
+<!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second -->
+<script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-24006166-1']);
   _gaq.push(['_trackPageview']);
-
   (function() {
     var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-
+  Azizi.sysConfig = <?php require_once 'azizi_config'; echo json_encode(Config::$sysConfig); ?>;
+  setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
-
 <!--End of google analytics-->
-
-	</head>
-
-  <body onload="ajaxFunction();">
-  
-		<table cellpadding="10" cellspacing="2" border = 0>
-		<tr><td><img src="WTPlogo.jpg" width="150" alt="azizi"  border="0" /> </td><td>   <h3>Azizi</h3></td><td>&nbsp; </td></tr>
-		
-			    <tr>
-			    
-			    <td colspan="3" ><p>Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI.
-			                              The system supports a number of activities and projects including 
-			                              <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>,
-  			                              <a href="http://avid.icipe.org/" target="_blank">AVID</a>, 
-  			                              <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>,  
-  			                              <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank">a group of projects targeting innate resistance to trypanosomiasis</a>,  
-			                              the ILRI livestock diversity collection and ILRI's unique collection
-			                              of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase
-			                              liquid nitrogen with uniquely roubust, secure and well monitored ultra-cold
-			                              conditions for long-term storage.
-			                    <p>This page provides links to resources and real-time monitoring of critical systems.
-			                              </td>
-			    </tr>
-
-		
-	    <tr><td colspan="3" align = center><p><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a>  
-   	                              &nbsp;&nbsp;&nbsp;<a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a>
-	                              &nbsp;&nbsp;&nbsp;<a href="/wx" target='_blank'>Latest weather satellite images</a>
-	                              &nbsp;&nbsp;&nbsp;<a href="/graphs/">Graphical summary of AVID sample collection</a>
-	                             &nbsp;&nbsp;&nbsp; <a href="/photo_gallery/">AVID's photo gallery</a>
-	                             </td>
-	                       
-	    </tr>
-	    
-	    <tr><td>&nbsp; </td>
-	                             <td> 
-	    
-	    <div id='Ajax'>
-  </div></td><td>&nbsp;</td></tr>
-  
-	    <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-	    <tr><td>&nbsp;
-</td><td>
-
-<p><abbr title=" - Azizi is a Swahili word meaning a treasure, a valued thing, a rarity.">why azizi ?</abbr></p></td><td>&nbsp;</td></tr>
-
-</table>
-	
-				   
-	</body>
-
 </html>

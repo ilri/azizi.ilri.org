@@ -26,19 +26,19 @@
       tanks = tanks.substring(1);
       LoadFreezerGraph(days, tanks);
       LoadPressureGraph(days);
-      LoadFillPointGraph(days);  
-      LoadLevelGraph(days); 
+      LoadFillPointGraph(days);
+      LoadLevelGraph(days);
 	  LoadBulkTankWeightGraph(days);
       updateImages();
-      ajax('lib/summary', 'summary_table');
+      ajax('lib/summary.php', 'summary_table');
     }
     function LoadFreezerGraph(days, tanks) {
       fg = new Dygraph(// containing div
 		       document.getElementById("freezer_graph"),
-		       
+
 		       // CSV or path to a CSV file.
 		       "plots/freezer_graph.php?days=" + days + "&tanks=" + tanks,
-		       
+
 		       // Options
 		       {
 		       title: 'Freezer tank Temperatures',
@@ -53,10 +53,10 @@
     function LoadPressureGraph(days) {
       pg = new Dygraph(// containing div
 		       document.getElementById("pressure_graph"),
-		       
+
 		       // CSV or path to a CSV file.
 		       "plots/pressure_graph.php?days=" + days,
-		       
+
 		       // Options
 		       {
 		       title: 'Bulk tank Pressure',
@@ -71,10 +71,10 @@
     function LoadLevelGraph(days) {
       pg = new Dygraph(// containing div
 		       document.getElementById("level_graph"),
-		       
+
 		       // CSV or path to a CSV file.
 		       "plots/level_graph.php?days=" + days,
-		       
+
 		       // Options
 		       {
 		       title: 'Bulk tank contents',
@@ -89,10 +89,10 @@
     function LoadFillPointGraph(days) {
       pg = new Dygraph(// containing div
 		       document.getElementById("fill_point_graph"),
-		       
+
 		       // CSV or path to a CSV file.
 		       "plots/fill_point_graph.php?days=" + days,
-		       
+
 		       // Options
 		       {
 		       title: 'Fill point temperature',
@@ -107,10 +107,10 @@
     function LoadBulkTankWeightGraph(days) {
       pg = new Dygraph(// containing div
 		       document.getElementById("bulk_tank_weight_graph"),
-		       
+
 		       // CSV or path to a CSV file.
 		       "plots/bulk_tank_weight_graph.php?days=" + days,
-		       
+
 		       // Options
 		       {
 		       title: 'Bulk Tank Weight',
@@ -132,7 +132,7 @@
       ajax("lib/info.php","info");
     }
     function contract()
-    { 
+    {
       var info = document.getElementById("info")
       info.innerHTML = "<a href='javascript:expand()'>more info</a>";
     }
@@ -171,9 +171,9 @@
 	  <input type="button" value="Update Graph" onclick="javascript:LoadGraphs()">
 	</form>
       </div> <!-- controller -->
-      
+
       <div id="summary_table"></div> <!-- summary table -->
-      
+
       <div class="images">
 	<table>
 	  <tr class="odd"><td><div id="image0"></div></td><td><div id="image1"></div></td></tr>
