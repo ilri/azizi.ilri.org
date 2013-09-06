@@ -14,46 +14,56 @@
 	</head>
 
   <body>
-     <div id="top">
-        <div id="search"><input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" /></div>
+     <div id="top" class="transform_slow">
+        <div id="search">
+           <input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" />
+           <!-- <a href='javascript:;'>Advanced Search</a> -->
+        </div>
         <div id="title" class="center bold">Azizi Biorepository</div>
         <div id="ngombe_image"><img src="/azizi/images/WTPlogo.jpg" width="150" alt="azizi"  border="0" /></div>
      </div>
-     <div id="info">
-        <p>
-           Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI. The system supports a number of activities and projects including
-           <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://avid.icipe.org/" target="_blank">AVID</a>,
-  			  <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank"> a group of projects targeting innate resistance to trypanosomiasis</a>,
-			  the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase liquid nitrogen
-           with uniquely roubust, secure and well monitored ultra-cold conditions for long-term storage.
-        </p>
-        <p>This page provides links to resources and real-time monitoring of critical systems.</p>
-     </div>
-     <div id="links" class="center">
-	    <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
-   	 <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
-	    <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
-	    <span><a href="/graphs/">Graphical summary of AVID sample collection</a></span>
-	    <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
-     </div>
-
-	  <div id='equipment_status'>
-         <div class="status center hidden">
-            System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>  Cluster Status <span class="hpc_status"></span>
+     <div id="contents" class="transform_slow">
+         <div id="info">
+            <p>
+               Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI. The system supports a number of activities and projects including
+               <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://avid.icipe.org/" target="_blank">AVID</a>,
+               <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank"> a group of projects targeting innate resistance to trypanosomiasis</a>,
+               the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase liquid nitrogen
+               with uniquely roubust, secure and well monitored ultra-cold conditions for long-term storage.
+            </p>
+            <p>This page provides links to resources and real-time monitoring of critical systems.</p>
          </div>
-         <div class="ln2_fridges float_left"></div>
-         <div class="ancilliary"></div>
-         <div class="general hidden">
-            The LN plant ran for <span class="latest_plant_uptime bold"></span>&#37; of the time in the last <span class="latest_plant_days"></span> days. It has logged a total of <span class="total_plant_hours bold"></span> hours since 2011-02-16 (<span class="total_plant_uptime"></span>% duty).<br />
-            The external fill point was used for <span class="latest_fillpoint_hours"></span> hours in the last <span class="latest_fillpoint_days"></span> days. Since 2011-03-16 it has been in use for <span class="total_fillpoint_hours"></span> hours.
+         <div id="links" class="center">
+           <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
+           <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
+           <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
+           <span><a href="/graphs/">Graphical summary of AVID sample collection</a></span>
+           <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
          </div>
-         <div class="fridge_freezers float_left"></div>
-         <div class="equipments_rooms"></div>
-     </div>
 
-     <div id="extra">
-         <p><abbr title=" - Azizi is a Swahili word meaning a treasure, a valued thing, a rarity.">why azizi ?</abbr></p>
+         <div id='equipment_status'>
+             <div class="status center hidden">
+                System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>  Cluster Status <span class="hpc_status"></span>
+             </div>
+             <div class="ln2_fridges float_left"></div>
+             <div class="ancilliary"></div>
+             <div class="general hidden">
+                The LN plant ran for <span class="latest_plant_uptime bold"></span>&#37; of the time in the last <span class="latest_plant_days"></span> days. It has logged a total of <span class="total_plant_hours bold"></span> hours since 2011-02-16 (<span class="total_plant_uptime"></span>% duty).<br />
+                The external fill point was used for <span class="latest_fillpoint_hours"></span> hours in the last <span class="latest_fillpoint_days"></span> days. Since 2011-03-16 it has been in use for <span class="total_fillpoint_hours"></span> hours.
+             </div>
+             <div class="fridge_freezers float_left"></div>
+             <div class="equipments_rooms"></div>
+         </div>
+         <div id="extra">
+             <p><abbr title=" - Azizi is a Swahili word meaning a treasure, a valued thing, a rarity.">why azizi ?</abbr></p>
+         </div>
      </div>
+     <div id="results" class="hidden transform_slow">
+        <div class="left"></div>
+        <div class="right" class="transform_slow"></div>
+     </div>
+     <div id="bottom_panel" class="hidden transform_slow"></div>
+     <div id="up_arrow" class="hidden transform_slow"><span class="up_arrow"></span></div>
 	</body>
 
 <!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second -->
@@ -67,6 +77,9 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
   Azizi.sysConfig = <?php require_once 'azizi_config'; echo json_encode(Config::$sysConfig); ?>;
+
+  $('[name=azizi_search]').focus().live('keyup', Azizi.startSearch);
+  $('.first_line a').live('click', Azizi.getSampleDetails);
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
 <!--End of google analytics-->

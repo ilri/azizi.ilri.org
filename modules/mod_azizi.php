@@ -39,12 +39,25 @@ class Azizi{
    private $phoneHoursOld = 2;
 
    /**
+    * @var  object   An object to hold the database connection object and its other functions
+    */
+   public $Dbase;
+
+   /**
     * The main controller. Controls which functions will be called and when
     */
    public function TrafficController(){
-      $this->mysqlConn = mysql_connect(Config::$dbhost, Config::$dbuser, Config::$dbpass) or die ('There was an error connecting while connecting to the database.');
-      mysql_select_db(Config::$dbname);
+      require_once OPTIONS_COMMON_FOLDER_PATH . 'dbmodules/mod_objectbased_dbase_v1.0.php';
+      require_once OPTIONS_COMMON_FOLDER_PATH . 'mod_general_v0.6.php';
+      $this->Dbase = new DBase('mysql');
+      $this->Dbase->InitializeConnection();
+      if($this->Dbase->dbcon->connect_error || (isset($this->Dbase->dbcon->errno) && $this->Dbase->dbcon->errno!=0)) {
+         die('Something wicked happened when connecting to the dbase.');
+      }
+      $this->Dbase->InitializeLogs();
       if(OPTIONS_REQUESTED_MODULE == 'equimentStatus') $this->EquipmentStatus();
+      elseif(OPTIONS_REQUESTED_MODULE == 'search') $this->SearchDatabase();
+      elseif(OPTIONS_REQUESTED_MODULE == 'sample_details') $this->SampleDetails();
    }
 
    /**
@@ -83,8 +96,10 @@ class Azizi{
          WHERE a.timestamp > (now() - interval {$this->plantRunTime} day)
          ORDER BY timestamp DESC
      ";
-      $res = mysql_query($query, $this->mysqlConn);
-      $row = mysql_fetch_array($res, MYSQL_ASSOC);
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $row = $row[0];
+//      var_dump($row);
       $up_duty = round( (100*$row["running"])/ ($row["running"]+$row["stopped"]), 0);
 
       //total running time averages
@@ -96,8 +111,9 @@ class Azizi{
          WHERE a.timestamp > ('{$this->plantStartTime}')
          ORDER BY timestamp DESC
      ";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $row = mysql_fetch_array($res, MYSQL_ASSOC);
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $row = $row[0];
       $total_up_duty = round( (100*$row["running"])/ ($row["running"] + $row["stopped"]), 0);
       $total_running_hours = number_format($row["running"]);
 
@@ -118,9 +134,9 @@ class Azizi{
          WHERE a.timestamp > (now() - interval {$this->fillPointTime} day)
          ORDER BY timestamp DESC
      ";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $row = mysql_fetch_array($res);
-      $fillPointUsage = $row["running"];
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $fillPointUsage = $row[0]["running"];
 
       //total fill poiny usage
       $query = "
@@ -130,9 +146,9 @@ class Azizi{
          WHERE a.timestamp > ('{$this->fillPointStartTime}')
          ORDER BY timestamp DESC
      ";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $row = mysql_fetch_array($res);
-      $fillPointTotalUsage = $row['running'];
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $fillPointTotalUsage = $row[0]['running'];
 
       return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);
    }
@@ -145,22 +161,31 @@ class Azizi{
    private function Ln2FridgesStatuses(){
       //number of active tanks
       $query = 'select count(*) as active_tanks from units where active = 1';
-      $res = mysql_query($query,  $this->mysqlConn);
-      $row = mysql_fetch_array($res, MYSQL_ASSOC);
-      $activeTanks = $row['active_tanks'];
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $activeTanks = $row[0]['active_tanks'];
 
-      $query = "
-         select
-            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
-            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
-            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
-            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
-            if(alarms='0','none',alarms) as alarmstate
-         from log as a inner join units as b on a.TankID = b.TankID
-         where b.active = 1 order by CreatedOn desc limit $activeTanks";
-      $fridgeStatuses = array();
-      $res = mysql_query($query,  $this->mysqlConn);
-      while($row = mysql_fetch_array($res, MYSQL_ASSOC)) $fridgeStatuses[$row['TankID']] = $row;
+      $count = 0; $i = 1;
+      while($count != $activeTanks){
+         $limit = $activeTanks * $i;
+         $query = "
+            select
+               a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+               if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+               if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+               if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+               if(alarms='0','none',alarms) as alarmstate
+            from log as a inner join units as b on a.TankID = b.TankID
+            where b.active = 1 order by CreatedOn desc limit $limit";
+         $fridgeStatuses = array();
+         $rows = $this->Dbase->ExecuteQuery($query);
+         if($rows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         foreach($rows as $row){
+            if(!key_exists($row['TankID'], $fridgeStatuses)) $fridgeStatuses[$row['TankID']] = $row;
+         }
+         $count = count($fridgeStatuses);
+         $i++;
+      }
 
       return $fridgeStatuses;
    }
@@ -191,10 +216,10 @@ class Azizi{
          from pressure
          order by timestamp desc limit 1
      ";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $ancilliaryStatus = mysql_fetch_array($res, MYSQL_ASSOC);
+      $ancilliaryStatus = $this->Dbase->ExecuteQuery($query);
+      if($ancilliaryStatus == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-      return $ancilliaryStatus;
+      return $ancilliaryStatus[0];
    }
 
    /**
@@ -219,8 +244,9 @@ class Azizi{
      ";
 
       $fridgeStatuses = array();
-      $res = mysql_query($query,  $this->mysqlConn);
-      while($row = mysql_fetch_array($res, MYSQL_ASSOC)) $fridgeStatuses[$row['freezer']] = $row;
+      $rows = $this->Dbase->ExecuteQuery($query);
+      if($rows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      foreach($rows as $row) $fridgeStatuses[$row['freezer']] = $row;
 
       return $fridgeStatuses;
    }
@@ -247,8 +273,9 @@ class Azizi{
       ";
 
       $otherStatuses = array();
-      $res = mysql_query($query,  $this->mysqlConn);
-      while($row = mysql_fetch_array($res, MYSQL_ASSOC)) $otherStatuses[$row['freezer']] = $row;
+      $rows = $this->Dbase->ExecuteQuery($query);
+      if($rows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      foreach($rows as $row) $otherStatuses[$row['freezer']] = $row;
 
       return $otherStatuses;
    }
@@ -266,17 +293,55 @@ class Azizi{
             xml_data, ((unix_timestamp(now()) - unix_timestamp(date))/3600) AS hours_old
          FROM hpc ORDER BY date DESC LIMIT 1
      ";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $hpcStatus = mysql_fetch_array($res, MYSQL_ASSOC);
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $hpcStatus = $row[0];
       $xml = simplexml_load_string($hpcStatus['xml_data']);    //turn it into a SimpleXMLObject
       $hpcDiskCount = count($xml->xpath('//disk[status="Online"]'));
 
       //email/sms monitoring status
       $query = "select time, success, date_format(NOW(), '%H:%i:%s') as servertime, time<DATE_SUB(NOW(), INTERVAL {$this->phoneHoursOld} HOUR) as old from phone_status order by time desc limit 1";
-      $res = mysql_query($query,  $this->mysqlConn);
-      $emailSmsStatus = mysql_fetch_array($res, MYSQL_ASSOC);
+      $row = $this->Dbase->ExecuteQuery($query);
+      if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $emailSmsStatus = $row[0];
 
       return array('hpcDiskCount' => $hpcDiskCount, 'emailSmsStatus' => $emailSmsStatus);
+   }
+
+   /**
+    * Performs a global search for the searched item in the database
+    */
+   private function SearchDatabase(){
+      $database = 'azizi';
+      $query = 'select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access '
+         . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count inner join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
+         . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments '
+         . 'limit 0,10';
+
+      $vals = array('label' => "%{$_GET['q']}%", 'origin' => "%{$_GET['q']}%", 'animalId' => "%{$_GET['q']}%", 'trayId' => "%{$_GET['q']}%", 'project' => "%{$_GET['q']}%", 'comments' => "%{$_GET['q']}%");
+      $res = $this->Dbase->ExecuteQuery($query, $vals);
+      if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+
+      //we are all good. lets return this data
+      die(json_encode(array('error' => false, 'data' => $res), JSON_FORCE_OBJECT));
+   }
+
+   /**
+    * Fetches the sample details
+    */
+   private function SampleDetails(){
+      //get the sample id
+      preg_match('/sample_([0-9]{1,8})/', $_GET['id'], $ids);
+      if(!is_numeric($ids[1])) die(json_encode(array('error' => true, 'data' => 'System Error! Please contact the system administrator.')));
+
+      $database = 'azizi';
+      $query = "select comments, open_access from $database.samples where count = :id";
+      $res = $this->Dbase->ExecuteQuery($query, array('id' => $ids[1]));
+      if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+
+      //we are all good. lets return this data
+      if($res[0]['open_access'] == 1) die(json_encode(array('error' => false, 'data' => $res[0]), JSON_NUMERIC_CHECK));
+      else die(json_encode(array('error' => false, 'data' => array('comments' => 'Sorry! This record closed for public access.'))));
    }
 }
 ?>

@@ -1,0 +1,797 @@
+2013-09-03 05:42:56: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:42:56: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:44:05: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:44:05: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:44:50: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:44:50: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:01: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:01: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:12: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:12: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:23: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:23: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:35: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:35: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:45: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:45: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:56: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:45:56: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:07: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:07: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:18: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:18: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:29: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:29: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:40: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:40: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:51: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:46:51: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:02: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:02: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H:%i'), date_format(CreatedOn, '%e %b  %H:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:13: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:13: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:51: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:47:51: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:48:55: :
+Fatal => 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:48:55: :
+Fatal => Error while executing a db statement.
+Vars:
+Error Log:
+Array
+(
+    [0] => 42000
+    [1] => 1064
+    [2] => You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '' at line 8
+)
+
+MySQL Error and String: () 
+Last Query: 
+         select
+            a.TankID, temp, level, lid, fill, alarms, thermocouple_error, ((unix_timestamp(now()) - unix_timestamp(CreatedOn))/3600) as hours_old,
+            if(DATE(CreatedOn) = DATE(NOW()), date_format(CreatedOn, '%H\:%i'), date_format(CreatedOn, '%e %b  %H\:%i')) as smart_date,
+            if(lid=0,'shut','open') as lidstate, if(fill=0,'off','on') as fillstate,
+            if(thermocouple_error = 0,'ok','FAULT') as thermocouple_state,
+            if(alarms='0','none',alarms) as alarmstate
+         from log as a inner join units as b on a.TankID = b.TankID
+         where b.active = 1 order by CreatedOn desc limit 
+
+2013-09-03 05:53:36: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %sds%
+    [origin] => %sds%
+    [animalId] => %sds%
+    [trayId] => %sds%
+    [project] => %sds%
+)
+
+
+2013-09-03 05:56:20: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %asd%
+    [origin] => %asd%
+    [animalId] => %asd%
+    [trayId] => %asd%
+    [project] => %asd%
+)
+
+
+2013-09-03 05:56:20: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %asdfa%
+    [origin] => %asdfa%
+    [animalId] => %asdfa%
+    [trayId] => %asdfa%
+    [project] => %asdfa%
+)
+
+
+2013-09-03 05:56:20: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %asdfa%
+    [origin] => %asdfa%
+    [animalId] => %asdfa%
+    [trayId] => %asdfa%
+    [project] => %asdfa%
+)
+
+
+2013-09-03 05:56:20: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %asdfa%
+    [origin] => %asdfa%
+    [animalId] => %asdfa%
+    [trayId] => %asdfa%
+    [project] => %asdfa%
+)
+
+
+2013-09-03 05:56:23: :
+Fatal => Improper bound data types.
+Stmt: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like trayId or a.Project like :project
+Vars:Array
+(
+    [label] => %asdfas%
+    [origin] => %asdfas%
+    [animalId] => %asdfas%
+    [trayId] => %asdfas%
+    [project] => %asdfas%
+)
+
+
+2013-09-03 05:57:27: :
+Fatal => select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like '%asdfas%' or a.origin like '%asdfas%' or a.AnimalID like '%asdfas%' or a.TrayID like '%asdfas%' or a.Project like '%asdfas%'
+
+2013-09-03 05:57:27: :
+Fatal => Error while executing a db statement.
+Vars:Array
+(
+    [label] => %asdfas%
+    [origin] => %asdfas%
+    [animalId] => %asdfas%
+    [trayId] => %asdfas%
+    [project] => %asdfas%
+)
+
+Error Log:
+Array
+(
+    [0] => 42S22
+    [1] => 1054
+    [2] => Unknown column 'b.count' in 'on clause'
+)
+
+MySQL Error and String: () 
+Last Query: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or a.Project like :project
+
+2013-09-03 05:57:31: :
+Fatal => select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like '%asd%' or a.origin like '%asd%' or a.AnimalID like '%asd%' or a.TrayID like '%asd%' or a.Project like '%asd%'
+
+2013-09-03 05:57:31: :
+Fatal => Error while executing a db statement.
+Vars:Array
+(
+    [label] => %asd%
+    [origin] => %asd%
+    [animalId] => %asd%
+    [trayId] => %asd%
+    [project] => %asd%
+)
+
+Error Log:
+Array
+(
+    [0] => 42S22
+    [1] => 1054
+    [2] => Unknown column 'b.count' in 'on clause'
+)
+
+MySQL Error and String: () 
+Last Query: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or a.Project like :project
+
+2013-09-03 05:57:31: :
+Fatal => select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like '%asds%' or a.origin like '%asds%' or a.AnimalID like '%asds%' or a.TrayID like '%asds%' or a.Project like '%asds%'
+
+2013-09-03 05:57:31: :
+Fatal => Error while executing a db statement.
+Vars:Array
+(
+    [label] => %asds%
+    [origin] => %asds%
+    [animalId] => %asds%
+    [trayId] => %asds%
+    [project] => %asds%
+)
+
+Error Log:
+Array
+(
+    [0] => 42S22
+    [1] => 1054
+    [2] => Unknown column 'b.count' in 'on clause'
+)
+
+MySQL Error and String: () 
+Last Query: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def on a.sample_type = b.count inner join azizi.organisms as b on a.org=b.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or a.Project like :project
+
+2013-09-03 05:58:47: :
+Fatal => select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def as b on a.sample_type = b.count inner join azizi.organisms as c on a.org=c.org where a.label like '%asdss%' or a.origin like '%asdss%' or a.AnimalID like '%asdss%' or a.TrayID like '%asdss%' or a.Project like '%asdss%'
+
+2013-09-03 05:58:47: :
+Fatal => Error while executing a db statement.
+Vars:Array
+(
+    [label] => %asdss%
+    [origin] => %asdss%
+    [animalId] => %asdss%
+    [trayId] => %asdss%
+    [project] => %asdss%
+)
+
+Error Log:
+Array
+(
+    [0] => 42S22
+    [1] => 1054
+    [2] => Unknown column 'c.org' in 'on clause'
+)
+
+MySQL Error and String: () 
+Last Query: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def as b on a.sample_type = b.count inner join azizi.organisms as c on a.org=c.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or a.Project like :project
+
+2013-09-03 05:58:48: :
+Fatal => select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def as b on a.sample_type = b.count inner join azizi.organisms as c on a.org=c.org where a.label like '%asdssd%' or a.origin like '%asdssd%' or a.AnimalID like '%asdssd%' or a.TrayID like '%asdssd%' or a.Project like '%asdssd%'
+
+2013-09-03 05:58:48: :
+Fatal => Error while executing a db statement.
+Vars:Array
+(
+    [label] => %asdssd%
+    [origin] => %asdssd%
+    [animalId] => %asdssd%
+    [trayId] => %asdssd%
+    [project] => %asdssd%
+)
+
+Error Log:
+Array
+(
+    [0] => 42S22
+    [1] => 1054
+    [2] => Unknown column 'c.org' in 'on clause'
+)
+
+MySQL Error and String: () 
+Last Query: select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, a.Project as project from azizi.samples as a left join azizi.sample_types_def as b on a.sample_type = b.count inner join azizi.organisms as c on a.org=c.org where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or a.Project like :project
+

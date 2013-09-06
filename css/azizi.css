@@ -1,5 +1,5 @@
 body { margin: 0;	padding: 0;	font-family: 'Open Sans', "Lucida Grande", arial, helvetica, verdana, sans-serif; color: #000000; background-color: #FFFFFF; }
-#top, #info, #links, #extra{ width: 97%; margin: 20px 1.5% 2px 1.5%; }
+#top, #info, #links, #extra, #bottom_panel{ width: 97%; margin: 20px 1.5% 2px 1.5%; }
 #top{ margin-bottom: 30px; height: 160px; padding-top: 20px;}
 #title, #search, #ngombe_image { float: left; width: 33.3%; }
 #title{ font-size: 3.3em; }
@@ -20,7 +20,7 @@ body { margin: 0;	padding: 0;	font-family: 'Open Sans', "Lucida Grande", arial, 
 #outline { position: relative; height: 800px; width: 800px; margin: 18px auto 0; border: solid 1px #999; }
 #caption { width: 260px; left: 48px; top: 318px; position: absolute; visibility: visible; }
 #text { left: 336px; top: 318px; position: absolute; width: 400px; visibility: visible; margin-top: 10px; }
-p { color: #666; font-size: 16px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin-top: 0; }
+p, #results, #bottom_panel { color: #666; font-size: 16px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin-top: 0; }
 h1 { color: #666; font-size: 20px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: 500; line-height: 32px; margin-top: 4px; }
 h2 { color: #666; font-size: 18px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin: 0px; }
 h3 { color: #666; font-size: 60px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: bold; text-align: center; letter-spacing: -1px; width: auto; }
@@ -29,3 +29,21 @@ a { color: #666; text-decoration: underline; }
 a.frzr { color: #778fbd; text-decoration: none; }
 /*Show the value of the title attribute when hovered*/
 abbr[title]:hover:after{ content: attr(title); }
+#bottom_panel, #up_arrow{font-size: 12px; width: 97%; position: fixed; bottom: 0; padding: 5px; margin:0px; border-top: 1px #666 dotted; height: 25px; text-overflow: ellipsis; float: left;}
+#up_arrow{width: 3%; position: fixed; bottom: 0; left: 97%; padding-left: 15px; cursor: pointer;}
+.up_arrow{display:inline-block; width:10px; height:10px; line-height:7px; border-top:3px solid #aaa; border-right:3px solid #aaa; -ms-transform:rotate(45deg); -moz-transform:rotate(45deg); -webkit-transform:rotate(45deg); transform:rotate(45deg);}
+.up_arrow{-ms-transform:rotate(-45deg); -moz-transform:rotate(-45deg); -webkit-transform:rotate(-45deg); transform:rotate(-45deg);}
+.up_arrow:hover{border-color:#444; margin-right: 10px;}
+.narrow_top{margin: 0px 1.5%; padding: 5px 0px; min-height: 65px;}
+.narrow_top #title{font-size: 2.5em; padding-top: 10px;}
+.narrow_top #ngombe_image img{width: 65px; height: 50px;}
+.transform_slow, #top{-webkit-transition: top, height 2s ease; -moz-transition: top, height 2s ease; -o-transition: top, height 2s ease; transition: top, height 2s ease;}
+#results{font-size: 12px; margin: 15px; padding-top: 10px;}
+#results .result_set{margin: 3px; width: 95%; margin: 3px 5px 10px 2px;}
+.result_set .first_line{margin-bottom: 3px;}
+#results .left, #results .right{width: 40%; margin: 3px; float: left;}
+#results .right{width: 56%;}
+#results .right div:nth-child(1){float: left; width: 50%;}
+#results .right div:nth-child(2){float: right;}
+#results .access{width: 26px; height: 47px; float: left; margin-right: 5px;}
+#results .selected{border: 1px dotted #999;}

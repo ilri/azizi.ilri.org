@@ -1,5 +1,9 @@
 var Azizi = {
    refreshEquipmentStatus: function(){
+      if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){
+         setTimeout(Azizi.refreshEquipmentStatus, 10000);
+         return;
+      }
       isInitialRequest = ($('.latest_plant_days').html() == '') ? 'yes' : 'no';
       Azizi.isInitialRequest = isInitialRequest;
       $.ajax({
@@ -22,8 +26,8 @@ var Azizi = {
       }
       Azizi.updateLn2FridgesStatuses(data.ln2FridgeStatuses);
       Azizi.updateAncilliaryStatus(data.ancilliaryStatus)
-      Azizi.updatefridgeFreezerStatuses(data.fridgeFreezerStatuses);
-      Azizi.updateequipmentsAndRoomsStatuses(data.equipmentsAndRoomsStatuses);
+      Azizi.updateFridgeFreezerStatuses(data.fridgeFreezerStatuses);
+      Azizi.updateEquipmentsAndRoomsStatuses(data.equipmentsAndRoomsStatuses);
       //after a successfull update, call it again
       setTimeout(Azizi.refreshEquipmentStatus, 10000);
    },
@@ -109,38 +113,45 @@ var Azizi = {
     * @returns {undefined}
     */
    updateAncilliaryStatus: function(data){
-      var headers = '', values = '', cfg = Azizi.sysConfig, use_colour;
+      var headers = '', values = '', cfg = Azizi.sysConfig, use_colour, headerCount = 0;
 
-      if(data.fill_point  != 'warm') {
-         headers += "<td>fill point</td>";
+      if(data.fill_point !== 'warm') {
+         headers += "<td>Fill Point</td>";
          values += sprintf("<td bgcolor='%s'>%s</td>", cfg.alertColour, data.fill_point);
+         headerCount++;
       }
 
-      if(data.switch_state != 'open') {
-         headers += "<td>LN supply</td><td>Shutoff valve</td>";
+      if(data.switch_state !== 'open') {
+         headers += "<td>Shutoff Valve</td>";
          values += sprintf("<td bgcolor='%s'>%s</td>", cfg.alertColour, data.switch_state);
+         headerCount++;
       }
 
-      if(data.vent_valve != 'closed') {
-         headers += "<td>Hot gas</td><td>vent valve</td>";
-         values += sprintf("<td bgcolor='%s'>%s</td>", cfg.warnColor, data.vent_valve);
+      if(data.vent_valve !== 'closed') {
+         headers += "<td>Vent Valve</td>";
+         values += sprintf("<td bgcolor='%s'>%s</td>", cfg.alertColor, data.vent_valve);
+         headerCount++;
       }
 
-      if(data.vent_alarm != 'ok') {
-         headers += "<td>Hot gas</td><td>vent alarm</td>";
+      if(data.vent_alarm !== 'ok') {
+         headers += "<td>Vent Alarm</td>";
          values += sprintf("<td bgcolor='%s'>%s</td>", cfg.alertColour, data.vent_alarm);
+         headerCount++;
       }
 
-      if (data.door_state != 'closed') {
-         headers += "<td></td><td>Door</td>";
-         values += sprintf("<td bgcolor='%s'>%s</td>", cfg.warnColor, data.door_state);
+      if (data.door_state !== 'closed') {
+         headers += "<td>Door</td>";
+         values += sprintf("<td bgcolor='%s'>%s</td>", cfg.alertColor, data.door_state);
+         headerCount++;
       }
+
+      var additionalTopHeader = (headerCount !== 0) ? sprintf("<td colspan='%d' class='center'>Others</td>", headerCount) : '';
 
       var content = sprintf("\
          <h2 class='center'> Ancilliary LN<sub>2</sub> systems</h2>\n\
          <table cellpadding='4' cellspacing='1' style='vertical-align:top'>\n\
-         <tr bgcolor='#AAAAAA'><td colspan = '2' align = 'center'>Bulk Tank</td>%s<td>Room</td><td colspan='2'></td></tr>\n\
-         <tr bgcolor='#AAAAAA'><td>Contents</td><td>Pressure</td>%s<td> O<sub>2</sub></td><td>LN Plant</td><td>Last Report</td></tr>", headers, values);
+         <tr bgcolor='#AAAAAA'><td colspan = '2' align = 'center'>Bulk Tank</td><td>Room</td><td colspan='2' class='center'>LN Supply</td>%s</tr>\n\
+         <tr bgcolor='#AAAAAA'><td>Contents</td><td>Pressure</td><td> O<sub>2</sub></td><td>LN Plant</td><td>Last Report</td>%s</tr>", additionalTopHeader, headers);
 
       use_colour = (data.contents > cfg.maxContents) ? cfg.high_p_colour : cfg.normalColour;
       if(data.contents < cfg.minContents) use_colour = cfg.low_p_colour;
@@ -155,7 +166,7 @@ var Azizi = {
       content += sprintf("<td bgcolor='%s'>%s</td>", cfg.normalColour, data.plant);
 
       use_colour = (data.hours_old > cfg.pressureOld) ? cfg.alertColour : cfg.normalColour;
-      content += sprintf("<td bgcolor='%s'>%s</td></tr>\n", use_colour, data.smart_date);
+      content += sprintf("<td bgcolor='%s'>%s</td>%s</tr>\n", use_colour, data.smart_date, values);
 
       content += "</table>";
 
@@ -168,7 +179,7 @@ var Azizi = {
     * @param   object   data     An object with the statuses
     * @returns {undefined}
     */
-   updatefridgeFreezerStatuses: function(data){
+   updateFridgeFreezerStatuses: function(data){
       var content, cfg = Azizi.sysConfig, use_colour;
       content = "\
          <h2>GS FLX lab fridges & freezers <a href='/azizi/labfreezers/?type=freezer'> more</a></h2>\n\
@@ -198,7 +209,7 @@ var Azizi = {
     * @param   object   data     An object with the statuses
     * @returns {undefined}
     */
-   updateequipmentsAndRoomsStatuses: function(data){
+   updateEquipmentsAndRoomsStatuses: function(data){
       var content, cfg = Azizi.sysConfig, use_colour;
       content ="\
       <h2 class='text_right'>GS FLX equipment and rooms <a href='/azizi/labfreezers/?type=room' > more</a></h2>\n\
@@ -232,5 +243,89 @@ var Azizi = {
       });
       content += "</table>\n";
       $('.equipments_rooms').html(content);
+   },
+
+   /**
+    * Starts a global search using the search criteria. If there is nothing to search, it restores the page to its previous state
+    *
+    * @param   {type} event
+    * @returns {undefined}
+    */
+   startSearch: function(event){
+      if(this.value.length < 3){
+         if(Azizi.isSearching !== undefined && Azizi.isSearching){
+            $('.narrow_top').attr('id', 'top');
+            $('#top').removeClass('narrow_top');
+            $('#bottom_panel').html($('#info p').html());
+            $('#results').fadeOut('slow', 'linear');
+            $('#contents').fadeIn('slow', 'linear');
+            $('#bottom_panel, #up_arrow').fadeOut('slow', 'linear');
+            Azizi.isSearching = false;
+            Azizi.stopUpdateStatus = false;
+            this.value = '';
+         }
+      }
+      else{
+         //if we have a search term > 3 letters... start the search, but first prepare the UI
+         if(Azizi.isSearching === undefined || Azizi.isSearching === false){
+            $('#top').addClass('narrow_top');
+            $('#top').removeAttr('id');
+            $('#contents').fadeOut('slow', 'linear');
+            $('#bottom_panel, #up_arrow').fadeIn('slow', 'linear');
+            $('#results').fadeIn('slow', 'linear');
+            Azizi.isSearching = true;
+            Azizi.stopUpdateStatus = true;
+         }
+         $.ajax({
+            type:"POST", url:'/azizi/mod_ajax.php?page=search&q='+this.value, dataType:'json', error: Azizi.communicationError, success: Azizi.updateSearchResults
+         });
+      }
+   },
+
+   /**
+    * Updates the interface with the search results google-style
+    *
+    * @param {type} data
+    * @returns {undefined}
+    */
+   updateSearchResults: function(data){
+      var content = '', others, access;
+      var clearing = (data.data.length === 0) ? 'No Results...' : '';
+      $('#results .left').html(clearing);
+      $('#results .right').html('');
+      $.each(data.data, function(i, t){
+         others = '';
+         if(t.animal_id !== null) others += sprintf("  <span>A: %s</span>", t.animal_id);
+         if(t.collection_date !== null) others += sprintf("  <span>Col. Date: %s</span>", t.collection_date);
+         if(t.Latitude !== null) others += sprintf("  <span>Lat: %s</span>", t.Latitude);
+         if(t.Longitude !== null) others += sprintf("  <span>Lon: %s</span>", t.Longitude);
+         access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
+         content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+            <a href='javascript:;' class='sample_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+         </div>\n\
+         <div class='second_line'>\n\
+            <span>P: %s</span>%s\n\
+         </div></div>",
+            access, t.sample_id, t.sample_id, t.label, t.org_name, t.sample_type, t.project, others);
+         $('#results .left').append(content);
+      });
+   },
+
+   /**
+    * Get the sample details and display them to the panel on the right hand side
+    * @returns {undefined}
+    */
+   getSampleDetails: function(){
+      $('.selected').removeClass('selected');
+      $(this.parentNode.parentNode).addClass('selected');
+      $.ajax({
+         type:"POST", url:'/azizi/mod_ajax.php?page=sample_details&id='+this.className, dataType:'json',
+         error: Azizi.communicationError,
+         success: function(data){
+            if(data.error){ return; }
+            //update the right hand div with the data as received from the database
+            $('#results .right').html(data.data.comments);
+         }
+      });
    }
 };
