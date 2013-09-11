@@ -18,7 +18,7 @@
      <div id="top" class="transform_slow">
         <div id="search">
            <input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" />
-           <!-- <a href='javascript:;'>Advanced Search</a> -->
+           <a href='javascript:;'>Advanced Search</a>
         </div>
         <div id="title" class="center bold">Azizi Biorepository</div>
         <div id="ngombe_image"><img src="/azizi/images/WTPlogo.jpg" width="150" alt="azizi"  border="0" /></div>
@@ -62,6 +62,7 @@
      <div id="results" class="hidden transform_slow">
         <div class="left"></div>
         <div class="right" class="transform_slow"></div>
+        <div class="extreme_right" class="transform_slow"></div>
      </div>
      <div id="bottom_panel" class="hidden transform_slow"></div>
      <div id="up_arrow" class="hidden transform_slow"><span class="up_arrow"></span></div>

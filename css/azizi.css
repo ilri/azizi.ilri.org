@@ -42,8 +42,12 @@ abbr[title]:hover:after{ content: attr(title); }
 #results .result_set{margin: 3px; width: 95%; margin: 3px 5px 10px 2px;}
 .result_set .first_line{margin-bottom: 3px;}
 #results .left, #results .right{width: 40%; margin: 3px; float: left;}
-#results .right{width: 56%;}
+#results .right{width: 43%;}
+#results .extreme_right{}
 #results .right div:nth-child(1){float: left; width: 50%;}
 #results .right div:nth-child(2){float: right;}
 #results .access{width: 26px; height: 47px; float: left; margin-right: 5px;}
 #results .selected{border: 1px dotted #999;}
+table.search_details {border-collapse: separate; border-spacing: 15px 2px;max-width: 500px;}
+span.result_lables {color: #7896B1;}
+td.search_columns {min-width: 200px;}

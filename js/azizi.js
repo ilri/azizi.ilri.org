@@ -293,8 +293,9 @@ var Azizi = {
       var clearing = (data.data.length === 0) ? 'No Results...' : '';
       $('#results .left').html(clearing);
       $('#results .right').html('');
+      $('#results .extreme_right').html('');
       $.each(data.data, function(i, t){
-         others = '';
+         /*others = '';
          if(t.animal_id !== null) others += sprintf("  <span>A: %s</span>", t.animal_id);
          if(t.collection_date !== null) others += sprintf("  <span>Col. Date: %s</span>", t.collection_date);
          if(t.Latitude !== null) others += sprintf("  <span>Lat: %s</span>", t.Latitude);
@@ -307,6 +308,20 @@ var Azizi = {
             <span>P: %s</span>%s\n\
          </div></div>",
             access, t.sample_id, t.sample_id, t.label, t.org_name, t.sample_type, t.project, others);
+         $('#results .left').append(content);*/
+         others = "";
+         if(t.locality !== null) others += sprintf("  <span>Loc: %s</span>", t.locality);
+         if(t.isolation_date !== null) others += sprintf("  <span>Iso. Date: %s</span>", t.isolation_date);
+         if(t.preservation_date !== null) others += sprintf("  <span>Pres. Date: %s</span>", t.preservation_date);
+         if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
+         access = 'open-access.png';
+         content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+            <a href='javascript:;' class='sample_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+         </div>\n\
+         <div class='second_line'>\n\
+            <span>P: %s</span>%s\n\
+         </div></div>",
+            access, t.id, t.stab_no, t.host_name, t.parasite_name, t.infection_host, t.country_name, others);
          $('#results .left').append(content);
       });
    },
@@ -315,16 +330,198 @@ var Azizi = {
     * Get the sample details and display them to the panel on the right hand side
     * @returns {undefined}
     */
-   getSampleDetails: function(){
+   getSampleDetails: function() {
       $('.selected').removeClass('selected');
       $(this.parentNode.parentNode).addClass('selected');
       $.ajax({
-         type:"POST", url:'/azizi/mod_ajax.php?page=sample_details&id='+this.className, dataType:'json',
+         type: "POST", url: '/azizi/mod_ajax.php?page=sample_details&id=' + this.className, dataType: 'json',
          error: Azizi.communicationError,
-         success: function(data){
-            if(data.error){ return; }
+         success: function(data) {
+            if (data.error) {
+               return;
+            }
             //update the right hand div with the data as received from the database
-            $('#results .right').html(data.data.comments);
+            var stabilate = data.data.stabilate;
+            var passages = data.data.passages;
+
+            var content = "";
+            var stabilateDetails = Array();
+            var stabilateLabels = Array();
+            stabilateLabels.push("Stabilate No.: ");
+            stabilateDetails.push(stabilate.stab_no);
+            stabilateLabels.push("Parasite: ");
+            stabilateDetails.push(stabilate.parasite_name);
+            stabilateLabels.push("Host: ");
+            stabilateDetails.push(stabilate.host_name);
+            stabilateLabels.push("Infection in host: ");
+            stabilateDetails.push(stabilate.infection_host);
+            stabilateLabels.push("Locality: ");
+            stabilateDetails.push(stabilate.locality);
+            stabilateLabels.push("Origin Country: ");
+            stabilateDetails.push(stabilate.country_name);
+            stabilateLabels.push("Stabilate Comments: ");
+            stabilateDetails.push(stabilate.stabilate_comments);
+            //remove those elements in the stabilateDetails array that are null
+            for (var i = 0; i < stabilateDetails.length; i++) {
+               if (stabilateDetails[i] === null || stabilateDetails[i] === "") {
+                  stabilateDetails.splice(i, 1);
+                  stabilateLabels.splice(i, 1);
+                  i--;
+               }
+            }
+
+            //construct the stabilate interface
+            if (stabilateDetails.length > 0) {
+               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Stabilate</h2></td></tr>");
+               for (var i = 0; i < stabilateDetails.length; i++) {
+                  //use modulus to check if i is odd or even
+                  if ((i % 2) === 0) {//EVEN
+                     if (stabilateLabels[i] === "Stabilate Comments: ") {
+                        content = content + sprintf("<tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+                     }
+                     else {
+                        content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", stabilateLabels[i], stabilateDetails[i]);
+                        if (i === (stabilateDetails.length - 1))
+                           content = content + "</tr>"; // last element in the array
+                     }
+                  }
+                  else if ((i % 2) === 1) {//ODD
+                     if (stabilateLabels[i] === "Stabilate Comments: ") {
+                        content = content + sprintf("<td></td></tr><tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+                     }
+                     else {
+                        content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+                     }
+                  }
+               }
+               content = content + "</table>";
+            }
+
+            //add preservation data to array
+            var preservationDetails = Array();
+            var preservationLabels = Array();
+            preservationLabels.push("Preservation Date: ");
+            preservationDetails.push(stabilate.preservation_date);
+            preservationLabels.push("Number Preserved: ");
+            preservationDetails.push(stabilate.number_frozen);
+            preservationLabels.push("Preserved Type: ");
+            preservationDetails.push(stabilate.preserved_type);
+            preservationLabels.push("Preservation Method: ");
+            preservationDetails.push(stabilate.preservation_method);
+            preservationLabels.push("Preserved By: ");
+            preservationDetails.push(stabilate.user_names);
+            //filter out any null preservation data
+            for (var i = 0; i < preservationDetails.length; i++) {
+               if (preservationDetails[i] === null || preservationDetails[i] === "") {
+                  preservationDetails.splice(i, 1);
+                  preservationLabels.splice(i, 1);
+                  i--;
+               }
+            }
+
+            //construct preservation data table
+            if (preservationDetails.length > 0) {
+               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Preservation</h2></td></tr>");
+               for (var i = 0; i < preservationDetails.length; i++) {
+                  if ((i % 2) === 0) {//even
+                     content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", preservationLabels[i], preservationDetails[i]);
+                     if (i === (preservationDetails.length - 1))
+                        content = content + "</tr>"; // last element in the array
+                  }
+                  else if ((i % 2) === 1) {//odd
+                     content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", preservationLabels[i], preservationDetails[i]);
+                  }
+               }
+               content = content + "</table>";
+            }
+
+            //collect strain data into array
+            var strainLabels = Array();
+            var strainDetails = Array();
+            strainLabels.push("Strain Morphology: ");
+            strainDetails.push(stabilate.strain_morphology);
+            strainLabels.push("Strain Count: ");
+            strainDetails.push(stabilate.strain_count);
+            strainLabels.push("Strain Infectivity: ");
+            strainDetails.push(stabilate.strain_infectivity);
+            strainLabels.push("Strain Pathogenicity: ");
+            strainDetails.push(stabilate.strain_pathogenicity);
+            //filter out any null strain data
+            for (var i = 0; i < strainDetails.length; i++) {
+               if (strainDetails[i] === null || strainDetails[i] === "") {
+                  strainDetails.splice(i, 1);
+                  strainLabels.splice(i, 1);
+                  i--;
+               }
+            }
+
+            //construct strain data table
+            if (strainDetails.length > 0) {
+               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Strain Data</h2></td></tr>");
+
+               for (var i = 0; i < strainDetails.length; i++) {
+                  if ((i % 2) === 0) {//even
+                     content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", strainLabels[i], strainDetails[i]);
+                     if (i === (strainDetails.length - 1))
+                        content = content + "</tr>"; // last element in the array
+                  }
+                  else if ((i % 2) === 1) {//odd
+                     content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", strainLabels[i], strainDetails[i]);
+                  }
+               }
+
+               content = content + "</table>";
+            }
+
+            if (passages.length > 0) {
+               content = content + sprintf("<table class='search_details'><tr><td colspan='6'><h2>Passages</h2></td></tr>");
+               content = content + sprintf("<tr><th>Passage No.</th><th>Pass Parent</th><th>Inoculum Type</th><th>Species</th><th>Days</th><th>Rad. Freq</th></tr>");
+
+               for (var i = 0; i < passages.length; i++) {
+                  var currentPassage = passages[i];
+                  content = content + sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", currentPassage.passage_no, currentPassage.inoculum_ref, currentPassage.inoculum_name, currentPassage.species_name, currentPassage.infection_duration, currentPassage.radiation_freq);
+               }
+               ;
+               content = content + sprintf("</table>");
+            }
+            Azizi.viewStabilateHistory(stabilate.id);
+            $('#results .right').html(content);
+         }
+      });
+   },
+   /**
+    * View the stabilate history
+    *
+    * @returns {String}
+    */
+   viewStabilateHistory: function(stabilateId) {
+
+      //get the history
+      var params = 'stabilate_id=' + stabilateId + '&action=stabilate_history';
+      $.ajax({
+         type: "POST", url: 'mod_ajax.php?page=stabilates&do=browse', dataType: 'json', async: false, data: params,
+         error: Azizi.communicationError,
+         success: function(data) {
+            var mssg, content, all = '';
+            if (data.data.length > 1) {//only show history if stabilate actually has a history
+               $.each(data.data, function(i, item) {
+                  if (i === 0) {
+                     content = "<div class='stabilate'>" + item.starting_stabilate + '</div>';
+                  }
+                  else {
+                     var heading = "";
+                     if (i === (data.data.length - 1)) {
+                        heading = "<h2>History</h2>";
+                     }
+                     content = heading + "<div class='stabilate'>" + item.stab_no + '</div>';
+                     content += "<div class='passages'><img src='/azizi/images/down_arrow.png' />" + item.passage_count + ' Passage(s)</div>';
+                  }
+                  all = content + all;
+               });
+               $('#results .extreme_right').html(all);
+            }
+
+            //return all;
          }
       });
    }

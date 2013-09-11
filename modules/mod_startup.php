@@ -34,7 +34,6 @@ $requestType = ($t['basename'] == 'mod_ajax.php') ? 'ajax' : 'normal';
 
 define('OPTIONS_REQUEST_TYPE', $requestType);
 
-//require_once 'modules/mod_stabilates_general.php';
 require_once 'mod_azizi.php';
 $Azizi = new Azizi();
 ?>
