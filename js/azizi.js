@@ -1,4 +1,6 @@
 var Azizi = {
+   resultsPerPage: 15, iisPageCount: 10,
+
    refreshEquipmentStatus: function(){
       if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){
          setTimeout(Azizi.refreshEquipmentStatus, 10000);
@@ -289,41 +291,82 @@ var Azizi = {
     * @returns {undefined}
     */
    updateSearchResults: function(data){
-      var content = '', others, access;
-      var clearing = (data.data.length === 0) ? 'No Results...' : '';
+      Azizi.currentResults = data;
+      Azizi.moreIndex = 0;
+      Azizi.displaySamples(0, Azizi.moreIndex);
+   },
+
+   displaySamples: function(groupIndex, moreIndex){
+      var clearing = (Azizi.currentResults.data.length === 0) ? 'No Results...' : '';
       $('#results .left').html(clearing);
       $('#results .right').html('');
       $('#results .extreme_right').html('');
-      $.each(data.data, function(i, t){
-         /*others = '';
-         if(t.animal_id !== null) others += sprintf("  <span>A: %s</span>", t.animal_id);
-         if(t.collection_date !== null) others += sprintf("  <span>Col. Date: %s</span>", t.collection_date);
-         if(t.Latitude !== null) others += sprintf("  <span>Lat: %s</span>", t.Latitude);
-         if(t.Longitude !== null) others += sprintf("  <span>Lon: %s</span>", t.Longitude);
-         access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
-         content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-            <a href='javascript:;' class='sample_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
-         </div>\n\
-         <div class='second_line'>\n\
-            <span>P: %s</span>%s\n\
-         </div></div>",
-            access, t.sample_id, t.sample_id, t.label, t.org_name, t.sample_type, t.project, others);
-         $('#results .left').append(content);*/
-         others = "";
-         if(t.locality !== null) others += sprintf("  <span>Loc: %s</span>", t.locality);
-         if(t.isolation_date !== null) others += sprintf("  <span>Iso. Date: %s</span>", t.isolation_date);
-         if(t.preservation_date !== null) others += sprintf("  <span>Pres. Date: %s</span>", t.preservation_date);
-         if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
-         access = 'open-access.png';
-         content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-            <a href='javascript:;' class='sample_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
-         </div>\n\
-         <div class='second_line'>\n\
-            <span>P: %s</span>%s\n\
-         </div></div>",
-            access, t.id, t.stab_no, t.host_name, t.parasite_name, t.infection_host, t.country_name, others);
-         $('#results .left').append(content);
-      });
+      var k = (moreIndex === undefined) ? Azizi.moreIndex : moreIndex;
+      var start = (groupIndex * Azizi.resultsPerPage + k*Azizi.iisPageCount*Azizi.resultsPerPage);
+      for(var i = start, j = 0; i < Azizi.currentResults.count; i++, j++){
+         var t = Azizi.currentResults.data[i];
+         if(j > Azizi.resultsPerPage) break;
+         if(t.collection === 'azizi') Azizi.displayAziziSamples(t)
+         else if(t.collection === 'stabilates') Azizi.displayStabilatesSamples(t);
+      }
+
+      if(moreIndex !== undefined){
+         var repeat = Math.ceil((Azizi.currentResults.count-start) / Azizi.resultsPerPage);
+         repeat = (repeat > Azizi.iisPageCount) ? Azizi.iisPageCount : repeat;
+         var additional = (start + Azizi.resultsPerPage*Azizi.iisPageCount < Azizi.currentResults.count) ? "<span><a class='iis more' href='javascript:;'>>></a></span>" : '';
+         var less = (moreIndex > 0) ? "<span><a class='iis less' href='javascript:;'><<</a></span>" : '';
+         var iis = Azizi.repeatString("<a class='iis' href='javascript:;'>i</a>", repeat);
+         var content = sprintf("<div>%sAz%szi%s</div>", less, iis, additional);
+         $('#results_count').html(content);
+      }
+   },
+
+   /**
+    * Displays a sample from the stabilate database
+    *
+    * @param   object   t     The sample details to be displayed
+    * @returns {undefined}
+    */
+   displayStabilatesSamples: function(t){
+      var content = '', others, access;
+      /*Cater for the stabilates*/
+      if(t.locality !== null) others += sprintf("  <span>Loc: %s</span>", t.locality);
+      if(t.isolation_date !== null) others += sprintf("  <span>Iso. Date: %s</span>", t.isolation_date);
+      if(t.preservation_date !== null) others += sprintf("  <span>Pres. Date: %s</span>", t.preservation_date);
+      if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
+      access = 'open-access.png';
+      content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+         <a href='javascript:;' class='stabilates_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+      </div>\n\
+      <div class='second_line'>\n\
+         <span>P: %s</span>%s\n\
+      </div></div>",
+         access, t.id, t.stab_no, t.host_name, t.parasite_name, t.infection_host, t.country_name, others);
+      $('#results .left').append(content);
+   },
+
+   /**
+    * Displays a sample from the azizi database
+    *
+    * @param   object   t     The sample details to be displayed
+    * @returns {undefined}
+    */
+   displayAziziSamples: function(t){
+      var content = '', others, access;
+      //cater for azizi samples
+      if(t.animal_id !== null) others += sprintf("  <span>A: %s</span>", t.animal_id);
+      if(t.collection_date !== null) others += sprintf("  <span>Col. Date: %s</span>", t.collection_date);
+      if(t.Latitude !== null) others += sprintf("  <span>Lat: %s</span>", t.Latitude);
+      if(t.Longitude !== null) others += sprintf("  <span>Lon: %s</span>", t.Longitude);
+      access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
+      content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+         <a href='javascript:;' class='azizi_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+      </div>\n\
+      <div class='second_line'>\n\
+         <span>P: %s</span>%s\n\
+      </div></div>",
+         access, t.sample_id, t.sample_id, t.label, t.org_name, t.sample_type, t.project, others);
+      $('#results .left').append(content);
    },
 
    /**
@@ -337,167 +380,172 @@ var Azizi = {
          type: "POST", url: '/azizi/mod_ajax.php?page=sample_details&id=' + this.className, dataType: 'json',
          error: Azizi.communicationError,
          success: function(data) {
-            if (data.error) {
-               return;
+            if (data.error)  return;
+            else if(data.data.collection === 'stabilates') Azizi.showStabilatesDetails(data);
+            else if(data.data.collection === 'azizi'){
+               $('#results .right').html(data.data.comments);
             }
-            //update the right hand div with the data as received from the database
-            var stabilate = data.data.stabilate;
-            var passages = data.data.passages;
-
-            var content = "";
-            var stabilateDetails = Array();
-            var stabilateLabels = Array();
-            stabilateLabels.push("Stabilate No.: ");
-            stabilateDetails.push(stabilate.stab_no);
-            stabilateLabels.push("Parasite: ");
-            stabilateDetails.push(stabilate.parasite_name);
-            stabilateLabels.push("Host: ");
-            stabilateDetails.push(stabilate.host_name);
-            stabilateLabels.push("Infection in host: ");
-            stabilateDetails.push(stabilate.infection_host);
-            stabilateLabels.push("Locality: ");
-            stabilateDetails.push(stabilate.locality);
-            stabilateLabels.push("Origin Country: ");
-            stabilateDetails.push(stabilate.country_name);
-            stabilateLabels.push("Stabilate Comments: ");
-            stabilateDetails.push(stabilate.stabilate_comments);
-            //remove those elements in the stabilateDetails array that are null
-            for (var i = 0; i < stabilateDetails.length; i++) {
-               if (stabilateDetails[i] === null || stabilateDetails[i] === "") {
-                  stabilateDetails.splice(i, 1);
-                  stabilateLabels.splice(i, 1);
-                  i--;
-               }
-            }
-
-            //construct the stabilate interface
-            if (stabilateDetails.length > 0) {
-               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Stabilate</h2></td></tr>");
-               for (var i = 0; i < stabilateDetails.length; i++) {
-                  //use modulus to check if i is odd or even
-                  if ((i % 2) === 0) {//EVEN
-                     if (stabilateLabels[i] === "Stabilate Comments: ") {
-                        content = content + sprintf("<tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
-                     }
-                     else {
-                        content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", stabilateLabels[i], stabilateDetails[i]);
-                        if (i === (stabilateDetails.length - 1))
-                           content = content + "</tr>"; // last element in the array
-                     }
-                  }
-                  else if ((i % 2) === 1) {//ODD
-                     if (stabilateLabels[i] === "Stabilate Comments: ") {
-                        content = content + sprintf("<td></td></tr><tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
-                     }
-                     else {
-                        content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
-                     }
-                  }
-               }
-               content = content + "</table>";
-            }
-
-            //add preservation data to array
-            var preservationDetails = Array();
-            var preservationLabels = Array();
-            preservationLabels.push("Preservation Date: ");
-            preservationDetails.push(stabilate.preservation_date);
-            preservationLabels.push("Number Preserved: ");
-            preservationDetails.push(stabilate.number_frozen);
-            preservationLabels.push("Preserved Type: ");
-            preservationDetails.push(stabilate.preserved_type);
-            preservationLabels.push("Preservation Method: ");
-            preservationDetails.push(stabilate.preservation_method);
-            preservationLabels.push("Preserved By: ");
-            preservationDetails.push(stabilate.user_names);
-            //filter out any null preservation data
-            for (var i = 0; i < preservationDetails.length; i++) {
-               if (preservationDetails[i] === null || preservationDetails[i] === "") {
-                  preservationDetails.splice(i, 1);
-                  preservationLabels.splice(i, 1);
-                  i--;
-               }
-            }
-
-            //construct preservation data table
-            if (preservationDetails.length > 0) {
-               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Preservation</h2></td></tr>");
-               for (var i = 0; i < preservationDetails.length; i++) {
-                  if ((i % 2) === 0) {//even
-                     content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", preservationLabels[i], preservationDetails[i]);
-                     if (i === (preservationDetails.length - 1))
-                        content = content + "</tr>"; // last element in the array
-                  }
-                  else if ((i % 2) === 1) {//odd
-                     content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", preservationLabels[i], preservationDetails[i]);
-                  }
-               }
-               content = content + "</table>";
-            }
-
-            //collect strain data into array
-            var strainLabels = Array();
-            var strainDetails = Array();
-            strainLabels.push("Strain Morphology: ");
-            strainDetails.push(stabilate.strain_morphology);
-            strainLabels.push("Strain Count: ");
-            strainDetails.push(stabilate.strain_count);
-            strainLabels.push("Strain Infectivity: ");
-            strainDetails.push(stabilate.strain_infectivity);
-            strainLabels.push("Strain Pathogenicity: ");
-            strainDetails.push(stabilate.strain_pathogenicity);
-            //filter out any null strain data
-            for (var i = 0; i < strainDetails.length; i++) {
-               if (strainDetails[i] === null || strainDetails[i] === "") {
-                  strainDetails.splice(i, 1);
-                  strainLabels.splice(i, 1);
-                  i--;
-               }
-            }
-
-            //construct strain data table
-            if (strainDetails.length > 0) {
-               content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Strain Data</h2></td></tr>");
-
-               for (var i = 0; i < strainDetails.length; i++) {
-                  if ((i % 2) === 0) {//even
-                     content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", strainLabels[i], strainDetails[i]);
-                     if (i === (strainDetails.length - 1))
-                        content = content + "</tr>"; // last element in the array
-                  }
-                  else if ((i % 2) === 1) {//odd
-                     content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", strainLabels[i], strainDetails[i]);
-                  }
-               }
-
-               content = content + "</table>";
-            }
-
-            if (passages.length > 0) {
-               content = content + sprintf("<table class='search_details'><tr><td colspan='6'><h2>Passages</h2></td></tr>");
-               content = content + sprintf("<tr><th>Passage No.</th><th>Pass Parent</th><th>Inoculum Type</th><th>Species</th><th>Days</th><th>Rad. Freq</th></tr>");
-
-               for (var i = 0; i < passages.length; i++) {
-                  var currentPassage = passages[i];
-                  content = content + sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", currentPassage.passage_no, currentPassage.inoculum_ref, currentPassage.inoculum_name, currentPassage.species_name, currentPassage.infection_duration, currentPassage.radiation_freq);
-               }
-               ;
-               content = content + sprintf("</table>");
-            }
-            Azizi.viewStabilateHistory(stabilate.id);
-            $('#results .right').html(content);
          }
       });
    },
+
+   showStabilatesDetails: function(data){
+      //update the right hand div with the data as received from the database
+      var stabilate = data.data.stabilate;
+      var passages = data.data.passages;
+
+      var content = "";
+      var stabilateDetails = Array();
+      var stabilateLabels = Array();
+      stabilateLabels.push("Stabilate No.: ");
+      stabilateDetails.push(stabilate.stab_no);
+      stabilateLabels.push("Parasite: ");
+      stabilateDetails.push(stabilate.parasite_name);
+      stabilateLabels.push("Host: ");
+      stabilateDetails.push(stabilate.host_name);
+      stabilateLabels.push("Infection in host: ");
+      stabilateDetails.push(stabilate.infection_host);
+      stabilateLabels.push("Locality: ");
+      stabilateDetails.push(stabilate.locality);
+      stabilateLabels.push("Origin Country: ");
+      stabilateDetails.push(stabilate.country_name);
+      stabilateLabels.push("Stabilate Comments: ");
+      stabilateDetails.push(stabilate.stabilate_comments);
+      //remove those elements in the stabilateDetails array that are null
+      for (var i = 0; i < stabilateDetails.length; i++) {
+         if (stabilateDetails[i] === null || stabilateDetails[i] === "") {
+            stabilateDetails.splice(i, 1);
+            stabilateLabels.splice(i, 1);
+            i--;
+         }
+      }
+
+      //construct the stabilate interface
+      if (stabilateDetails.length > 0) {
+         content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Stabilate</h2></td></tr>");
+         for (var i = 0; i < stabilateDetails.length; i++) {
+            //use modulus to check if i is odd or even
+            if ((i % 2) === 0) {//EVEN
+               if (stabilateLabels[i] === "Stabilate Comments: ") {
+                  content = content + sprintf("<tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+               }
+               else {
+                  content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", stabilateLabels[i], stabilateDetails[i]);
+                  if (i === (stabilateDetails.length - 1))
+                     content = content + "</tr>"; // last element in the array
+               }
+            }
+            else if ((i % 2) === 1) {//ODD
+               if (stabilateLabels[i] === "Stabilate Comments: ") {
+                  content = content + sprintf("<td></td></tr><tr><td colspan='2'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+               }
+               else {
+                  content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", stabilateLabels[i], stabilateDetails[i]);
+               }
+            }
+         }
+         content = content + "</table>";
+      }
+
+      //add preservation data to array
+      var preservationDetails = Array();
+      var preservationLabels = Array();
+      preservationLabels.push("Preservation Date: ");
+      preservationDetails.push(stabilate.preservation_date);
+      preservationLabels.push("Number Preserved: ");
+      preservationDetails.push(stabilate.number_frozen);
+      preservationLabels.push("Preserved Type: ");
+      preservationDetails.push(stabilate.preserved_type);
+      preservationLabels.push("Preservation Method: ");
+      preservationDetails.push(stabilate.preservation_method);
+      preservationLabels.push("Preserved By: ");
+      preservationDetails.push(stabilate.user_names);
+      //filter out any null preservation data
+      for (var i = 0; i < preservationDetails.length; i++) {
+         if (preservationDetails[i] === null || preservationDetails[i] === "") {
+            preservationDetails.splice(i, 1);
+            preservationLabels.splice(i, 1);
+            i--;
+         }
+      }
+
+      //construct preservation data table
+      if (preservationDetails.length > 0) {
+         content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Preservation</h2></td></tr>");
+         for (var i = 0; i < preservationDetails.length; i++) {
+            if ((i % 2) === 0) {//even
+               content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", preservationLabels[i], preservationDetails[i]);
+               if (i === (preservationDetails.length - 1))
+                  content = content + "</tr>"; // last element in the array
+            }
+            else if ((i % 2) === 1) {//odd
+               content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", preservationLabels[i], preservationDetails[i]);
+            }
+         }
+         content = content + "</table>";
+      }
+
+      //collect strain data into array
+      var strainLabels = Array();
+      var strainDetails = Array();
+      strainLabels.push("Strain Morphology: ");
+      strainDetails.push(stabilate.strain_morphology);
+      strainLabels.push("Strain Count: ");
+      strainDetails.push(stabilate.strain_count);
+      strainLabels.push("Strain Infectivity: ");
+      strainDetails.push(stabilate.strain_infectivity);
+      strainLabels.push("Strain Pathogenicity: ");
+      strainDetails.push(stabilate.strain_pathogenicity);
+      //filter out any null strain data
+      for (var i = 0; i < strainDetails.length; i++) {
+         if (strainDetails[i] === null || strainDetails[i] === "") {
+            strainDetails.splice(i, 1);
+            strainLabels.splice(i, 1);
+            i--;
+         }
+      }
+
+      //construct strain data table
+      if (strainDetails.length > 0) {
+         content = content + sprintf("<table class='search_details'><tr><td colspan='2'><h2>Strain Data</h2></td></tr>");
+
+         for (var i = 0; i < strainDetails.length; i++) {
+            if ((i % 2) === 0) {//even
+               content = content + sprintf("<tr><td class='search_columns'><span class='result_lables'>%s</span>%s</td>", strainLabels[i], strainDetails[i]);
+               if (i === (strainDetails.length - 1))
+                  content = content + "</tr>"; // last element in the array
+            }
+            else if ((i % 2) === 1) {//odd
+               content = content + sprintf("<td class='search_columns'><span class='result_lables'>%s</span>%s</td></tr>", strainLabels[i], strainDetails[i]);
+            }
+         }
+
+         content = content + "</table>";
+      }
+
+      if (passages.length > 0) {
+         content = content + sprintf("<table class='search_details'><tr><td colspan='6'><h2>Passages</h2></td></tr>");
+         content = content + sprintf("<tr><th>Passage No.</th><th>Pass Parent</th><th>Inoculum Type</th><th>Species</th><th>Days</th><th>Rad. Freq</th></tr>");
+
+         for (var i = 0; i < passages.length; i++) {
+            var currentPassage = passages[i];
+            content = content + sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", currentPassage.passage_no, currentPassage.inoculum_ref, currentPassage.inoculum_name, currentPassage.species_name, currentPassage.infection_duration, currentPassage.radiation_freq);
+         }
+         ;
+         content = content + sprintf("</table>");
+      }
+      Azizi.viewStabilateHistory(stabilate.id);
+      $('#results .right').html(content);
+   },
+
    /**
     * View the stabilate history
     *
     * @returns {String}
     */
    viewStabilateHistory: function(stabilateId) {
-
       //get the history
-      var params = 'stabilate_id=' + stabilateId + '&action=stabilate_history';
+      var params = 'collection=stabilates&stabilate_id=' + stabilateId + '&action=stabilate_history';
       $.ajax({
          type: "POST", url: 'mod_ajax.php?page=stabilates&do=browse', dataType: 'json', async: false, data: params,
          error: Azizi.communicationError,
@@ -524,5 +572,43 @@ var Azizi = {
             //return all;
          }
       });
+   },
+
+   /**
+    * Repeats a string the number of specified times
+    *
+    * @param   string   pattern     The string to be repeated
+    * @param   integer  num         The number of times the string will be repeated
+    * @returns string   Returns the repeated string
+    */
+   repeatString: function(pattern, num){
+      if (num < 1) return '';
+      var result = '';
+      while (num > 0) {
+        if (num & 1) result += pattern;
+        num >>= 1, pattern += pattern;
+      }
+      return result;
+   },
+
+   /**
+    * Update the display with the next samples
+    *
+    * @returns {undefined}
+    */
+   nextSamples: function(){
+      if($(this).hasClass('more')){
+         Azizi.moreIndex++;
+         Azizi.displaySamples($(this).index(), Azizi.moreIndex);
+      }
+      else if($(this).hasClass('less')){
+         Azizi.moreIndex--;
+         Azizi.displaySamples($(this).index(), Azizi.moreIndex);
+      }
+      else{
+         $('.iis').removeClass('iis_selected');
+         $(this).addClass('iis_selected');
+         Azizi.displaySamples($(this).index());
+      }
    }
 };
