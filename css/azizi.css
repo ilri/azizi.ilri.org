@@ -20,7 +20,7 @@ body { margin: 0;	padding: 0;	font-family: 'Open Sans', "Lucida Grande", arial, 
 #outline { position: relative; height: 800px; width: 800px; margin: 18px auto 0; border: solid 1px #999; }
 #caption { width: 260px; left: 48px; top: 318px; position: absolute; visibility: visible; }
 #text { left: 336px; top: 318px; position: absolute; width: 400px; visibility: visible; margin-top: 10px; }
-p, #results, #bottom_panel { color: #666; font-size: 16px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin-top: 0; }
+p, #results, #bottom_panel, #results_count .iis { color: #666; font-size: 16px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin-top: 0; }
 h1 { color: #666; font-size: 20px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: 500; line-height: 32px; margin-top: 4px; }
 h2 { color: #666; font-size: 18px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: normal; margin: 0px; }
 h3 { color: #666; font-size: 60px; font-family: 'Open Sans', "Lucida Grande", Arial, sans-serif; font-weight: bold; text-align: center; letter-spacing: -1px; width: auto; }
@@ -47,7 +47,11 @@ abbr[title]:hover:after{ content: attr(title); }
 #results .right div:nth-child(1){float: left; width: 50%;}
 #results .right div:nth-child(2){float: right;}
 #results .access{width: 26px; height: 47px; float: left; margin-right: 5px;}
-#results .selected{border: 1px dotted #999;}
+#results .selected{}
 table.search_details {border-collapse: separate; border-spacing: 15px 2px;max-width: 500px;}
 span.result_lables {color: #7896B1;}
 td.search_columns {min-width: 200px;}
+#results_count{font-size: 3.1em; width: 100%; float: left; padding-left: 300px; letter-spacing: 2px;}
+#results_count .iis{font-size: 0.8em; color: #428BCA;}
+.iis a{font-size: 0.7em;}
+#results_count .iis_selected{font-size: 1em; color: #666;}

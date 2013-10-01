@@ -52,14 +52,14 @@ class Azizi{
 
       $this->Dbase = new DBase('mysql');
       $this->Dbase->InitializeConnection();
-      
+
       if($this->Dbase->dbcon->connect_error || (isset($this->Dbase->dbcon->errno) && $this->Dbase->dbcon->errno!=0)) {
 
          die('Something wicked happened when connecting to the dbase.');
       }
 
       $this->Dbase->InitializeLogs();
-      
+
       if(OPTIONS_REQUESTED_MODULE == 'equimentStatus') $this->EquipmentStatus();
       elseif(OPTIONS_REQUESTED_MODULE == 'search') $this->SearchDatabase();
       elseif(OPTIONS_REQUESTED_MODULE == 'sample_details') $this->SampleDetails();
@@ -318,26 +318,18 @@ class Azizi{
     * Performs a global search for the searched item in the database
     */
    private function SearchDatabase(){
-      /*$database = 'azizi';
-      $query = 'select a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access '
+      $database = Config::$aziziDb;
+      $query = "select 'azizi' as collection, a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access "
          . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count inner join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
-         . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments '
-         . 'limit 0,10';
+         . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments ';
 
       $vals = array('label' => "%{$_GET['q']}%", 'origin' => "%{$_GET['q']}%", 'animalId' => "%{$_GET['q']}%", 'trayId' => "%{$_GET['q']}%", 'project' => "%{$_GET['q']}%", 'comments' => "%{$_GET['q']}%");
-      $res = $this->Dbase->ExecuteQuery($query, $vals);
-      if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      $azizi = $this->Dbase->ExecuteQuery($query, $vals);
+      if($azizi == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-      //we are all good. lets return this data
-      die(json_encode(array('error' => false, 'data' => $res), JSON_FORCE_OBJECT));*/
-
-      /*//Just for testing
-      mysql_connect('localhost', 'root', 'jason');
-      //just for testing*/
-      
       //build the query to fetch the stabilates matching search query
-      $database = 'stabilates';
-      $query = "SELECT a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
+      $database = Config::$stabilatesDb;
+      $query = "SELECT 'stabilates' as collection, a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
         " a.`strain_morphology`, a.`strain_infectivity`, a.`strain_pathogenicity`, b.`host_name`, c.`parasite_name`,".
         " d.`method_name` AS  `isolation_method`, e.`method_name` AS  `preservation_method`, f.`host_name` AS `infection_host`,".
         " g.`user_names`, h.`country_name`".
@@ -354,86 +346,84 @@ class Azizi{
           " a.`strain_morphology` LIKE :searchString OR a.`strain_infectivity` LIKE :searchString OR a.`strain_pathogenicity` LIKE :searchString OR".
           " b.`host_name` LIKE :searchString OR c.`parasite_name` LIKE :searchString OR".
           " d.`method_name` LIKE :searchString OR e.`method_name` LIKE :searchString OR f.`host_name` LIKE :searchString OR".
-          " g.`user_names` LIKE :searchString OR h.`country_name` LIKE :searchString".
-          " LIMIT 0,10";
+          " g.`user_names` LIKE :searchString OR h.`country_name` LIKE :searchString";
 
       //get result from the built query
       $vals = array('searchString' => "%{$_GET['q']}%");
-      $res = $this->Dbase->ExecuteQuery($query, $vals);
+      $stabilates = $this->Dbase->ExecuteQuery($query, $vals);
 
-      if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+      if($stabilates == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
       //we are all good. lets return this data
-      die(json_encode(array('error' => false, 'data' => $res), JSON_FORCE_OBJECT));
+      $data = array_merge($azizi, $stabilates);
+      die(json_encode(array('error' => false, 'data' => $data, 'count' => count($data)), JSON_FORCE_OBJECT));
    }
 
    /**
     * Fetches the sample details
     */
    private function SampleDetails(){
-      /*//get the sample id
-      preg_match('/sample_([0-9]{1,8})/', $_GET['id'], $ids);
-      if(!is_numeric($ids[1])) die(json_encode(array('error' => true, 'data' => 'System Error! Please contact the system administrator.')));
-
-      $database = 'azizi';
-      $query = "select comments, open_access from $database.samples where count = :id";
-      $res = $this->Dbase->ExecuteQuery($query, array('id' => $ids[1]));
-      if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
-
-      //we are all good. lets return this data
-      if($res[0]['open_access'] == 1) die(json_encode(array('error' => false, 'data' => $res[0]), JSON_NUMERIC_CHECK));
-      else die(json_encode(array('error' => false, 'data' => array('comments' => 'Sorry! This record closed for public access.'))));*/
-
-
       //get the sample id
-      preg_match('/sample_([0-9]{1,8})/', $_GET['id'], $ids);
-      if(!is_numeric($ids[1])) die(json_encode(array('error' => true, 'data' => 'System Error! Please contact the system administrator.')));
+      preg_match('/(.+)_([0-9]{1,8})/', $_GET['id'], $ids);
+      if(!is_numeric($ids[2])) die(json_encode(array('error' => true, 'data' => 'System Error! Please contact the system administrator.')));
 
-      //build query to fetch stabilate data
-      $database = 'stabilates';
-      $query = "SELECT a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
-        " a.`strain_morphology`, a.`strain_infectivity`, a.`strain_pathogenicity`, a.`preserved_type`, a.`stabilate_comments`, b.`host_name`,".
-        " c.`parasite_name`, d.`method_name` AS  `isolation_method`, e.`method_name` AS  `preservation_method`, f.`host_name` AS `infection_host`,".
-        " g.`user_names`, h.`country_name`". 
-        " FROM $database.`stabilates` AS a".
-          " INNER JOIN $database.`hosts` AS b ON a.host = b.id".
-          " INNER JOIN $database.`parasites` AS c ON a.`parasite_id` = c.id".
-          " INNER JOIN $database.`isolation_methods` AS d ON a.`isolation_method` = d.id".
-          " INNER JOIN $database.`preservation_methods` AS e ON a.`freezing_method` = e.id".
-          " INNER JOIN $database.`infection_host` AS f ON a.`infection_host` = f.id".
-          " INNER JOIN $database.`users` AS g ON a.`frozen_by` = g.id".
-          " INNER JOIN $database.`origin_countries` AS h ON a.country = h.id".
-        " WHERE a.id = :id";
+      if($ids[1] == 'azizi'){
+         //build query to fetch azizi data
+         $database = Config::$aziziDb;
+         $query = "select comments, open_access from $database.samples where count = :id";
+         $res = $this->Dbase->ExecuteQuery($query, array('id' => $ids[2]));
+         if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-      $res = array(); //object carrying what is returned to javascript
+         //we are all good. lets return this data
+         $res[0]['collection'] = 'azizi';
+         if($res[0]['open_access'] == 1) die(json_encode(array('error' => false, 'data' => $res[0]), JSON_NUMERIC_CHECK));
+         else die(json_encode(array('error' => false, 'data' => array('collection' => 'azizi', 'comments' => 'Sorry! This record closed for public access.'))));
+      }
+      elseif($ids[1] == 'stabilates'){
+         //build query to fetch stabilate data
+         $database = Config::$stabilatesDb;
+         $query = "SELECT a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
+           " a.`strain_morphology`, a.`strain_infectivity`, a.`strain_pathogenicity`, a.`preserved_type`, a.`stabilate_comments`, b.`host_name`,".
+           " c.`parasite_name`, d.`method_name` AS  `isolation_method`, e.`method_name` AS  `preservation_method`, f.`host_name` AS `infection_host`,".
+           " g.`user_names`, h.`country_name`".
+           " FROM $database.`stabilates` AS a".
+             " INNER JOIN $database.`hosts` AS b ON a.host = b.id".
+             " INNER JOIN $database.`parasites` AS c ON a.`parasite_id` = c.id".
+             " INNER JOIN $database.`isolation_methods` AS d ON a.`isolation_method` = d.id".
+             " INNER JOIN $database.`preservation_methods` AS e ON a.`freezing_method` = e.id".
+             " INNER JOIN $database.`infection_host` AS f ON a.`infection_host` = f.id".
+             " INNER JOIN $database.`users` AS g ON a.`frozen_by` = g.id".
+             " INNER JOIN $database.`origin_countries` AS h ON a.country = h.id".
+           " WHERE a.id = :id";
 
-      //fetch result from query just created
-      $fetchedRows = $this->Dbase->ExecuteQuery($query, array('id' => $ids[1]));
-      if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         $res = array(); //object carrying what is returned to javascript
 
-      //initialize the stabilate entry in res to the first result from query. there should be only one result anyways
-      $res['stabilate'] = $fetchedRows[0];
+         //fetch result from query just created
+         $fetchedRows = $this->Dbase->ExecuteQuery($query, array('id' => $ids[2]));
+         if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-      //build query to fetch passages data
-      $query = "SELECT a.`passage_no`, a.`inoculum_ref`, a.`infection_duration`, a.`number_of_species`, a.`radiation_freq`, a.`radiation_date`,".
-        " a.`added_by`, b.`inoculum_name`, c.`species_name`".
-      " FROM $database.`passages` AS a".
-        " INNER JOIN $database.`inoculum` AS b ON a.`inoculum_type` = b.`id`".
-        " INNER JOIN $database.`infected_species` AS c ON a.`infected_species` = c.`id`".
-      " WHERE a.`stabilate_ref` = :id";
+         //initialize the stabilate entry in res to the first result from query. there should be only one result anyways
+         $res['stabilate'] = $fetchedRows[0];
 
-      //fetch result from the query
-      $fetchedRows = $this->Dbase->ExecuteQuery($query, array('id' => $ids[1]));
-      if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         //build query to fetch passages data
+         $query = "SELECT a.`passage_no`, a.`inoculum_ref`, a.`infection_duration`, a.`number_of_species`, a.`radiation_freq`, a.`radiation_date`,".
+           " a.`added_by`, b.`inoculum_name`, c.`species_name`".
+         " FROM $database.`passages` AS a".
+           " INNER JOIN $database.`inoculum` AS b ON a.`inoculum_type` = b.`id`".
+           " INNER JOIN $database.`infected_species` AS c ON a.`infected_species` = c.`id`".
+         " WHERE a.`stabilate_ref` = :id";
 
-      //initialize the passages entry to the rows fetched from the last query
-      $res['passages'] = $fetchedRows;
+         //fetch result from the query
+         $fetchedRows = $this->Dbase->ExecuteQuery($query, array('id' => $ids[2]));
+         if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-
-      die(json_encode(array('error' => false, 'data' => $res), JSON_NUMERIC_CHECK));
-
+         //initialize the passages entry to the rows fetched from the last query
+         $res['passages'] = $fetchedRows;
+         $res['collection'] = 'stabilates';
+         die(json_encode(array('error' => false, 'data' => $res), JSON_NUMERIC_CHECK));
+      }
    }
-   
+
    /**
     * Get the narrow history of this stabilate up to the earliest grandfather
     */
@@ -469,7 +459,7 @@ class Azizi{
       if($die) die(json_encode(array('error' => false, 'data' => $history)));
       else return $history;
    }
-   
+
    /**
     * Gets the parent stabilate of the current stabilate
     *
