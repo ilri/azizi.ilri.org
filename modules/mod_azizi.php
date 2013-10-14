@@ -430,7 +430,7 @@ class Azizi{
    private function StabilateHistory($die = true){
       $stabilateId = $_POST['stabilate_id'];
       $history = array();
-      $query = 'select id, stab_no from stabilates where id = :stab';
+      $query = 'select id, stab_no from '. Config::$config['stabilates_db'] .'.stabilates where id = :stab';
       $res = $this->Dbase->ExecuteQuery($query, array('stab' => $stabilateId));
       if($res == 1) die('Error');
       $history[] = array('start_id' => $res[0]['id'], 'starting_stabilate' => $res[0]['stab_no']);
@@ -440,7 +440,7 @@ class Azizi{
          if(!$passes || count($passes) == 0) break;
          else{
             //get the stabilate id of the parent(i.e. the returned stabilate)... we assume that this stabilate is in the db
-            $query = 'select id from stabilates where stab_no = :stab';
+            $query = 'select id from '. Config::$config['stabilates_db'] .'.stabilates where stab_no = :stab';
             $res = $this->Dbase->ExecuteQuery($query, array('stab' => $passes['parent_stab']));
             if($res == 1) die('Error');
             if(count($res) == 1){
@@ -467,7 +467,7 @@ class Azizi{
     * @return  array    Returns an array with the parent stabilate name and the number of passages for this stabilate
     */
    private function StabilateParent($stabilateId){
-      $query = 'select passage_no, inoculum_ref from passages where stabilate_ref = :stab_id order by passage_no';
+      $query = 'select passage_no, inoculum_ref from '. Config::$config['stabilates_db'] .'.passages where stabilate_ref = :stab_id order by passage_no';
       $res = $this->Dbase->ExecuteQuery($query, array('stab_id' => $stabilateId));
       if($res == 1) return die('Error');
       elseif(count($res) == 0) return array();

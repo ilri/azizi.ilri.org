@@ -547,7 +547,7 @@ var Azizi = {
       //get the history
       var params = 'collection=stabilates&stabilate_id=' + stabilateId + '&action=stabilate_history';
       $.ajax({
-         type: "POST", url: 'mod_ajax.php?page=stabilates&do=browse', dataType: 'json', async: false, data: params,
+         type: "POST", url: '/azizi/mod_ajax.php?page=stabilates&do=browse', dataType: 'json', async: false, data: params,
          error: Azizi.communicationError,
          success: function(data) {
             var mssg, content, all = '';
