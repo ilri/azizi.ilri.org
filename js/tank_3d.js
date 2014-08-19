@@ -206,7 +206,7 @@ Tank3D.prototype.createTower = function(towerData, index, plane, planeWidth, pla
    var towerZ = trueZ + (rowNumber * (planeHeight/maxRows)) + planeHeight/(2*maxRows);//*scale;
    
    var towerLoader = new THREE.JSONLoader();
-   towerLoader.load('../js/models/tank_tower.js', function(geometry) {
+   towerLoader.load('../js/models/tank_tower.json', function(geometry) {
       var material = new THREE.MeshLambertMaterial({color: 0xd3d3d3});
       mesh = new THREE.Mesh(geometry, material);
       

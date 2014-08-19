@@ -679,7 +679,7 @@ Repository3D.prototype.createTank = function(id, x, z){
    labelMesh.overdraw = true;
    
    var tankLoader = new THREE.JSONLoader();
-   tankLoader.load('../js/models/liquid_nitrogen_tank.js', function(geometry) {
+   tankLoader.load('../js/models/liquid_nitrogen_tank.json', function(geometry) {
       var material = new THREE.MeshLambertMaterial({color: 0xd3d3d3});
       mesh = new THREE.Mesh(geometry, material);
       mesh.position.x = x;
