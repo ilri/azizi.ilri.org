@@ -320,7 +320,7 @@ class Azizi{
    private function SearchDatabase(){
       $database = Config::$aziziDb;
       $query = "select 'azizi' as collection, a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access "
-         . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count inner join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
+         . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count left join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
          . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments ';
 
       $vals = array('label' => "%{$_GET['q']}%", 'origin' => "%{$_GET['q']}%", 'animalId' => "%{$_GET['q']}%", 'trayId' => "%{$_GET['q']}%", 'project' => "%{$_GET['q']}%", 'comments' => "%{$_GET['q']}%");

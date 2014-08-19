@@ -55,3 +55,195 @@ td.search_columns {min-width: 200px;}
 #results_count .iis{font-size: 0.8em; color: #428BCA;}
 .iis a{font-size: 0.7em;}
 #results_count .iis_selected{font-size: 1em; color: #666;}
+
+/*Repository 3d specific styles*/
+#repo_container {position: absolute; left:0px; top:0px; width: 100%; height: 100%; font-family: 'Roboto', sans-serif;}
+#reset_button {cursor: pointer; position: absolute; left:0px; top:10px; width: 100px; height: 35px; background-color: #333333; display: table-cell; text-align: center; vertical-align: middle; padding-top: 10px; color: #ffffff; border: 1px solid; border-radius: 25px;font-family: 'Roboto', sans-serif;}
+.zoom_button {
+   cursor: pointer;
+   position: absolute;
+   background-color: #333333;
+   display: table-cell;
+   text-align: center;
+   vertical-align: middle;
+   width: 35px;
+   height: 35px;
+   line-height: 35px;
+   color: #ffffff;
+   border: 1px solid;
+   border-radius: 50%;
+   font-size: 25px;
+   font-weight: bolder;
+   /*padding-left: 2px;
+   padding-top: 2px;*/
+   -webkit-touch-callout: none;
+   -webkit-user-select: none;
+   -khtml-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
+#loading_box {
+   cursor: pointer;
+   position: absolute;
+   background-color: #ffffff;
+   border-radius: 1px;
+   z-index: 2;
+   width: 10rem;
+   height: 3rem;
+   border-radius:5px;
+   line-height: 3rem;
+   text-align: center;
+   font-weight: bolder;
+}
+
+#sample_ttip {
+   background: #ffffff;
+   position:absolute;
+   left:50%;
+   top: 1%;
+   z-index: 1;
+   width: auto;
+   height: auto;
+   outline: 0;
+   border:0;
+   font-size:0.6rem;
+   border-radius:5px;
+   box-shadow:0 1px 2px #aaa;
+   padding-left: 0.5rem;
+   padding-right: 1.5rem;
+   padding-top: 1rem;
+   padding-bottom: 1rem;
+}
+
+#virt_box {
+   cursor: pointer;
+   background: #ffffff;
+   position:absolute;
+   left: 80%;
+   top: 20%;
+   z-index:1;
+   width:18rem;
+   height:18rem;
+   outline: 0;
+   border:0;
+   font-size:0.8rem;
+   border-radius:1px;
+   box-shadow:0 1px 2px #aaa;
+}
+
+#stats_box {
+   background: #ffffff;
+   position:absolute;
+   left: 80%;
+   top: 60%;
+   z-index:1;
+   width:18rem;
+   margin: 0 1rem 1rem;
+   outline: 0;
+   border:0;
+   font-size:1.2rem;
+   padding:.75rem 1rem;
+   border-radius:1px;
+   box-shadow:0 1px 2px #aaa;
+}
+
+#search_canvas {
+   position: absolute; 
+   left:20px; 
+   top:60px;
+   font-family: 'Roboto', sans-serif;
+   width: 400px;
+   height: auto;
+   z-index:1;
+   padding-top: 1.5rem;
+   padding-left: .5rem;
+   padding-right: .5rem;
+   padding-bottom: 1.5rem;
+   margin:0 1rem 1rem;
+}
+
+#search_box_3d {
+  position:absolute;
+  left: 20px;
+  top: 20px;
+  z-index:2;
+  width:26rem;
+  margin: 0 1rem 1rem;
+  outline: 0;
+  border:0;
+  font-size:1.2rem;
+  padding:.75rem 1rem;
+  border-radius:3px;
+  box-shadow:0 1px 2px #aaa;
+  opacity: 0.3;
+  transition: .5s;
+}
+
+#clear_search {
+   cursor: pointer;
+   position: absolute;
+   margin-top: 13px;
+   margin-left: 30px;
+   top: 20px;
+   background: transparent;
+   width: 20px;
+   height: 20px;
+   line-height: 20px;
+   text-align: center;
+   z-index: 3;
+   font-weight: bolder;
+   color: d3d3d3;
+}
+
+#search_box_3d:focus {
+  opacity: 1;
+}
+#search_box_3d:hover {
+   opacity: 1;
+}
+
+.card-3d {
+   cursor: pointer;
+   display: block;
+   background: #ffffff;
+   position:relative;
+   font-size:.9rem;
+   z-index:10;
+   color:gray;
+   width:400px;
+   line-height:1rem;
+   text-align:left;
+   border-radius:.3rem;
+   box-shadow:0 1px 2px #aaa;
+   margin-bottom: 1rem;
+   padding-top: 0.8rem;
+   padding-bottom: 0.8rem;
+   opacity: 0.3;
+   transition: .5s;
+}
+
+.card-3d:hover {
+   opacity: 1;
+}
+
+#search_canvas h1, #stats_box h1, #sample_ttip h1 {
+   font-size:1.2rem;
+   font-weight:200;
+   margin-left: 20px;
+   line-height: 1rem;
+}
+#search_canvas strong, #stats_box strong, #sample_ttip strong {
+   font-weight:300;
+   color:#539D00;
+}
+
+#search_canvas h2, #stats_box h2, #sample_ttip h2 {
+   font-size:.9rem;
+   line-height:2.5;
+   color:gray;
+   font-weight:400;
+   margin-left: 25px;
+   line-height: 1.2rem;
+}

@@ -37,10 +37,15 @@
            <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
            <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
-           <span><a href="/graphs/">Graphical summary of AVID sample collection</a></span>
+           <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
+           <span><a href="/azizi/modules/mod_repository_3d.php" target="_blank">Bio-Repository in 3D</a></span>
          </div>
 
+	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
+ 
+</div>
+</body>
          <div id='equipment_status'>
              <div class="status center hidden">
                 System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>  Cluster Status <span class="hpc_status"></span>
@@ -68,7 +73,7 @@
      <div id="up_arrow" class="hidden transform_slow"><span class="up_arrow"></span></div>
 	</body>
 
-<!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second -->
+<!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second  -->
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-24006166-1']);
@@ -78,12 +83,13 @@
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-  Azizi.sysConfig = <?php require_once 'azizi_config'; echo json_encode(Config::$sysConfig); ?>;
+  Azizi.sysConfig = <?php require_once 'azizi_config';  echo json_encode(Config::$sysConfig); ?>;
 
   $('[name=azizi_search]').focus().live('keyup', Azizi.startSearch);
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
-<!--End of google analytics-->
+
+<!--End of google analytics  -->
 </html>
