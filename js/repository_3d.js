@@ -116,7 +116,14 @@ function Repository3D(inTemplate) {
       window.r3d.handleZoomButtonEvent();
    }, false);
 };
-   
+
+/**
+ * This method is responsible for initializing the scene. Things done here include
+ *    - setting the bounds of the scene
+ *    - setting the floor
+ *    - adding controls to the screeen
+ * @returns {undefined}
+ */
 Repository3D.prototype.initScene = function() {
    //console.log("initScene called");
    //add lighting
@@ -153,6 +160,11 @@ Repository3D.prototype.initScene = function() {
    window.r3d.controls = new THREE.OrbitControls(window.r3d.camera, window.r3d.renderer.domElement);
 };
 
+/**
+ * This method is responsible for initializing lighting in the scene
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.loadLighting = function() {
    //console.log("loading lights called");
    /*var ambientLight = new THREE.AmbientLight(0x777777);
@@ -162,6 +174,16 @@ Repository3D.prototype.loadLighting = function() {
    window.r3d.addShadowedLight( 0.5, 1, -1, 0xe9f3ce, 0.7);
 };
 
+
+/**
+ * This method is supposed to upate the scene's controls.
+ * Still don't know why it's behaving the way it is
+ * 
+ * @param {type} noRotate  set to true if you want to disable rotation for the camera
+ * 
+ * @returns {undefined}
+ * 
+ */
 Repository3D.prototype.updateControls = function(noRotate) {
    //console.log(window.r3d.tmp['lookAt']);
    window.r3d.controls.center.x = window.r3d.tmp['lookAt'].x;
@@ -178,6 +200,17 @@ Repository3D.prototype.updateControls = function(noRotate) {
    //console.log(window.r3d.controls);
 }
 
+/**
+ * This method is responsible for adding fancy directional lighting to the scene.
+ * This method is a helper method for loadLighting method
+ * 
+ * @param {type} x
+ * @param {type} y
+ * @param {type} z
+ * @param {type} color
+ * @param {type} intensity
+ * @returns {undefined}\
+ */
 Repository3D.prototype.addShadowedLight = function(x, y, z, color, intensity){
    var directionalLight = new THREE.DirectionalLight( color, intensity );
    directionalLight.position.set( x, y, z );
@@ -202,6 +235,13 @@ Repository3D.prototype.addShadowedLight = function(x, y, z, color, intensity){
    directionalLight.shadowDarkness = 0.15;
 };
 
+/**
+ * This method is responsible for all the animations in the scene.
+ * Be careful, the method is called several times a second.
+ * The method is also recursive
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.animate = function(){
    //requestAnimationFrame delegates redraws to the browser
    requestAnimationFrame(window.r3d.animate);
@@ -216,6 +256,15 @@ Repository3D.prototype.animate = function(){
    TWEEN.update();
 };
 
+/**
+ * This method is responsible for rotating objects in the scene
+ * 
+ * @param {type} object    The THREE.mesh to be rotated
+ * @param {type} axis      The axis on which the object will be rotated
+ * @param {type} degrees   The number of degrees to rotate the object
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.rotate = function(object, axis, degrees) {
    //console.log("rotate called");
    var radians = (Math.PI/180) * degrees;
@@ -238,6 +287,14 @@ Repository3D.prototype.rotate = function(object, axis, degrees) {
    object.rotation.setFromRotationMatrix(object.matrix);
 };
 
+/**
+ * This method handles all click events in the scene.
+ * Note that this does not include things like the search box, search results etc
+ * 
+ * @param {type} event  Data on the event. This is provided by jQuery to this method
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.onDocumentMouseDown = function(event) {
    //console.log("onDocumentMouseDown called");
    jQuery(window.r3d.searchBox).blur();
@@ -273,6 +330,15 @@ Repository3D.prototype.onDocumentMouseDown = function(event) {
    }
 };
 
+/**
+ * This method handles mouse clicks on a tank.
+ * This method is a helper method to onDocumentMouseDown
+ * 
+ * @param {type} tankIndex    The index of the tank in windwor.r3d.tankData.data
+ * @param {type} raycaster    The THREE.Raycaster used to determine that the tank was clicked
+ * 
+ * @returns {undefined}]
+ */
 Repository3D.prototype.onTankClicked = function(tankIndex, raycaster){
    //console.log("onTankClicked called");
    //check if towers are already being displayed
@@ -295,6 +361,12 @@ Repository3D.prototype.onTankClicked = function(tankIndex, raycaster){
    }
 };
 
+/**
+ * This method is called whenever the browser window is resized.
+ * Add code here that needs to be run whenever this happens
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.onDocumentResize = function() {
    //console.log("documentResize called");
    var WIDTH = window.innerWidth;
@@ -305,6 +377,16 @@ Repository3D.prototype.onDocumentResize = function() {
    window.r3d.camera.updateProjectionMatrix();
 };
 
+/**
+ * This method is used to move the camera towards an THREE.mesh
+ * 
+ * @param {type} mesh      The mesh that we want the camera to move to
+ * @param {type} isTank    Set to true if the object is a tank
+ * @param {type} tankIndex The index of the tank in window.r3d.tankData.data
+ * @param {type} zoomLevel The final y coordinate of the camera in the scene
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.moveCameraToObject = function(mesh, isTank, tankIndex, zoomLevel) {
    var obj = mesh;
    //console.log("moveCameraToObject called");
@@ -390,6 +472,15 @@ Repository3D.prototype.moveCameraToObject = function(mesh, isTank, tankIndex, zo
    //window.r3d.camera.lookAt(obj.position);
 };
 
+/**
+ * This method is used for changing the y coordinate of the camera in the scene
+ * and thus simulate zooming in or out
+ * 
+ * @param {type} rate   By how much you want the camera to move.
+ *                      Set to a negative number if you want the camera to zoom in
+ *                      
+ * @returns {undefined}
+ */
 Repository3D.prototype.zoom = function(rate){
    var time = Math.abs(rate * 500);
    
@@ -420,6 +511,16 @@ Repository3D.prototype.zoom = function(rate){
    cameraPosTween.start();
 };
 
+/**
+ * This method is used for moving the camera back to a previous position.
+ * If you want the camera to reset back to it's default position call this method
+ * without any arguements
+ * 
+ * @param {type} target    The THREE.mesh which the camera should look at once it has reset
+ * @param {type} zoom      The value of the y coordinate for the camera once it has reset
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.resetCamera = function(target, zoom){
    //check if at tank level or sector level
    //console.log("resetCamera called");
@@ -543,11 +644,34 @@ Repository3D.prototype.resetCamera = function(target, zoom){
    window.r3d.updateControls(!resetToTop);
 };
 
+/**
+ * This method is used to determin if an object has been set
+ * Note that a variable is considered set if it is null
+ * 
+ * @param {type} variable  The variable you want do determine if is set
+ * 
+ * @returns {Boolean}      TRUE if the variable is set
+ */
 Repository3D.prototype.isSet = function(variable){
    if(typeof variable === 'undefined') return false;
    else return true;
 };
 
+/**
+ * This method is used for adding labels to the scene.
+ * This method is not used at all as of now.
+ * 
+ * @param {type} text               The text that should go on the label
+ * @param {type} x                  The x coordinate of the label in the scene
+ * @param {type} y                  The y coordinate of the label in the scene
+ * @param {type} z                  The z coordinate of the label in the scene
+ * @param {type} size               The size of the label
+ * @param {type} color              The color of the text
+ * @param {type} backGroundColor    The color of the plate where the text is drawn
+ * @param {type} backgroundMargin   The margins between the text and the edge of the label
+ * 
+ * @returns {Repository3D.prototype.createLabel.mesh|THREE.Mesh}
+ */
 Repository3D.prototype.createLabel = function(text, x, y, z, size, color, backGroundColor, backgroundMargin) {
    if(!backgroundMargin)
       backgroundMargin = 50;
@@ -593,6 +717,13 @@ Repository3D.prototype.createLabel = function(text, x, y, z, size, color, backGr
    return mesh;
 };
 
+/**
+ * This method is used to display labels for sectors in tanks on the scene once the user zooms into a tank
+ * 
+ * @param {type} tankIndex    The index of the tank in window.r3d.tankData.data
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.showSectorCubes = function(tankIndex){   
    window.r3d.hideAllSectors();
    var sectors = new Array();
@@ -629,6 +760,11 @@ Repository3D.prototype.showSectorCubes = function(tankIndex){
    window.r3d.tanks[tankIndex].sectors = sectors;
 };
 
+/**
+ * This method is used to hide sector labels
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.hideAllSectors = function(){
    for(var tankIndex = 0; tankIndex < window.r3d.tanks.length; tankIndex++){
       for(var sectorIndex = 0; sectorIndex < window.r3d.tanks[tankIndex].sectors.length; sectorIndex++){
@@ -643,6 +779,17 @@ Repository3D.prototype.hideAllSectors = function(){
    }
 };
 
+/**
+ * This method is used to create a single label for a tank sector.
+ * Ths method ordinarily is called by showSectorCubes
+ * @param {type} tankMesh  The THREE.mesh corresponding to the tank
+ * @param {type} xDiff     The x offset of the label from the centre of the tank
+ * @param {type} zDiff     The z offset of the label from the centre of the tank
+ * @param {type} name      The text to be put on the label
+ * @param {type} color     The color of the label
+ * 
+ * @returns {Repository3D.prototype.createSectorLabel.mesh|THREE.Mesh}
+ */
 Repository3D.prototype.createSectorLabel = function(tankMesh, xDiff, zDiff, name, color) {
    var texture	= new THREEx.DynamicTexture(512,512);
 	texture.context.font	= "bolder 350px Roboto";
@@ -665,6 +812,15 @@ Repository3D.prototype.createSectorLabel = function(tankMesh, xDiff, zDiff, name
    return mesh;
 };
 
+/**
+ * This method is responsible for adding a tank to the scene
+ * 
+ * @param {type} id     The id of the tank. Should correspond to the name of the tank eg 1 for tank 1
+ * @param {type} x      The x coordinate of the tank in the scene
+ * @param {type} z      The z coordinate of the tank in the scene
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.createTank = function(id, x, z){
    var labelTexture = new THREEx.DynamicTexture(512, 512);
    labelTexture.context.font	= "bolder 350px Roboto";
@@ -696,6 +852,12 @@ Repository3D.prototype.createTank = function(id, x, z){
    });
 };
 
+/**
+ * This method fetches all the data on the tanks from the server.
+ * Be carefull, some code in this method runs asynchronously from code in the main thread
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.getAllTankData = function(){
    var uri = window.r3d.serverURI + "get_tank_details";
    jQuery.ajax({
@@ -717,6 +879,13 @@ Repository3D.prototype.getAllTankData = function(){
    window.r3d.tankData = {error : true};
 };
 
+/**
+ * This method gets data corresponding to a tank in the window.tanks array
+ * 
+ * @param {type} tankIndex    The index of the tank in window.tanks
+ * 
+ * @returns {Window.tankData.data|window.tankData.data|window.r3d.tankData.data|Window.r3d.tankData.data}
+ */
 Repository3D.prototype.getTankData = function(tankIndex) {
    var tankName = "Liquid Nitrogen Tank" + window.r3d.tanks[tankIndex].id;
    var tankData = null;
@@ -729,12 +898,19 @@ Repository3D.prototype.getTankData = function(tankIndex) {
    return null;
 };
 
+/**
+ * This method is called whenever the value of the search box is changed by the user
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.onSearchChange = function(){
    //console.log("on search change called");
    /*
     * if number of characters has increased and there is some results cached in tmp, search the cache
     * Otherwise only search the main tank data object if the difference in characters between the last search query and current query is 3
     * */
+   
+   //zoom out completely before displaying search results to user
    if(typeof window.r3d.t3d != 'undefined'){
    //window.r3d.t3d.clear();
       while(window.r3d.t3d.isActive() == true){
@@ -775,6 +951,11 @@ Repository3D.prototype.onSearchChange = function(){
    }
 };
 
+/**
+ * This method searches the query provided by the user in the window.r3d.tankData data object
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.search = function() {
    var query = jQuery(window.r3d.searchBox).val();
    var lastSearch = window.r3d.tmp['search'];
@@ -843,6 +1024,14 @@ Repository3D.prototype.search = function() {
    window.r3d.showSearchResults(results);
 };
 
+/**
+ * This method displays search results to the user.
+ * It however first calls a method that groups the search results
+ * 
+ * @param {type} results   The ungrouped search results
+ * 
+ * @returns {undefined}
+ */
 Repository3D.prototype.showSearchResults = function(results) {
    //console.log("showSearchResults called");
    
@@ -852,6 +1041,7 @@ Repository3D.prototype.showSearchResults = function(results) {
    jQuery(window.r3d.searchCanvas).empty();
    jQuery(window.r3d.searchCanvas).show();
    
+   //go through all the groups and get their respective cards
    for(var groupIndex = 0; groupIndex < groups.length; groupIndex++){
       var color = window.r3d.randomColor((groupIndex + 1) * 17);//spread out the colors
       groups[groupIndex].color = color;
@@ -892,6 +1082,7 @@ Repository3D.prototype.showSearchResults = function(results) {
       var currGroupID = 'search_group_'+groupIndex;
       currGroupJQObject.attr('id', currGroupID);
       
+      //add a click listener for the current group
       currGroupJQObject.on('click',null,{groups : groups, groupIndex: groupIndex}, function(e){
          /*if search results have already been visualized
             - toggle boxes that are not from the current group to be invisible if they are visible
@@ -928,13 +1119,27 @@ Repository3D.prototype.showSearchResults = function(results) {
       ////console.log("current group jquery object", currGroupJQObject);
    }
    
+   
+   //add a click listener to the search canvas (where the search results are)
    jQuery(window.r3d.searchCanvas).unbind('click').click(function (){
+      //called whenever a search result card is clicked
+      
+      //display the racks corresponding to the search result
       if(typeof  window.r3d.t3d == 'undefined' || window.r3d.t3d.isActive() == false){
          var tank3D = new Tank3D({isTank: false, data: groups});
       }
    });
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains only
+ * one box
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getBoxCard = function(data, colorDiv) {
    var boxData = window.r3d.tankData.data[data.extra[0].index[0]].sectors[data.extra[0].index[1]].racks[data.extra[0].index[2]].boxes[data.extra[0].index[3]];
    
@@ -950,6 +1155,15 @@ Repository3D.prototype.getBoxCard = function(data, colorDiv) {
    return html;
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains more than
+ * one box
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getBoxGroupCard = function(data, colorDiv){
    var html = "<div class='card-3d'>";
    
@@ -998,6 +1212,15 @@ Repository3D.prototype.getBoxGroupCard = function(data, colorDiv){
    return html;
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains only
+ * one tank
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getTankCard = function(data, colorDiv){
    //console.log("getTankCard called");
    var tankData = window.r3d.tankData.data[data.extra[0].index[0]];
@@ -1034,6 +1257,15 @@ Repository3D.prototype.getTankCard = function(data, colorDiv){
    return html;
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains more than
+ * one tank
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getTankGroupCard = function(data, colorDiv){
    //console.log("getTankGroupCard called");
    var allTankData = new Array();
@@ -1082,6 +1314,15 @@ Repository3D.prototype.getTankGroupCard = function(data, colorDiv){
    return html;
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains only
+ * one sector
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getSectorCard = function(data, colorDiv) {
    var sectorData = window.r3d.tankData.data[data.extra[0].index[0]].sectors[data.extra[0].index[1]];
    
@@ -1121,6 +1362,15 @@ Repository3D.prototype.getSectorCard = function(data, colorDiv) {
    return html;
 };
 
+/**
+ * This method creates a card corresponding to a group of search results that contains more than
+ * one sector
+ * 
+ * @param {type} data      The data corresponding to the search results group
+ * @param {type} colorDiv  The color assigned to the results group
+ * 
+ * @returns {String}       The html code corresponding to the generated card
+ */
 Repository3D.prototype.getSectorGroupCard = function(data, colorDiv) {
    
    var allSectorData = new Array();
@@ -1174,6 +1424,15 @@ Repository3D.prototype.getSectorGroupCard = function(data, colorDiv) {
    return html;
 };
 
+/**
+ * This method constructs the position of a rack/sector/box based on the hierarchical
+ * parents of the 'object'
+ * 
+ * @param {type} positionIndexes    The indexes of the hierarchical parents of the object
+ *                                  in their respective arrays e.g for tanks window.tankData.data array
+ *                                  
+ * @returns {String}                A string represeting the position of the object in it's heirarchical parents
+ */
 Repository3D.prototype.getPositionText = function(positionIndexes){
    var positionText = "";
    var tankData = window.r3d.tankData.data;
@@ -1201,6 +1460,16 @@ Repository3D.prototype.getPositionText = function(positionIndexes){
    return positionText;
 }
 
+/**
+ * This method searches for a query in the string
+ * 
+ * @param {type} string    The string on which to search the query
+ * @param {type} query     The query to be searched
+ * @param {type} score     The maximum score to be returned if query perfectly matches the string
+ * 
+ * @returns {Number}       The fuzzy score based on the similarity of the query to the string.
+ *                         Will be 0 if at least one character of the query is not in the string
+ */
 Repository3D.prototype.fuzzySearch = function(string, query, score){
    query = query.replace(" ", "");
    var qRegex = query.toLowerCase().split("").reduce(function(a,b){ return a+".*"+b; });
@@ -1213,6 +1482,12 @@ Repository3D.prototype.fuzzySearch = function(string, query, score){
    }
 };
 
+/**
+ * This method groups search results based on 
+ *    - the type of search result (e.g box/tank etc)
+ *    - the fuzzy search score of the search results (for results that are not boxes)
+ *    - the owner of the box (for results that are boxes)
+ */
 Repository3D.prototype.groupSearchResults = function(results){
    var groups = new Array();
    for(var resultIndex = 0; resultIndex < results.length; resultIndex++){
@@ -1293,6 +1568,13 @@ Repository3D.prototype.groupSearchResults = function(results){
    return groups;
 };
 
+/**
+ * This method fetches the names of box keepers from the server.
+ * Note that if the names of the keepers have already been cached,
+ * the cached values are what will be returned
+ * 
+ * @returns {window.r3dtmp.box_keepers|Window.r3dtmp.box_keepers} Names of the box keepers
+ */
 Repository3D.prototype.getBoxKeepers = function(){
    var uri = window.r3d.serverURI + 'get_box_keepers';
    if(typeof window.r3d.tmp['box_keepers'] == 'undefined') {
@@ -1308,6 +1590,13 @@ Repository3D.prototype.getBoxKeepers = function(){
    return window.r3d.tmp['box_keepers'];
 };
 
+/**
+ * This method returns the name of the box keeper corresponding to an id
+ * 
+ * @param {type} id     The id of the keeper in the database
+ * 
+ * @returns {String}    The name of the box keeper
+ */
 Repository3D.prototype.getKeeperName = function (id){
    var keepers = window.r3d.getBoxKeepers();
    if(id != null && id != "null"){
@@ -1321,6 +1610,13 @@ Repository3D.prototype.getKeeperName = function (id){
    return "";
 };
 
+/**
+ * This method generates a random sequencial color given an index
+ * 
+ * @param {type} i            The index to be used to generate the color
+ * 
+ * @returns {@var;i|Number}   Hexadecimal representation of the generated color
+ */
 Repository3D.prototype.sequentialColor = function(i) {
    var
            r,
@@ -1339,10 +1635,23 @@ Repository3D.prototype.sequentialColor = function(i) {
    return r * 0x330000 + g * 0x003300 + b * 0x000033;
 };
 
+/**
+ * This method is used to generate a random color based on an index
+ * 
+ * @param {type} i         The index used to generate the color
+ * @returns {unresolved}   The string representation of the color eg #ffffff
+ */
 Repository3D.prototype.randomColor = function(i) {
    return window.r3d.colorToString(window.r3d.sequentialColor((i << 7) % 215));
 };
 
+/**
+ * This method converts the hex representation of a color to a string 
+ * 
+ * @param {type} color  Hexadecimal representation of a color eg 0xffffff
+ * 
+ * @returns {String}    The string representation of the color eg #ffffff
+ */
 Repository3D.prototype.colorToString = function(color) {
    var
            cStr = color.toString(16);
@@ -1354,6 +1663,10 @@ Repository3D.prototype.colorToString = function(color) {
    return '#' + cStr;
 };
 
+/**
+ * This method handles the click event for the reset button
+ * @returns {undefined}
+ */
 Repository3D.prototype.handleZoomButtonEvent = function() {
    if(typeof window.r3d.t3d == 'undefined' || window.r3d.t3d.isActive() == false){
       window.r3d.resetCamera();
@@ -1363,6 +1676,11 @@ Repository3D.prototype.handleZoomButtonEvent = function() {
    }
 };
 
+/**
+ * This method is used to determine if the scene is in its original state
+ * 
+ * @returns {Boolean}   TRUE if the scene is in its original state
+ */
 Repository3D.prototype.isZoomedOutCompletely = function () {
    if(window.r3d.camera.position.x == window.r3d.tmp['defaultCP'].x && window.r3d.camera.position.y == window.r3d.tmp['defaultCP'].y && window.r3d.camera.position.z == window.r3d.tmp['defaultCP'].z){
       return true;
