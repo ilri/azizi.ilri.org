@@ -247,3 +247,29 @@ td.search_columns {min-width: 200px;}
    margin-left: 25px;
    line-height: 1.2rem;
 }
+
+/* Samples visualization */
+#sample_map_canvas {
+   height: 95%;
+   width: 100%;
+   position: relative;
+   left: 0%;
+   top: 0%;
+   z-index: 1;
+}
+
+#samples_timeline {
+   height: 5%;
+   width: 100%;
+   position: relative;
+   left: 0%;
+   top: 95%;
+}
+
+#project_list {
+   position: absolute;
+   background: #ffffff;
+   left: 10%;
+   top: 10%;
+   z-index: 2;
+}

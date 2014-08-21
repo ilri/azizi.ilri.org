@@ -37,18 +37,6 @@ class Repository3D{
       
       define(OPTIONS_REQUESTED_SUB_MODULE, $_GET['do']);
       define(OPTIONS_REQUESTED_ACTION, $_GET['action']);
-      
-      if(OPTIONS_REQUEST_TYPE == 'normal'){
-         echo "<script type='text/javascript' src='" . OPTIONS_COMMON_FOLDER_PATH . "jquery/jquery-1.8.3.min.js' /></script>";
-         echo "<script src='js/three.min.js'></script>";
-         echo "<script src='js/tween.min.js'></script>";
-         echo "<script src='js/stats.min.js'></script>";
-         echo "<script src='js/threex.dynamictexture.js'></script>";
-         echo "<script src='js/OrbitControls.js'></script>";
-         echo "<script src='js/repository_3d.js'></script>";
-         echo "<script src='js/tank_3d.js'></script>";
-         echo "<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css' />";
-      }
 
       if (OPTIONS_REQUESTED_SUB_MODULE == '') $this->HomePage();
       else if (OPTIONS_REQUESTED_SUB_MODULE == 'ajax' && OPTIONS_REQUESTED_ACTION == 'get_box_keepers') $this->getBoxKeepers();

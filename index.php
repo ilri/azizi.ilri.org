@@ -40,6 +40,7 @@
            <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
            <span><a href="/azizi/modules/mod_repository_3d.php" target="_blank">Bio-Repository in 3D</a></span>
+           <span><a href="/azizi/modules/mod_visualize_samples.php" target="_blank">Collected Samples</a></span>
          </div>
 
 	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
