@@ -264,6 +264,8 @@ else{
       <div id="map"></div>
       <div id="samples_timeline"></div>
       <div id="loading_box">Loading</div>
+      <div id="play_button"></div>
+      <div id="play_slider"></div>
       <div id="sample_count"></div>
       <div id="project_container" class="filter_container">
          <div id="project_label" class="filter_label">Projects</div>

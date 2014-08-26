@@ -20,6 +20,8 @@ function VisualizeSamples() {
    window.vs.testList = jQuery("#test_list");
    window.vs.resultContainer = jQuery("#result_container");
    window.vs.resultList = jQuery("#result_list");
+   window.vs.playButton = jQuery("#play_button");
+   window.vs.playSlider = jQuery("#play_slider");
    
    window.vs.loadingDialog = jQuery("#loading_box");
    window.vs.loadingDialog.show();
@@ -27,7 +29,9 @@ function VisualizeSamples() {
    window.vs.assets = {
       toggleOff: "url(../images/ic_action_cancel.png)",
       toggleOn: "url(../images/ic_action_accept.png)",
-      loading:"url(../images/ic_action_loading.gif)"
+      loading:"url(../images/ic_action_loading.gif)",
+      play:"url(../images/ic_action_play.png)",
+      pause:"url(../images/ic_action_pause.png)"
    };
    
    jQuery(".filter_toggle").css("background-image", window.vs.assets.loading);
@@ -42,13 +46,16 @@ function VisualizeSamples() {
    //initialize data objects
    window.vs.loading = 0;//this variable stores the progress of loading the different data sets ie (samples, projects, organisms, sampletypes)
    window.vs.data = {};
-   window.vs.data.filterIn = new Array();
-   window.vs.data.filterOut = new Array();
+   window.vs.data.filterIn = new Array();//samples that have passed all filters
+   window.vs.data.filterOut = new Array();//samples that failed at least one filter
+   window.vs.data.onTimeline = {samples: new Array(), days:{}};//subset of filterIn samples that are currently being displayed in timeline
    window.vs.data.projects = new Array();
    window.vs.data.organisms = new  Array();
    window.vs.data.sampleTypes = new Array();
    window.vs.data.tests = new Array();
    window.vs.data.results = new Array();
+   window.vs.data.tlBounds = {floor:-1, ceiling:-1};
+   window.vs.data.playInterval = -1;
    
    window.vs.filters = {projects:[], organisms:[], sampleTypes:[], tests:[], results:[]};
    
@@ -188,6 +195,13 @@ function VisualizeSamples() {
       
       window.setTimeout(window.vs.filter, 100);
    });
+   
+   //init events for the play button
+   window.vs.playButton.mousedown(function() {
+   });
+   window.vs.playButton.mouseup(function() {
+      window.vs.play();
+   });
 };
 
 /**
@@ -207,6 +221,9 @@ VisualizeSamples.prototype.windowResized = function(){
    jQuery(".filter_label").css("width", filterWidth - labelHeight);
    
    window.vs.timeline.css("top", (window.innerHeight - window.vs.timeline.height()) + "px");
+   window.vs.playSlider.css("top", (window.innerHeight - window.vs.timeline.height()) + "px");
+   
+   window.vs.playButton.css("top", (window.innerHeight - window.vs.timeline.height() - window.vs.playButton.height() - 20) + "px");
    
    /*var height = window.innerHeight;
    console.log("  window height = ", height);
@@ -296,7 +313,101 @@ VisualizeSamples.prototype.getAllSampleData = function(onComplete){
    });
 };
 
+VisualizeSamples.prototype.play = function() {
+   //calculate the time represented by the width of the timeline
+   if(window.vs.data.tlBounds.ceiling != -1 && window.vs.data.tlBounds.floor != -1){
+      if(window.vs.data.playInterval == -1){//slider is not sliding at the moment. make it slide
+         var tlWidth = window.vs.timeline.width();
+         var timeDiff = window.vs.data.tlBounds.ceiling - window.vs.data.tlBounds.floor;//time difference in milliseconds
 
+         //calculate the width of the slider
+         /*
+          * width of slider = 1 day if time difference < 1 month (30 times smaller)
+          *                   1 week if time difference >= 1 month  < 1 year
+          *                   1 month if time difference >= 1 year
+          */
+
+         var sliderWidth = -1;
+         if(timeDiff < (30 * 86400000)) {
+            console.log("slider reps 1 day");
+            sliderWidth = (tlWidth * 86400000)/timeDiff;//slider will rep 1 day
+         }
+         else if(timeDiff >= (30 * 86400000) && timeDiff < (365 * 86400000)){
+            console.log("slider reps 1 week");
+            sliderWidth = (tlWidth * 86400000 * 7)/timeDiff;//slider will rep 1 week
+         }
+         else{
+            console.log("slider reps 1 month");
+            sliderWidth = (tlWidth * 86400000 * 30)/timeDiff;//slider will rep 1 month
+         }
+
+         if(sliderWidth != -1){
+            window.vs.togglePlayButton();
+            window.vs.playSlider.css("width", sliderWidth+"px");
+            window.vs.playSlider.show();
+
+            window.vs.data.playInterval = window.setInterval(function(){
+               var left = window.vs.playSlider.position().left;
+               
+               //get time bounds represented by slider
+               var floor = (window.vs.playSlider.position().left * (timeDiff/tlWidth)) + window.vs.data.tlBounds.floor;
+               var ceiling = floor + (window.vs.playSlider.width() * (timeDiff/tlWidth));
+               
+               var samplesToShow = new Array();
+               var allTLSamples = window.vs.data.onTimeline;
+               var days = Object.keys(allTLSamples.days);
+               
+               for(var dayIndex = 0; dayIndex < days.length; dayIndex++){
+                  if(parseInt(days[dayIndex]) >= floor && parseInt(days[dayIndex]) <= ceiling){
+                     var sampleIndexes = allTLSamples.days[parseInt(days[dayIndex])];
+                     for(var sampleIndex = 0; sampleIndex < sampleIndexes.length; sampleIndex++){
+                        samplesToShow.push(allTLSamples.samples[sampleIndexes[sampleIndex]]);
+                     }
+                  }
+               }
+               
+               window.vs.refreshHeatmap(samplesToShow, true);
+
+               if(left >= (window.innerWidth - window.vs.playSlider.width())){
+                  window.vs.stopTimelinePlay(true);
+               }
+               else {
+                  left = left+2;
+                  window.vs.playSlider.css("left", left+"px");
+               }
+            },10);
+         }
+      }
+      else {
+         window.vs.togglePlayButton();
+      }
+   }
+};
+
+VisualizeSamples.prototype.togglePlayButton = function(){
+   if(window.vs.data.playInterval != -1){
+      window.clearInterval(window.vs.data.playInterval);
+      window.vs.playButton.css("background-image", window.vs.assets.play);
+      window.vs.playButton.css("background-position-x", "3px");
+      window.vs.data.playInterval = -1;
+   }
+   else {
+      window.vs.playButton.css("background-image", window.vs.assets.pause);
+      window.vs.playButton.css("background-position-x", "0px");
+   }
+};
+
+VisualizeSamples.prototype.stopTimelinePlay = function(refreshHeatmap) {
+   if(window.vs.data.playInterval != -1){
+      window.vs.togglePlayButton();
+      window.vs.playSlider.hide();
+      window.vs.playSlider.css("left", "0px");
+      
+      if(refreshHeatmap == true){
+         window.vs.refreshHeatmap(window.vs.data.onTimeline.samples);
+      }
+   }
+};
 
 VisualizeSamples.prototype.getDefaultHeatmap = function(){
    //var heatmapCoords = window.vs.getHeatmapCoords();
@@ -768,8 +879,8 @@ VisualizeSamples.prototype.resetFilterIcons = function() {
    }
 };
 
-VisualizeSamples.prototype.refreshHeatmap = function(data){
-   console.log("refreshHeatmap called");
+VisualizeSamples.prototype.refreshHeatmap = function(data, playingTimeline){
+   //console.log("refreshHeatmap called");
    
    window.vs.layers.heatmapLayer._latlngs = new Array();
    
@@ -785,9 +896,25 @@ VisualizeSamples.prototype.refreshHeatmap = function(data){
    var maxRadius = 20;
    var allSamples = window.vs.data.filterIn.length + window.vs.data.filterOut.length;
    var radius = maxRadius * ((1/2)+(1-(samplesData.length/allSamples)));
-   console.log("heatmap radius = ", radius);
+   //console.log("heatmap radius = ", radius);
    
    window.vs.layers.heatmapLayer.setOptions({radius: radius});
+   
+   if(typeof playingTimeline == 'undefined' || playingTimeline == false) {
+      window.vs.data.onTimeline.samples = samplesData;
+      
+      var days = {};
+      for(var index = 0; index < samplesData.length; index++){
+         var time = new Date(samplesData[index].date_created.split(" ")[0]).getTime();
+         
+         if(typeof days[time] == "undefined"){
+            days[time] = new Array();
+         }
+         days[time].push(index);
+      }
+      
+      window.vs.data.onTimeline.days = days;
+   }//if we are showing only a subset of what is on the timeline no need for resetting onTimeline object
    
    for(var index = 0; index < samplesData.length; index++){
       //console.log(L.latLng(samplesData[index].Latitude, samplesData[index].Longitude));
@@ -942,7 +1069,16 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          else if(parseInt(a) < parseInt(b)) return -1;
          else return 0;
       });//sort keys in ascending order. Remember keys are unix timestamps
-
+      
+      if(histKeys.length > 0){
+         window.vs.data.tlBounds.floor = parseInt(histKeys[0]);
+         window.vs.data.tlBounds.ceiling = parseInt(histKeys[histKeys.length-1]);
+      }
+      else {
+         window.vs.data.tlBounds.floor = -1;
+         window.vs.data.tlBounds.ceiling = -1;
+      }
+      
       var plotData = "x,y\n";
       for(var index = 0; index < histKeys.length; index++){
          var date = new Date(parseInt(histKeys[index]));
@@ -997,9 +1133,14 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          axisLabelColor: "#006064",
          zoomCallback: function(minDate, maxDate, yRanges) {
             console.log("ZoomCallback called");
+            window.vs.stopTimelinePlay(false);//stop timeline play if running but do not refresh heatmap
+            
             //minDate and maxDate are in the form of unix timestamp e.g 1286346300156.658
             
             //go through all the items in window.vs.data.filterIn and add the ones that lie in the range to the heatmap
+            window.vs.data.tlBounds.floor = minDate;
+            window.vs.data.tlBounds.ceiling = maxDate;
+            
             var dataInRange = new Array();
             
             for(var index = 0; index < window.vs.data.filterIn.length; index++){
@@ -1025,7 +1166,11 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          height: "0px",
          top: window.innerHeight + "px",
          background: "#e0f7fa"
-      }, 400, "swing", function(){window.vs.timeline.hide();});
+      }, 400, "swing", function(){
+         window.vs.timeline.hide();
+         window.vs.playButton.hide();
+         window.vs.playSlider.hide();
+      });
    }
    else {
       if(window.vs.timeline.is(":visible")) {
@@ -1033,6 +1178,12 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
       }
       else {//timeline is not showing. means that there was nothing to plot the last time
          window.vs.timeline.show();
+         
+         window.vs.playButton.css("top", (window.innerHeight - tHeight - window.vs.playButton.height() - 20) + "px");
+         window.vs.playSlider.css("top", (window.innerHeight - tHeight)+"px");
+         window.vs.playSlider.css("height", tHeight+"px");
+         window.vs.playButton.show();
+         
          window.vs.timeline.animate({
             height: tHeight + "px",
             top: (window.innerHeight - tHeight)+"px",
