@@ -319,6 +319,18 @@ td.search_columns {min-width: 200px;}
    top: 22%;
 }
 
+#test_container {
+   position: absolute;
+   left: 5%;
+   top: 28%;
+}
+
+#result_container {
+   position: absolute;
+   left: 5%;
+   top: 34%;
+}
+
 .filter_list {
    z-index: 3;
    width:100%;

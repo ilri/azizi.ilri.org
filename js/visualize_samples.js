@@ -16,6 +16,11 @@ function VisualizeSamples() {
    window.vs.organismList = jQuery("#organism_list");
    window.vs.sampleTypesContainer = jQuery("#sample_types_container");
    window.vs.sampleTypesList = jQuery("#sample_types_list");
+   window.vs.testContainer = jQuery("#test_container");
+   window.vs.testList = jQuery("#test_list");
+   window.vs.resultContainer = jQuery("#result_container");
+   window.vs.resultList = jQuery("#result_list");
+   
    window.vs.loadingDialog = jQuery("#loading_box");
    window.vs.loadingDialog.show();
    
@@ -30,6 +35,8 @@ function VisualizeSamples() {
    window.vs.organismToggle = jQuery("#organism_toggle");
    window.vs.sampleTypesToggle = jQuery("#sample_types_toggle");
    window.vs.sampleCountDialog = jQuery("#sample_count");
+   window.vs.testToggle = jQuery("#test_toggle");
+   window.vs.resultToggle = jQuery("#result_toggle");
    window.vs.windowResized();//since here is where all the dynamic positions and sizes are set
    
    //initialize data objects
@@ -40,8 +47,10 @@ function VisualizeSamples() {
    window.vs.data.projects = new Array();
    window.vs.data.organisms = new  Array();
    window.vs.data.sampleTypes = new Array();
+   window.vs.data.tests = new Array();
+   window.vs.data.results = new Array();
    
-   window.vs.filters = {projects:[], organisms:[], sampleTypes:[]};
+   window.vs.filters = {projects:[], organisms:[], sampleTypes:[], tests:[], results:[]};
    
    window.vs.layers = {};
    window.vs.serverURI = "mod_visualize_samples.php?do=ajax&action=";
@@ -68,6 +77,14 @@ function VisualizeSamples() {
    jQuery("#sample_types_label").click(function (){
       console.log("sample types clicked");
       window.vs.toggleSampleTypes();
+   });
+   jQuery("#test_label").click(function (){
+      console.log("test clicked");
+      window.vs.toggleTests();
+   });
+   jQuery("#result_label").click(function (){
+      console.log("results clicked");
+      window.vs.toggleResults();
    });
    
    //initialize the toggle handlers
@@ -132,6 +149,45 @@ function VisualizeSamples() {
       window.setTimeout(window.vs.filter, 100);
    });
    
+   window.vs.testToggle.click(function(){
+      window.vs.testToggle.css("background-image", window.vs.assets.loading);
+      
+      if(window.vs.filters.tests.length > 0){//at least something in projects filter, clear everything
+         window.vs.filters.tests = new Array();
+         
+         for(var index = 0; index < window.vs.data.tests.length; index++){
+            jQuery("#test_" + window.vs.data.tests[index].replace(/[^a-z0-9]/gi, "_")).prop("checked", false);
+         }
+      }
+      else {
+         for(var index = 0; index < window.vs.data.tests.length; index++){
+            window.vs.filters.tests.push(window.vs.data.tests[index]);
+            jQuery("#test_" + window.vs.data.tests[index].replace(/[^a-z0-9]/gi, "_")).prop("checked", true);
+         }
+      }
+      
+      window.setTimeout(window.vs.filter, 100);
+   });
+   
+   window.vs.resultToggle.click(function(){
+      window.vs.resultToggle.css("background-image", window.vs.assets.loading);
+      
+      if(window.vs.filters.results.length > 0){//at least something in projects filter, clear everything
+         window.vs.filters.results = new Array();
+         
+         for(var index = 0; index < window.vs.data.results.length; index++){
+            jQuery("#result_" + window.vs.data.results[index]).prop("checked", false);
+         }
+      }
+      else {
+         for(var index = 0; index < window.vs.data.results.length; index++){
+            window.vs.filters.results.push(window.vs.data.results[index]);
+            jQuery("#result_" + window.vs.data.results[index]).prop("checked", true);
+         }
+      }
+      
+      window.setTimeout(window.vs.filter, 100);
+   });
 };
 
 /**
@@ -179,7 +235,7 @@ VisualizeSamples.prototype.initMap = function(){
    }).addTo( window.vs.map );
    
    window.vs.layers.heatmapLayer = L.heatLayer([],{
-      radius:20
+      radius:30
    }).addTo(window.vs.map);
 };
 
@@ -216,10 +272,23 @@ VisualizeSamples.prototype.getAllSampleData = function(onComplete){
       console.log("sample data gotten from the server");
       console.log("x size of dataset = ",jsonObject.samples.length);
       window.vs.data.samples = jsonObject.samples;
+      window.vs.data.tests = jsonObject.tests.types;
+      window.vs.data.results = jsonObject.tests.results;
       
       for(var index = 0; index < window.vs.data.samples.length; index++ ){
          window.vs.data.filterIn.push(window.vs.data.samples[index]);
       }
+      
+      /*for(var index = 0; index < window.vs.data.tests.length; index++){
+         window.vs.filters.tests.push(window.vs.data.tests[index]);
+      }
+      
+      for(var index = 0; index < window.vs.data.results.length; index++){
+         window.vs.filters.results.push(window.vs.data.results[index]);
+      }*/
+      
+      window.vs.testToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.resultToggle.css("background-image", window.vs.assets.toggleOn);
       
       window.vs.updateLoadingProgress();
       
@@ -436,6 +505,64 @@ VisualizeSamples.prototype.showOrganisms = function() {
    }
 };
 
+VisualizeSamples.prototype.showTests = function() {
+   var tests = window.vs.data.tests;
+   
+   for(var testIndex = 0; testIndex < tests.length; testIndex++) {
+      var checked = "";
+      
+      if(jQuery.inArray(tests[testIndex], window.vs.filters.tests) != -1) checked = "checked";
+      
+      var testHTML = "<input type='checkbox' id='test_"+tests[testIndex].replace(/[^a-z0-9]/gi, '_')+"' " + checked + " />"+ tests[testIndex] + "<br />";
+      
+      window.vs.testList.append(testHTML);
+      
+      jQuery("#test_"+tests[testIndex].replace(/[^a-z0-9]/gi, "_")).change({test:tests[testIndex]}, function(e) {
+         window.vs.testToggle.css("background-image", window.vs.assets.loading);
+         
+         var test = e.data.test;
+         
+         if(this.checked == true){
+            window.vs.filters.tests.push(test);
+         }
+         else {
+            window.vs.filters.tests.splice(jQuery.inArray(test, window.vs.filters.tests),1);
+         }
+         
+         window.setTimeout(window.vs.filter, 100);
+      });
+   }
+};
+
+VisualizeSamples.prototype.showResults = function() {
+   var results = window.vs.data.results;
+   
+   for(var resIndex = 0; resIndex < results.length; resIndex++) {
+      var checked = "";
+      
+      if(jQuery.inArray(results[resIndex], window.vs.filters.results) != -1) checked = "checked";
+      
+      var resHTML = "<input type='checkbox' id='result_"+results[resIndex]+"' " + checked + " />"+ results[resIndex] + "<br />";
+      
+      window.vs.resultList.append(resHTML);
+      
+      jQuery("#result_"+results[resIndex]).change({result:results[resIndex]}, function(e) {
+         window.vs.resultToggle.css("background-image", window.vs.assets.loading);
+         
+         var result = e.data.result;
+         
+         if(this.checked == true){
+            window.vs.filters.results.push(result);
+         }
+         else {
+            window.vs.filters.results.splice(jQuery.inArray(result, window.vs.filters.results),1);
+         }
+         
+         window.setTimeout(window.vs.filter, 100);
+      });
+   }
+};
+
 /**
  * This method adds projects from the server to the project list html element
  * 
@@ -478,12 +605,24 @@ VisualizeSamples.prototype.filter = function() {
    console.log("size of filterIn before = ", window.vs.data.filterIn.length);
    console.log("size of filterOut before = ", window.vs.data.filterOut.length);
    
+   /*
+    * In an effort to eliminate looping through all the filters to determine if a sample qualifies:
+    *    - generate strings corresponding to the different filters 
+    *          e.g string containing ids of projects seperated by a delimiter (in this case :)
+    *    - for each sample check in the corresponding filter string if the sample's value is contained in the string
+    *          e.g for sample 'a' check if the substring ':' + a.Project + ':' is in projI
+    *          #genius
+    */
    var projI = ":" + window.vs.filters.projects.join(":") + ":";
    console.log("project search index = ", projI);
    var orgI = ":" + window.vs.filters.organisms.join(":") + ":";
    console.log("organism search index = ", orgI);
    var stI = ":" + window.vs.filters.sampleTypes.join(":") + ":";
    console.log("sample type index = ",stI);
+   var testI = ":" + window.vs.filters.tests.join(":") + ":";
+   console.log("test index = ", testI);
+   var resI = ":" + window.vs.filters.results.join(":") + ":";
+   console.log("result index = ", resI);
    
    var histogram = new Array();
    
@@ -504,9 +643,24 @@ VisualizeSamples.prototype.filter = function() {
          continue;
       }
       
-      if(stI.indexOf(":" + window.vs.data.filterIn[index].sample_type + ":")) {
+      if(stI.indexOf(":" + window.vs.data.filterIn[index].sample_type + ":") == -1) {
          window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
          window.vs.data.filterIn.splice(index, 1);
+         index--;
+         continue;
+      }
+      
+      if(testI.indexOf(":" + window.vs.data.filterIn[index].test + ":") == -1){
+         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
+         window.vs.data.filterIn.splice(index, 1);
+         index--;
+         continue;
+      }
+      
+      if(resI.indexOf(":" + window.vs.data.filterIn[index].result + ":") == -1){
+         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
+         window.vs.data.filterIn.splice(index, 1);
+         index--;
          continue;
       }
       
@@ -537,12 +691,17 @@ VisualizeSamples.prototype.filter = function() {
          continue;
       }
       if(window.vs.filters.sampleTypes.length > 0 && stI.indexOf(":" + window.vs.data.filterOut[index].sample_type + ":") == -1){
-         console.log("f");
+         continue;
+      }
+      if(window.vs.filters.tests.length > 0 && testI.indexOf(":" + window.vs.data.filterOut[index].test + ":") == -1){
+         continue;
+      }
+      if(window.vs.filters.results.length > 0 && resI.indexOf(":" + window.vs.data.filterOut[index].result + ":") == -1){
          continue;
       }
       
       //if we have reached this far, it means the sample passes all filters
-      var allFilters = window.vs.filters.organisms.length + window.vs.filters.projects.length + window.vs.filters.sampleTypes.length;
+      var allFilters = window.vs.filters.organisms.length + window.vs.filters.projects.length + window.vs.filters.sampleTypes.length + window.vs.filters.tests.length + window.vs.filters.results.length;
       
       if(allFilters > 0){
          window.vs.data.filterIn.push(window.vs.data.filterOut[index]);
@@ -562,12 +721,6 @@ VisualizeSamples.prototype.filter = function() {
          index--;
       }
    }
-   
-   var sampleLabel = " Samples";
-   if(window.vs.data.filterIn.length == 1) sampleLabel = " Sample";
-   
-   window.vs.sampleCountDialog.show();
-   window.vs.sampleCountDialog.html(window.vs.data.filterIn.length + sampleLabel);
    
    console.log("size of filterIn after = ", window.vs.data.filterIn.length);
    console.log("size of filterOut after = ", window.vs.data.filterOut.length);
@@ -599,14 +752,43 @@ VisualizeSamples.prototype.resetFilterIcons = function() {
    else {
       window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
    }
+   
+   if(window.vs.filters.tests.length == 0){
+      window.vs.testToggle.css("background-image", window.vs.assets.toggleOn);
+   }
+   else {
+      window.vs.testToggle.css("background-image", window.vs.assets.toggleOff);
+   }
+   
+   if(window.vs.filters.results.length == 0){
+      window.vs.resultToggle.css("background-image", window.vs.assets.toggleOn);
+   }
+   else {
+      window.vs.resultToggle.css("background-image", window.vs.assets.toggleOff);
+   }
 };
 
-VisualizeSamples.prototype.refreshHeatmap = function(){
+VisualizeSamples.prototype.refreshHeatmap = function(data){
    console.log("refreshHeatmap called");
    
    window.vs.layers.heatmapLayer._latlngs = new Array();
    
    var samplesData = window.vs.data.filterIn;
+   if(typeof data != 'undefined') samplesData = data;
+   
+   var sampleLabel = " Samples";
+   if(samplesData.length == 1) sampleLabel = " Sample";
+   
+   window.vs.sampleCountDialog.show();
+   window.vs.sampleCountDialog.html(samplesData.length + sampleLabel);
+   
+   var maxRadius = 20;
+   var allSamples = window.vs.data.filterIn.length + window.vs.data.filterOut.length;
+   var radius = maxRadius * ((1/2)+(1-(samplesData.length/allSamples)));
+   console.log("heatmap radius = ", radius);
+   
+   window.vs.layers.heatmapLayer.setOptions({radius: radius});
+   
    for(var index = 0; index < samplesData.length; index++){
       //console.log(L.latLng(samplesData[index].Latitude, samplesData[index].Longitude));
       
@@ -631,10 +813,15 @@ VisualizeSamples.prototype.toggleProjects = function(){
       else {
          window.vs.organismList.empty();
          window.vs.sampleTypesList.empty();
+         window.vs.testList.empty();
+         window.vs.resultList.empty();
+         
          //window.vs.organismContainer.hide();
          window.vs.projectContainer.css("z-index",3);
          window.vs.organismContainer.css("z-index",2);
          window.vs.sampleTypesContainer.css("z-index",2);
+         window.vs.testContainer.css("z-index",2);
+         window.vs.resultContainer.css("z-index",2);
          window.vs.showProjects();
       }
    }
@@ -652,10 +839,15 @@ VisualizeSamples.prototype.toggleOrganisms = function() {
       else {
          window.vs.projectList.empty();
          window.vs.sampleTypesList.empty();
+         window.vs.testList.empty();
+         window.vs.resultList.empty();
+         
          //window.vs.projectContainer.hide();
          window.vs.organismContainer.css("z-index",3);
          window.vs.projectContainer.css("z-index",2);
          window.vs.sampleTypesContainer.css("z-index",2);
+         window.vs.testContainer.css("z-index",2);
+         window.vs.resultContainer.css("z-index",2);
          window.vs.showOrganisms();
       }
    }
@@ -673,11 +865,68 @@ VisualizeSamples.prototype.toggleSampleTypes = function(){
       else {
          window.vs.projectList.empty();
          window.vs.organismList.empty();
+         window.vs.testList.empty();
+         window.vs.resultList.empty();
+         
          //window.vs.projectContainer.hide();
          window.vs.sampleTypesContainer.css("z-index",3);
          window.vs.projectContainer.css("z-index",2);
          window.vs.organismContainer.css("z-index",2);
+         window.vs.testContainer.css("z-index",2);
+         window.vs.resultContainer.css("z-index",2);
          window.vs.showSampleTypes();
+      }
+   }
+};
+
+VisualizeSamples.prototype.toggleTests = function(){
+   if(window.vs.data.tests.length > 0){
+      var isVisible = true;
+      if(jQuery("#test_"+window.vs.data.tests[0].replace(/[^a-z0-9]/gi, "_")).length == 0) isVisible = false;
+      
+      if(isVisible == true) {
+         window.vs.testList.empty();
+         window.vs.testContainer.css("z-index",2);
+      }
+      else {
+         window.vs.projectList.empty();
+         window.vs.organismList.empty();
+         window.vs.sampleTypesList.empty();
+         window.vs.resultList.empty();
+         
+         //window.vs.projectContainer.hide();
+         window.vs.testContainer.css("z-index",3);
+         window.vs.projectContainer.css("z-index",2);
+         window.vs.organismContainer.css("z-index",2);
+         window.vs.sampleTypesContainer.css("z-index",2);
+         window.vs.resultContainer.css("z-index",2);
+         window.vs.showTests();
+      }
+   }
+};
+
+VisualizeSamples.prototype.toggleResults = function(){
+   if(window.vs.data.results.length > 0){
+      var isVisible = true;
+      if(jQuery("#result_"+window.vs.data.results[0]).length == 0) isVisible = false;
+      
+      if(isVisible == true) {
+         window.vs.resultList.empty();
+         window.vs.resultContainer.css("z-index",2);
+      }
+      else {
+         window.vs.projectList.empty();
+         window.vs.organismList.empty();
+         window.vs.sampleTypesList.empty();
+         window.vs.testList.empty();
+         
+         //window.vs.projectContainer.hide();
+         window.vs.resultContainer.css("z-index",3);
+         window.vs.projectContainer.css("z-index",2);
+         window.vs.organismContainer.css("z-index",2);
+         window.vs.sampleTypesContainer.css("z-index",2);
+         window.vs.testContainer.css("z-index",2);
+         window.vs.showResults();
       }
    }
 };
@@ -745,10 +994,28 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          xAxisLabelFormatter: function(d, gran) {
             return Dygraph.zeropad(d.getMonth() + 1) + "/" + Dygraph.zeropad(d.getYear() + 1900);
          },
-         axisLabelColor: "#006064"
+         axisLabelColor: "#006064",
+         zoomCallback: function(minDate, maxDate, yRanges) {
+            console.log("ZoomCallback called");
+            //minDate and maxDate are in the form of unix timestamp e.g 1286346300156.658
+            
+            //go through all the items in window.vs.data.filterIn and add the ones that lie in the range to the heatmap
+            var dataInRange = new Array();
+            
+            for(var index = 0; index < window.vs.data.filterIn.length; index++){
+               var date = new  Date(window.vs.data.filterIn[index].date_created.split(" ")[0]);//get only the date and discard the time
+               if(date.getTime() >= minDate && date.getTime() <= maxDate){
+                  dataInRange.push(window.vs.data.filterIn[index]);
+               }
+            }
+            
+            window.vs.refreshHeatmap(dataInRange);
+         }
       });
    };
    
+   
+   //execution of this method actually starts here
    window.vs.timeline.empty();
    
    var tHeight = window.innerHeight * 0.075;

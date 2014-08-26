@@ -41,6 +41,9 @@ class VisualizeSamples {
          else if(OPTIONS_REQUESTED_ACTION == 'all_sample_type_data'){
             $this->getAllSampleTypes();
          }
+         else if(OPTIONS_REQUESTED_ACTION == 'all_origin_data'){
+            $this->getAllOrigins();
+         }
       }
    }
    
@@ -68,11 +71,44 @@ class VisualizeSamples {
           $data['error'] = 1;
        }
        
+       $testTypes = array();//array holding the different types of tests done
+       $resultTypes = array();
        for($index = 0; $index < count($data['samples']); $index++){
+          //clean longitude and latitude
           $data['samples'][$index]['Longitude'] = $this->convertLongitude($data['samples'][$index]['Longitude']);
           $data['samples'][$index]['Latitude'] = $this->convertLatitude($data['samples'][$index]['Latitude']);
+          
+          //clean the elisa results column and get the relevant data
+          $test = "";
+          $result = "";
+          if($data['samples'][$index]['Elisa_Results'] != null && strlen($data['samples'][$index]['Elisa_Results']) > 0){
+             $tests = array();
+             preg_match_all("/name\s*=\s*([^,]*)\s*,\s*status\s*=\s*([a-z0-9]*)/i", $data['samples'][$index]['Elisa_Results'], $tests);
+             
+             if(count($tests) == 3){
+                if(isset($tests[1][0])) {
+                   $test = $tests[1][0];
+                   if(array_search($test, $testTypes) === FALSE){
+                      array_push($testTypes, $test);
+                   }
+                }
+                
+                if(isset($tests[2][0])) {
+                   $result = $tests[2][0];
+                   //$this->Dbase->CreateLogEntry($tests[2][0], "info");
+                   if(array_search($result, $resultTypes) === FALSE){
+                      array_push($resultTypes, $result);
+                   }
+                }
+             }
+          }
+          
+          $data['samples'][$index]['test'] = $test;
+          $data['samples'][$index]['result'] = $result;
        }
-
+       
+       $data['tests'] = array('types' => $testTypes, 'results' => $resultTypes);
+       
        echo json_encode($data);
    }
    
@@ -136,6 +172,23 @@ class VisualizeSamples {
       }
       else {
          $data['organisms'] = array();
+         $data['error'] = 1;
+      }
+      
+      echo json_encode($data);
+   }
+   
+   private function getAllOrigins() {
+      $query = "select origin from ".Config::$config['azizi_db'].".samples group by origin";
+      $origins = $this->Dbase->ExecuteQuery($query);
+      
+      $data = array();
+      if($origins != 1){
+         $data['origins'] = $origins;
+         $data['error'] = 0;
+      }
+      else {
+         $data['origins'] = array();
          $data['error'] = 1;
       }
       
@@ -226,6 +279,16 @@ else{
          <div id="sample_types_label" class="filter_label">Sample Types</div>
          <div id="sample_types_toggle" class="filter_toggle"></div>
          <div id="sample_types_list" class="filter_list"></div>   
+      </div>
+      <div id="test_container" class="filter_container">
+         <div id="test_label" class="filter_label">Test done</div>
+         <div id="test_toggle" class="filter_toggle"></div>
+         <div id="test_list" class="filter_list"></div>   
+      </div>
+      <div id="result_container" class="filter_container">
+         <div id="result_label" class="filter_label">Test Results</div>
+         <div id="result_toggle" class="filter_toggle"></div>
+         <div id="result_list" class="filter_list"></div>   
       </div>
       <script>
          var visSamples = new VisualizeSamples();
