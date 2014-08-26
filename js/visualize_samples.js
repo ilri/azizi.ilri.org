@@ -372,7 +372,7 @@ VisualizeSamples.prototype.play = function() {
                   window.vs.stopTimelinePlay(true);
                }
                else {
-                  left = left+2;
+                  left = left+1;
                   window.vs.playSlider.css("left", left+"px");
                }
             },10);
@@ -1151,6 +1151,16 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
             }
             
             window.vs.refreshHeatmap(dataInRange);
+         },
+         clickCallback: function(e, x, points){
+            //if play slider is currently visible, move it to where the mouse was clicked
+            if(window.vs.playSlider.is(":visible") == true){
+               var x = e.x;
+               
+               if(x > (window.vs.playSlider.width()/2)) x = x - (window.vs.playSlider.width()/2);
+               
+               window.vs.playSlider.css("left", x+"px");
+            }
          }
       });
    };
