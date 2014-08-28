@@ -244,7 +244,7 @@ else{
 <html>
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-      <title>Bio-Repository in 3D</title>
+      <title>Azizi Samples Visualised</title>
       <script type='text/javascript' src='../../common/jquery/jquery-1.8.3.min.js' /></script>
       <script src='../js/visualize_samples.js'></script>
       <script src='../js/ol.js'></script>
