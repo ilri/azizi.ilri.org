@@ -45,9 +45,9 @@
 	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
    </div>
    <div id='documentation' class='hidden center'>
-      <div class='desc'><a href="documentation.html#infrastructure"><img src="images/doc.png"></a><br /><span>Infrastructure</span></div>
-      <div class='desc'><a href="documentation.html#sample_storage"><img src="images/doc1.png"></a><br /><span>Sample Storage</span></div>
-      <div class='desc'><a href="documentation.html#sampling_protocol"><img src="images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
+      <div class='desc'><a href="documentation.html#infrastructure"><img src="/azizi/images/doc.png"></a><br /><span>Infrastructure</span></div>
+      <div class='desc'><a href="documentation.html#sample_storage"><img src="/azizi/images/doc1.png"></a><br /><span>Sample Storage</span></div>
+      <div class='desc'><a href="documentation.html#sampling_protocol"><img src="/azizi/images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
    </div>
 
          <div id='equipment_status'>
