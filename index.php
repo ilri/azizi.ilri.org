@@ -25,27 +25,31 @@
      <div id="contents" class="transform_slow">
          <div id="info">
             <p>
-               Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI. The system supports a number of activities and projects including
-               <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://avid.icipe.org/" target="_blank">AVID</a>,
-               <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank"> a group of projects targeting innate resistance to trypanosomiasis</a>,
-               the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase liquid nitrogen
+               Azizi Biorepository is the long term storage system and associated informatics tools that comprise the biorepository at <a href='http://ilri.org' target='_blank'>International Livestock Research Institute (ILRI)</a>.</p><p> The system supports a number of activities and projects including
+               <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://icipe.org/avid/" target="_blank">AVID</a>,
+               <a href="http://www.zoonotic-diseases.org/home/research/paz" target="_blank">PAZ</a>, <a href='http://steps-centre.org/project/drivers_of_disease/' target='_blank'>DDDAC</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank">African Bovine Trypanosomiasis</a>,
+               the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 450,000 samples in vapour-phase liquid nitrogen
                with uniquely roubust, secure and well monitored ultra-cold conditions for long-term storage.
             </p>
-            <p>This page provides links to resources and real-time monitoring of critical systems.</p>
+            <p class='center'>This page provides links to resources and real-time monitoring of critical systems.</p>
          </div>
          <div id="links" class="center">
-           <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
-           <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
+           <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">Biorepository LIMS</a></span>
+           <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>ILRI's Research Computing Cluster</a></span>
+           <span><a href="javascript:;" id='doc_link'>Documentation</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
            <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
-           <span><a href="/azizi/modules/mod_repository_3d.php" target="_blank">Bio-Repository in 3D</a></span>
+           <span><a href="/azizi/modules/mod_repository_3d.php" target="_blank">The Biorepository in 3D</a></span>
          </div>
-
 	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
- 
-</div>
-</body>
+   </div>
+   <div id='documentation' class='hidden center'>
+      <div class='desc'><a href="documentation.html#infrastructure"><img src="images/doc.png"></a><br /><span>Infrastructure</span></div>
+      <div class='desc'><a href="documentation.html#sample_storage"><img src="images/doc1.png"></a><br /><span>Sample Storage</span></div>
+      <div class='desc'><a href="documentation.html#sampling_protocol"><img src="images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
+   </div>
+
          <div id='equipment_status'>
              <div class="status center hidden">
                 System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>  Cluster Status <span class="hpc_status"></span>
@@ -88,6 +92,7 @@
   $('[name=azizi_search]').focus().live('keyup', Azizi.startSearch);
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
+  $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
 
