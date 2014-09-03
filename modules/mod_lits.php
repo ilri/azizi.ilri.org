@@ -378,8 +378,9 @@ else {
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       <title>ILRI LITS</title>
-      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-      <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+      <?php echo '<link rel="stylesheet" href="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.css" />';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.js"></script>';?>
+      <!--script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
       <script src="../js/lits.js"></script>
       <link href="../css/azizi.css" rel="stylesheet" type="text/css" />
       <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css' />

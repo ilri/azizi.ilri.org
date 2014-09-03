@@ -71,7 +71,7 @@ function LITS() {
    window.lits.initMap();
    
    //run initialization code
-   window.lits.showSetSelectionDiv();
+   window.lits.getSetSelectionData();
    
    window.lits.windowResized();
    jQuery(window).resize(window.lits.windowResized);
@@ -175,13 +175,22 @@ LITS.prototype.setSelectionBtnClicked = function() {
    console.log("setSelectionBtnClicked called");
    
    //send to the server the form ids, it should return the schemas of the forms (tables with the columns in the tables)
-   var schemas = window.lits.getDataFromServer("get_form_schemas", false, {forms: window.lits.data.tmp.selectedForms}).schemas;
+   /*var schemas = window.lits.getDataFromServer("get_form_schemas", false, {forms: window.lits.data.tmp.selectedForms}).schemas;
    
    window.lits.data.tmp.schemas = schemas;
    
    window.lits.setSelectionCtnr.hide();
    
-   window.lits.showSetModDiv();
+   window.lits.showSetModDiv();*/
+   
+   window.lits.getDataFromServer("get_form_schemas", true, {forms: window.lits.data.tmp.selectedForms}, function(data){
+      var schemas = data.schemas;
+      window.lits.data.tmp.schemas = schemas;
+      
+      window.lits.setSelectionCtnr.hide();
+   
+      window.lits.showSetModDiv();
+   });
 };
 
 /**
@@ -191,16 +200,43 @@ LITS.prototype.setSelectionBtnClicked = function() {
  * 
  * @returns {undefined}
  */
-LITS.prototype.showSetSelectionDiv = function() {
+LITS.prototype.getSetSelectionData = function() {
    console.log("show set called");
    
    var odkFormIDs = window.lits.data.odkForms;
    if(odkFormIDs.length == 0) {
-      odkFormIDs = window.lits.getDataFromServer("get_avail_forms", false, {}).forms;
-      window.lits.data.odkForms = odkFormIDs;
+      /*odkFormIDs = window.lits.getDataFromServer("get_avail_forms", false, {}).forms;
+      window.lits.data.odkForms = odkFormIDs;*/
+      
+      window.lits.getDataFromServer("get_avail_forms", true, {}, function(data){
+         window.lits.data.odkForms = data.forms;
+         window.lits.showSetSelectionDiv();
+      });
+   }
+   else {
+      window.lits.showSetSelectionDiv();
    }
    
-   console.log("odk forms = ", odkFormIDs);
+   /*console.log("odk forms = ", odkFormIDs);
+   for(var index = 0; index < odkFormIDs.length; index++){
+      var formHTML = "<input type='checkbox' id='" + odkFormIDs[index].form_id + "' />" + odkFormIDs[index].form_id + "<br />";
+     
+      window.lits.setSelectionList.append(formHTML);
+     
+      jQuery("#"+odkFormIDs[index].form_id).change({id: odkFormIDs[index].form_id}, function(e){
+         var formID = e.data.id;
+         if(this.checked){
+            window.lits.data.tmp.selectedForms.push(formID);
+         }
+         else {
+            window.lits.data.tmp.selectedForms.splice(jQuery.inArray(formID, window.lits.data.tmp.selectedForms), 1);
+         }
+      });
+   }*/
+};
+
+LITS.prototype.showSetSelectionDiv = function(){
+   var odkFormIDs = window.lits.data.odkForms;
    for(var index = 0; index < odkFormIDs.length; index++){
       var formHTML = "<input type='checkbox' id='" + odkFormIDs[index].form_id + "' />" + odkFormIDs[index].form_id + "<br />";
      
@@ -216,6 +252,11 @@ LITS.prototype.showSetSelectionDiv = function() {
          }
       });
    }
+   
+   var wWidth = window.innerWidth;
+   var wHeight = window.innerHeight;
+   window.lits.setSelectionCtnr.css("left", ((wWidth/2) - (window.lits.setSelectionCtnr.width() / 2)) + "px");
+   window.lits.setSelectionCtnr.css("top", ((wHeight/2) - (window.lits.setSelectionCtnr.height() / 2)) + "px");
 };
 
 LITS.prototype.showSetModDiv = function() {
@@ -388,9 +429,13 @@ LITS.prototype.getAnimalData = function(animalIndex){
    var animal = window.lits.data.animals[animalIndex];
    
    var forms = window.lits.forms;
-   var animalData = window.lits.getDataFromServer("get_animal_data", false, {data:animal, forms: forms});
+   /*var animalData = window.lits.getDataFromServer("get_animal_data", false, {data:animal, forms: forms});
    
-   window.lits.showAnimalData(animalData.data);
+   window.lits.showAnimalData(animalData.data);*/
+   
+   window.lits.getDataFromServer("get_animal_data", true, {data:animal, forms: forms}, function(animalData){
+      window.lits.showAnimalData(animalData.data);
+   });
 };
 
 LITS.prototype.cleanAnimalData = function(animalData){
@@ -682,9 +727,14 @@ LITS.prototype.setModBtnClicked = function() {
    
    //if we've come this far, everything is fine
    
-   var formData = window.lits.getDataFromServer("get_form_data", false, {forms: window.lits.forms});
+   /*var formData = window.lits.getDataFromServer("get_form_data", false, {forms: window.lits.forms});
    window.lits.genAnimalArray(formData.data);
-   window.lits.setModCtnr.hide();
+   window.lits.setModCtnr.hide();*/
+   
+   window.lits.getDataFromServer("get_form_data", true, {forms: window.lits.forms}, function(formData){
+      window.lits.genAnimalArray(formData.data);
+      window.lits.setModCtnr.hide();
+   });
    
 };
 
