@@ -71,6 +71,23 @@ class VisualizeSamples {
           $data['error'] = 1;
        }
        
+       $query = "SELECT a.sample_id, b.label as test,c.option_name as result"
+               . " FROM ".Config::$config['azizi_db'].".processes as a"
+               . " INNER JOIN ".Config::$config['azizi_db'].".process_type_def as b ON a.process_type = b.count"
+               . " INNER JOIN ".Config::$config['azizi_db'].".modules_options as c on a.status = c.option_id";
+       
+       $unformattedTests = $this->Dbase->ExecuteQuery($query);
+       $allTests = array();
+       foreach($unformattedTests as $currTest){
+          if(!isset($allTests[$currTest['sample_id']])){
+             $allTests[$currTest['sample_id']] = array();
+          }
+          
+          $sID = $currTest['sample_id'];
+          unset($currTest['sample_id']);
+          array_push($allTests[$sID], $currTest);
+       }
+       
        $testTypes = array();//array holding the different types of tests done
        $resultTypes = array();
        for($index = 0; $index < count($data['samples']); $index++){
@@ -79,7 +96,7 @@ class VisualizeSamples {
           $data['samples'][$index]['Latitude'] = $this->convertLatitude($data['samples'][$index]['Latitude']);
           
           //clean the elisa results column and get the relevant data
-          $test = "";
+          /*$test = "";
           $result = "";
           if($data['samples'][$index]['Elisa_Results'] != null && strlen($data['samples'][$index]['Elisa_Results']) > 0){
              $tests = array();
@@ -101,10 +118,30 @@ class VisualizeSamples {
                    }
                 }
              }
+          }*/
+          
+          $sID = $data['samples'][$index]['count'];
+          if(isset($allTests[$sID])){
+             
+             $sampleTests = $allTests[$sID];
+             foreach($sampleTests as $currTest){
+                if(array_search($currTest['test'], $testTypes) === false){
+                   array_push($testTypes, $currTest['test']);
+                }
+                
+                if(array_search($currTest['result'], $resultTypes) === false){
+                   array_push($resultTypes, $currTest['result']);
+                }
+             }
+             
+             $data['samples'][$index]['tests'] = $sampleTests;
+          }
+          else {
+             $data['samples'][$index]['tests'] = array();
           }
           
-          $data['samples'][$index]['test'] = $test;
-          $data['samples'][$index]['result'] = $result;
+          
+          if($index%1000 === 0) $this->Dbase->CreateLogEntry( $index,"fatal");
        }
        
        $data['tests'] = array('types' => $testTypes, 'results' => $resultTypes);

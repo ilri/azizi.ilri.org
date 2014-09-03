@@ -761,18 +761,69 @@ VisualizeSamples.prototype.filter = function() {
          continue;
       }
       
-      if(testI.indexOf(":" + window.vs.data.filterIn[index].test + ":") == -1){
+      if(window.vs.data.filterIn[index].tests.length == 0){//no tests done
          window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
          window.vs.data.filterIn.splice(index, 1);
          index--;
          continue;
       }
-      
-      if(resI.indexOf(":" + window.vs.data.filterIn[index].result + ":") == -1){
-         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-         window.vs.data.filterIn.splice(index, 1);
-         index--;
-         continue;
+      else {//at least one test done
+         var sampleTestIndex = "";
+         var sampleResIndex = "";
+         
+         /*
+          * If user has added at least one test to the filter list, only add results to sampleResIndex from tests that are in the filter list
+          */
+         
+         var specResults = false;
+         if(window.vs.filters.tests.length > 0) specResults = true;
+         
+         for(var tIndex = 0; tIndex < window.vs.data.filterOut[index].tests.length; tIndex++){
+            sampleTestIndex = sampleTestIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].test + ":";
+            if(specResults == false){
+               sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
+            }
+            else {//user has added at least one test to the filter list, add result to sampleResIndex only if current test is in filter list
+               if(testI.indexOf(":" + window.vs.data.filterOut[index].tests[tIndex].test + ":") != -1){
+                  sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
+               }
+            }
+         }
+         
+         //look for a filter is in sample's test done
+         var passed = false;
+         for(var tIndex = 0; tIndex < window.vs.filters.tests.length; tIndex++){
+            if(sampleTestIndex.indexOf(":" + window.vs.filters.tests[tIndex] + ":") != -1){
+               //one of the filter tests is in sample's tests done
+               console.log("found 1");
+               passed = true;
+               break;
+            }
+         }
+         
+         if(passed == false){//none of the tests done to sample in filter list
+            window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
+            window.vs.data.filterIn.splice(index, 1);
+            index--;
+            continue;
+         }
+         
+         passed = false;
+         for(var rIndex = 0; rIndex < window.vs.filters.results.length; rIndex++){
+            if(sampleResIndex.indexOf(":" + window.vs.filters.results[rIndex] + ":") != -1) {
+               //one of the filter results is in sample results
+               console.log("found 2");
+               passed = true;
+               break;
+            }
+         }
+         
+         if(passed == false){
+            window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
+            window.vs.data.filterIn.splice(index, 1);
+            index--;
+            continue;
+         }
       }
       
       //if has reached this point then it passes all curr sample passes all filters
@@ -804,11 +855,68 @@ VisualizeSamples.prototype.filter = function() {
       if(window.vs.filters.sampleTypes.length > 0 && stI.indexOf(":" + window.vs.data.filterOut[index].sample_type + ":") == -1){
          continue;
       }
-      if(window.vs.filters.tests.length > 0 && testI.indexOf(":" + window.vs.data.filterOut[index].test + ":") == -1){
-         continue;
+      
+      if(window.vs.data.filterOut[index].tests.length == 0){//no test done on this sample
+         if(window.vs.filters.tests.length > 0){
+            continue;
+         }
+         if(window.vs.filters.results.length > 0){
+            continue;
+         }
       }
-      if(window.vs.filters.results.length > 0 && resI.indexOf(":" + window.vs.data.filterOut[index].result + ":") == -1){
-         continue;
+      else {//sample with at least one test
+         //console.log("at least one test done on ", window.vs.data.filterOut[index]);
+         var sampleTestIndex = "";
+         var sampleResIndex = "";
+         
+         /*
+          * If user has added at least one test to the filter list, only add results to sampleResIndex from tests that are in the filter list
+          */
+         
+         var specResults = false;
+         if(window.vs.filters.tests.length > 0) specResults = true;
+         
+         for(var tIndex = 0; tIndex < window.vs.data.filterOut[index].tests.length; tIndex++){
+            sampleTestIndex = sampleTestIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].test + ":";
+            if(specResults == false){
+               sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
+            }
+            else {//user has added at least one test to the filter list, add result to sampleResIndex only if current test is in filter list
+               if(testI.indexOf(":" + window.vs.data.filterOut[index].tests[tIndex].test + ":") != -1){
+                  sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
+               }
+            }
+         }
+         
+         //look for a test in the filter array that is in sampleTestIndex and move to next sample if none exists
+         var passed = false;
+         for(var tIndex = 0; tIndex < window.vs.filters.tests.length; tIndex++){
+            if(sampleTestIndex.indexOf(":" + window.vs.filters.tests[tIndex] + ":") != -1){
+               //one of the filter tests in sample tests
+               console.log("found 3");
+               passed = true;
+               break;
+            }
+         }
+         
+         if(passed == false && window.vs.filters.tests.length > 0){//sample does not have one of the tests in filter list
+            continue;
+         }
+         
+         passed = false;
+         for(var rIndex = 0; rIndex < window.vs.filters.results.length; rIndex++){
+            if(sampleResIndex.indexOf(":" + window.vs.filters.results[rIndex] + ":") != -1) {
+               //one of the filter results in sample results
+               console.log("found 4");
+               passed = true;
+               break;
+            }
+         }
+         
+         
+         if(passed == false && window.vs.filters.results.length > 0){//none of the test done to sample in filter list
+            continue;
+         }
       }
       
       //if we have reached this far, it means the sample passes all filters
