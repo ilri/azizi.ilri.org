@@ -307,26 +307,31 @@ else{
       <div id="project_container" class="filter_container">
          <div id="project_label" class="filter_label">Projects</div>
          <div id="project_toggle" class="filter_toggle"></div>
+         <div style="display: none;"><input id="project_sel_all" type="checkbox" checked/>Select all<br /></div>
          <div id="project_list" class="filter_list"></div>   
       </div>
       <div id="organism_container" class="filter_container">
          <div id="organism_label" class="filter_label">Organisms</div>
          <div id="organism_toggle" class="filter_toggle"></div>
+         <div style="display: none;"><input id="organism_sel_all" type="checkbox" checked/>Select all<br /></div>
          <div id="organism_list" class="filter_list"></div>   
       </div>
       <div id="sample_types_container" class="filter_container">
          <div id="sample_types_label" class="filter_label">Sample Types</div>
          <div id="sample_types_toggle" class="filter_toggle"></div>
+         <div style="display: none;"><input id="sample_types_sel_all" type="checkbox" checked/>Select all<br /></div>
          <div id="sample_types_list" class="filter_list"></div>   
       </div>
       <div id="test_container" class="filter_container">
          <div id="test_label" class="filter_label">Test done</div>
          <div id="test_toggle" class="filter_toggle"></div>
+         <div style="display: none;"><input id="test_sel_all" type="checkbox"/>Select all<br /></div>
          <div id="test_list" class="filter_list"></div>   
       </div>
       <div id="result_container" class="filter_container">
          <div id="result_label" class="filter_label">Test Results</div>
          <div id="result_toggle" class="filter_toggle"></div>
+         <div style="display: none;"><input id="result_sel_all" type="checkbox"/>Select all<br /></div>
          <div id="result_list" class="filter_list"></div>   
       </div>
       <script>

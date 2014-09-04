@@ -35,11 +35,16 @@ function VisualizeSamples() {
    };
    
    jQuery(".filter_toggle").css("background-image", window.vs.assets.loading);
+   window.vs.projectSelectAll = jQuery("#project_sel_all");
    window.vs.projectToggle = jQuery("#project_toggle");
+   window.vs.organismSelectAll = jQuery("#organism_sel_all");
    window.vs.organismToggle = jQuery("#organism_toggle");
+   window.vs.sampleTypesSelectAll = jQuery("#sample_types_sel_all");
    window.vs.sampleTypesToggle = jQuery("#sample_types_toggle");
    window.vs.sampleCountDialog = jQuery("#sample_count");
+   window.vs.testSelectAll = jQuery("#test_sel_all");
    window.vs.testToggle = jQuery("#test_toggle");
+   window.vs.resultSelectAll = jQuery("#result_sel_all");
    window.vs.resultToggle = jQuery("#result_toggle");
    window.vs.windowResized();//since here is where all the dynamic positions and sizes are set
    
@@ -96,20 +101,22 @@ function VisualizeSamples() {
    
    //initialize the toggle handlers
    window.vs.projectToggle.click(function(){
+      window.vs.toggleProjects();
+   });
+   
+   window.vs.projectSelectAll.change(function(){
       window.vs.projectToggle.css("background-image", window.vs.assets.loading);
+      window.vs.filters.projects = new Array();
       
-      if(window.vs.filters.projects.length > 0){//at least something in projects filter, clear everything
-         window.vs.filters.projects = new Array();
-         
-         for(var index = 0; index < window.vs.data.projects.length; index++){
-            jQuery("#project_" + window.vs.data.projects[index].val_id).prop("checked", false);
-         }
-         
-      }
-      else {         
+      if(jQuery(this).is(":checked")){//user just added all projects to filter list
          for(var index = 0; index < window.vs.data.projects.length; index++){
             window.vs.filters.projects.push(window.vs.data.projects[index].val_id);
             jQuery("#project_" + window.vs.data.projects[index].val_id).prop("checked", true);
+         }
+      }
+      else {
+         for(var index = 0; index < window.vs.data.projects.length; index++){
+            jQuery("#project_" + window.vs.data.projects[index].val_id).prop("checked", false);
          }
       }
       
@@ -117,11 +124,14 @@ function VisualizeSamples() {
    });
    
    window.vs.organismToggle.click(function(){
+      window.vs.toggleOrganisms();
+   });
+   
+   window.vs.organismSelectAll.change(function(){
       window.vs.organismToggle.css("background-image", window.vs.assets.loading);
+      window.vs.filters.organisms = new Array();
       
-      if(window.vs.filters.organisms.length > 0){//at least something in projects filter, clear everything
-         window.vs.filters.organisms = new Array();
-         
+      if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
          for(var index = 0; index < window.vs.data.organisms.length; index++){
             jQuery("#organism_" + window.vs.data.organisms[index].org_id).prop("checked", false);
          }
@@ -137,11 +147,14 @@ function VisualizeSamples() {
    });
    
    window.vs.sampleTypesToggle.click(function(){
+      window.vs.toggleSampleTypes();
+   });
+   
+   window.vs.sampleTypesSelectAll.change(function(){
       window.vs.sampleTypesToggle.css("background-image", window.vs.assets.loading);
+      window.vs.filters.sampleTypes = new Array();
       
-      if(window.vs.filters.sampleTypes.length > 0){//at least something in projects filter, clear everything
-         window.vs.filters.sampleTypes = new Array();
-         
+      if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
          for(var index = 0; index < window.vs.data.sampleTypes.length; index++){
             jQuery("#sample_type_" + window.vs.data.sampleTypes[index].count).prop("checked", false);
          }
@@ -157,11 +170,14 @@ function VisualizeSamples() {
    });
    
    window.vs.testToggle.click(function(){
+      window.vs.toggleTests();
+   });
+   
+   window.vs.testSelectAll.change(function(){
       window.vs.testToggle.css("background-image", window.vs.assets.loading);
+      window.vs.filters.tests = new Array();
       
-      if(window.vs.filters.tests.length > 0){//at least something in projects filter, clear everything
-         window.vs.filters.tests = new Array();
-         
+      if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
          for(var index = 0; index < window.vs.data.tests.length; index++){
             jQuery("#test_" + window.vs.data.tests[index].replace(/[^a-z0-9]/gi, "_")).prop("checked", false);
          }
@@ -177,11 +193,14 @@ function VisualizeSamples() {
    });
    
    window.vs.resultToggle.click(function(){
+      window.vs.toggleResults();
+   });
+   
+   window.vs.resultSelectAll.change(function(){
       window.vs.resultToggle.css("background-image", window.vs.assets.loading);
+      window.vs.filters.results = new Array();
       
-      if(window.vs.filters.results.length > 0){//at least something in projects filter, clear everything
-         window.vs.filters.results = new Array();
-         
+      if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
          for(var index = 0; index < window.vs.data.results.length; index++){
             jQuery("#result_" + window.vs.data.results[index]).prop("checked", false);
          }
@@ -304,8 +323,8 @@ VisualizeSamples.prototype.getAllSampleData = function(onComplete){
          window.vs.filters.results.push(window.vs.data.results[index]);
       }*/
       
-      window.vs.testToggle.css("background-image", window.vs.assets.toggleOn);
-      window.vs.resultToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.testToggle.css("background-image", "");
+      window.vs.resultToggle.css("background-image", "");
       
       window.vs.updateLoadingProgress();
       
@@ -322,17 +341,17 @@ VisualizeSamples.prototype.play = function() {
 
          //calculate the width of the slider
          /*
-          * width of slider = 1 day if time difference < 1 month (30 times smaller)
-          *                   1 week if time difference >= 1 month  < 1 year
+          * width of slider = 1 day if time difference < 3 month (30 times smaller)
+          *                   1 week if time difference >= 3 month  < 1 year
           *                   1 month if time difference >= 1 year
           */
 
          var sliderWidth = -1;
-         if(timeDiff < (30 * 86400000)) {
+         if(timeDiff < (3 * 30 * 86400000)) {
             console.log("slider reps 1 day");
             sliderWidth = (tlWidth * 86400000)/timeDiff;//slider will rep 1 day
          }
-         else if(timeDiff >= (30 * 86400000) && timeDiff < (365 * 86400000)){
+         else if(timeDiff >= (3 * 30 * 86400000) && timeDiff < (365 * 86400000)){
             console.log("slider reps 1 week");
             sliderWidth = (tlWidth * 86400000 * 7)/timeDiff;//slider will rep 1 week
          }
@@ -471,7 +490,7 @@ VisualizeSamples.prototype.getAllProjectData = function(onComplete) {
       
       window.vs.updateLoadingProgress();
       
-      window.vs.projectToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.projectToggle.css("background-image", "");
       
       if(typeof onComplete != 'undefined') onComplete();
    });
@@ -504,7 +523,7 @@ VisualizeSamples.prototype.getAllOrganismData = function(onComplete) {
       
       window.vs.updateLoadingProgress();
       
-      window.vs.organismToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.organismToggle.css("background-image", "");
       
       if(typeof onComplete != 'undefined') onComplete();
    });
@@ -537,7 +556,7 @@ VisualizeSamples.prototype.getAllSampleTypeData = function(onComplete) {
       
       window.vs.updateLoadingProgress();
       
-      window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.sampleTypesToggle.css("background-image", "");
       
       if(typeof onComplete != 'undefined') onComplete();
    });
@@ -550,6 +569,10 @@ VisualizeSamples.prototype.getAllSampleTypeData = function(onComplete) {
  */
 VisualizeSamples.prototype.showSampleTypes = function() {
    var sampleTypes = window.vs.data.sampleTypes;
+   
+   if(sampleTypes.length > 0) {
+      window.vs.sampleTypesSelectAll.parent().show();
+   }
    
    for(var stIndex = 0; stIndex < sampleTypes.length; stIndex++) {
       
@@ -588,6 +611,10 @@ VisualizeSamples.prototype.showSampleTypes = function() {
 VisualizeSamples.prototype.showOrganisms = function() {
    var organisms = window.vs.data.organisms;
    
+   if(organisms.length > 0) {
+      window.vs.organismSelectAll.parent().show();
+   }
+   
    for(var organismIndex = 0; organismIndex < organisms.length; organismIndex++) {
       
       var checked = "";
@@ -619,6 +646,10 @@ VisualizeSamples.prototype.showOrganisms = function() {
 VisualizeSamples.prototype.showTests = function() {
    var tests = window.vs.data.tests;
    
+   if(tests.length > 0){
+      window.vs.testSelectAll.parent().show();
+   }
+   
    for(var testIndex = 0; testIndex < tests.length; testIndex++) {
       var checked = "";
       
@@ -647,6 +678,10 @@ VisualizeSamples.prototype.showTests = function() {
 
 VisualizeSamples.prototype.showResults = function() {
    var results = window.vs.data.results;
+   
+   if(results.length > 0){
+      window.vs.resultSelectAll.parent().show();
+   }
    
    for(var resIndex = 0; resIndex < results.length; resIndex++) {
       var checked = "";
@@ -681,6 +716,8 @@ VisualizeSamples.prototype.showResults = function() {
  */
 VisualizeSamples.prototype.showProjects = function() {
    var projects = window.vs.data.projects;
+   
+   if(projects.length > 0) window.vs.projectSelectAll.parent().show();
    
    for(var projectIndex = 0; projectIndex < projects.length; projectIndex++) {
       
@@ -951,39 +988,79 @@ VisualizeSamples.prototype.filter = function() {
 };
 
 VisualizeSamples.prototype.resetFilterIcons = function() {
-   if(window.vs.filters.projects.length == 0){
-      window.vs.projectToggle.css("background-image", window.vs.assets.toggleOn);
+   if(window.vs.filters.projects.length == window.vs.data.projects.length){
+      //window.vs.projectToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.projectSelectAll.prop("checked", true);
    }
    else {
+      //window.vs.projectToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.projectSelectAll.prop("checked", false);
+   }
+   if(window.vs.projectList.children().length > 0){//showing projects
       window.vs.projectToggle.css("background-image", window.vs.assets.toggleOff);
    }
+   else{
+      window.vs.projectToggle.css("background-image", "");
+   }
 
-   if(window.vs.filters.organisms.length == 0){
-      window.vs.organismToggle.css("background-image", window.vs.assets.toggleOn);
+   if(window.vs.filters.organisms.length == window.vs.data.organisms.length){
+      //window.vs.organismToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.organismSelectAll.prop("checked", true);
    }
    else {
+      //window.vs.organismToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.organismSelectAll.prop("checked", false);
+   }
+   if(window.vs.organismList.children().length > 0){//showing projects
       window.vs.organismToggle.css("background-image", window.vs.assets.toggleOff);
    }
+   else{
+      window.vs.organismToggle.css("background-image", "");
+   }
 
-   if(window.vs.filters.sampleTypes.length == 0){
-      window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOn);
+   if(window.vs.filters.sampleTypes.length == window.vs.data.sampleTypes.length){
+      //window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.sampleTypesSelectAll.prop("checked", true);
    }
    else {
+      //window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.sampleTypesSelectAll.prop("checked", false);
+   }
+   if(window.vs.sampleTypesList.children().length > 0){//showing projects
       window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
    }
+   else{
+      window.vs.sampleTypesToggle.css("background-image", "");
+   }
    
-   if(window.vs.filters.tests.length == 0){
-      window.vs.testToggle.css("background-image", window.vs.assets.toggleOn);
+   if(window.vs.filters.tests.length == window.vs.data.tests.length){
+      //window.vs.testToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.testSelectAll.prop("checked", true);
    }
    else {
+      //window.vs.testToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.testSelectAll.prop("checked", false);
+   }
+   if(window.vs.testList.children().length > 0){//showing projects
       window.vs.testToggle.css("background-image", window.vs.assets.toggleOff);
    }
+   else{
+      window.vs.testToggle.css("background-image", "");
+   }
    
-   if(window.vs.filters.results.length == 0){
-      window.vs.resultToggle.css("background-image", window.vs.assets.toggleOn);
+   if(window.vs.filters.results.length == window.vs.data.results.length){
+      //window.vs.resultToggle.css("background-image", window.vs.assets.toggleOn);
+      window.vs.resultSelectAll.prop("checked", true);
    }
    else {
+      //window.vs.resultToggle.css("background-image", window.vs.assets.toggleOff);
+      window.vs.resultSelectAll.prop("checked", false);
+   }
+   if(window.vs.resultList.children().length > 0){//showing projects
       window.vs.resultToggle.css("background-image", window.vs.assets.toggleOff);
+   }
+   else{
+      window.vs.resultToggle.css("background-image", "");
    }
 };
 
@@ -1042,13 +1119,20 @@ VisualizeSamples.prototype.toggleProjects = function(){
       if(jQuery("#project_"+window.vs.data.projects[0].val_id).length == 0) isVisible = false;
       
       if(isVisible == true) {
+         window.vs.projectSelectAll.parent().hide();
+         window.vs.projectToggle.css("background-image", "");
          window.vs.projectList.empty();
          window.vs.projectContainer.css("z-index",2);
       }
       else {
+         window.vs.projectToggle.css("background-image", window.vs.assets.toggleOff);
+         window.vs.organismSelectAll.parent().hide();
          window.vs.organismList.empty();
+         window.vs.sampleTypesSelectAll.parent().hide();
          window.vs.sampleTypesList.empty();
+         window.vs.testSelectAll.parent().hide();
          window.vs.testList.empty();
+         window.vs.resultSelectAll.parent().hide();
          window.vs.resultList.empty();
          
          //window.vs.organismContainer.hide();
@@ -1068,13 +1152,20 @@ VisualizeSamples.prototype.toggleOrganisms = function() {
       if(jQuery("#organism_"+window.vs.data.organisms[0].org_id).length == 0) isVisible = false;
       
       if(isVisible == true) {
+         window.vs.organismToggle.css("background-image", "");
+         window.vs.organismSelectAll.parent().hide();
          window.vs.organismList.empty();
          window.vs.organismContainer.css("z-index",2);
       }
       else {
+         window.vs.organismToggle.css("background-image", window.vs.assets.toggleOff);
+         window.vs.projectSelectAll.parent().hide();
          window.vs.projectList.empty();
+         window.vs.sampleTypesSelectAll.parent().hide();
          window.vs.sampleTypesList.empty();
+         window.vs.testSelectAll.parent().hide();
          window.vs.testList.empty();
+         window.vs.resultSelectAll.parent().hide();
          window.vs.resultList.empty();
          
          //window.vs.projectContainer.hide();
@@ -1094,13 +1185,20 @@ VisualizeSamples.prototype.toggleSampleTypes = function(){
       if(jQuery("#sample_type_"+window.vs.data.sampleTypes[0].count).length == 0) isVisible = false;
       
       if(isVisible == true) {
+         window.vs.sampleTypesToggle.css("background-image", "");
+         window.vs.sampleTypesSelectAll.parent().hide();
          window.vs.sampleTypesList.empty();
          window.vs.sampleTypesContainer.css("z-index",2);
       }
       else {
+         window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
+         window.vs.projectSelectAll.parent().hide();
          window.vs.projectList.empty();
+         window.vs.organismSelectAll.parent().hide();
          window.vs.organismList.empty();
+         window.vs.testSelectAll.parent().hide();
          window.vs.testList.empty();
+         window.vs.resultSelectAll.parent().hide();
          window.vs.resultList.empty();
          
          //window.vs.projectContainer.hide();
@@ -1120,13 +1218,20 @@ VisualizeSamples.prototype.toggleTests = function(){
       if(jQuery("#test_"+window.vs.data.tests[0].replace(/[^a-z0-9]/gi, "_")).length == 0) isVisible = false;
       
       if(isVisible == true) {
+         window.vs.testToggle.css("background-image", "");
+         window.vs.testSelectAll.parent().hide();
          window.vs.testList.empty();
          window.vs.testContainer.css("z-index",2);
       }
       else {
+         window.vs.testToggle.css("background-image", window.vs.assets.toggleOff);
+         window.vs.projectSelectAll.parent().hide();
          window.vs.projectList.empty();
+         window.vs.organismSelectAll.parent().hide();
          window.vs.organismList.empty();
+         window.vs.sampleTypesSelectAll.parent().hide();
          window.vs.sampleTypesList.empty();
+         window.vs.resultSelectAll.parent().hide();
          window.vs.resultList.empty();
          
          //window.vs.projectContainer.hide();
@@ -1146,13 +1251,20 @@ VisualizeSamples.prototype.toggleResults = function(){
       if(jQuery("#result_"+window.vs.data.results[0]).length == 0) isVisible = false;
       
       if(isVisible == true) {
+         window.vs.resultToggle.css("background-image", "");
+         window.vs.resultSelectAll.parent().hide();
          window.vs.resultList.empty();
          window.vs.resultContainer.css("z-index",2);
       }
       else {
+         window.vs.resultToggle.css("background-image", window.vs.assets.toggleOff);
+         window.vs.projectSelectAll.parent().hide();
          window.vs.projectList.empty();
+         window.vs.organismSelectAll.parent().hide();
          window.vs.organismList.empty();
+         window.vs.sampleTypesSelectAll.parent().hide();
          window.vs.sampleTypesList.empty();
+         window.vs.testSelectAll.parent().hide();
          window.vs.testList.empty();
          
          //window.vs.projectContainer.hide();
@@ -1236,8 +1348,16 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
             }
          },
          xAxisLabelFormatter: function(d, gran) {
-            return Dygraph.zeropad(d.getMonth() + 1) + "/" + Dygraph.zeropad(d.getYear() + 1900);
+            var months=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+            
+            if(gran > 14){
+               return months[d.getMonth()] + Dygraph.zeropad(d.getYear() - 100, 1);
+            }
+            else {
+               return d.getDate() + "-" +months[d.getMonth()] + "-" + Dygraph.zeropad(d.getYear() - 100, 1);
+            }
          },
+         axisLabelFontSize: 12,
          axisLabelColor: "#006064",
          zoomCallback: function(minDate, maxDate, yRanges) {
             console.log("ZoomCallback called");
@@ -1250,27 +1370,50 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
             window.vs.data.tlBounds.ceiling = maxDate;
             
             var dataInRange = new Array();
-            
+            window.vs.data.timelineZoomed = false;
             for(var index = 0; index < window.vs.data.filterIn.length; index++){
                var date = new  Date(window.vs.data.filterIn[index].date_created.split(" ")[0]);//get only the date and discard the time
                if(date.getTime() >= minDate && date.getTime() <= maxDate){
                   dataInRange.push(window.vs.data.filterIn[index]);
                }
+               else {
+                  window.vs.data.timelineZoomed = true;
+               }
             }
             
             window.vs.refreshHeatmap(dataInRange);
          },
+         labels:["", "No. Samples"],
+         valueFormatter: function(d, options, dygraph){
+            if(d.toString().length == 13){//means that this is probably unix timestamp
+               var date = new Date(d);
+               var months=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+               return date.getDate() + " - " + months[date.getMonth()] + " - " + (date.getYear() + 1900);
+            }
+            return d;
+         },
          clickCallback: function(e, x, points){
-            //if play slider is currently visible, move it to where the mouse was clicked
-            if(window.vs.playSlider.is(":visible") == true){
-               var x = e.x;
-               
-               if(x > (window.vs.playSlider.width()/2)) x = x - (window.vs.playSlider.width()/2);
-               
-               window.vs.playSlider.css("left", x+"px");
+            
+            var clickHandler = function () {
+               if(window.vs.playSlider.is(":visible") == true){
+                  var x = e.x;
+
+                  if(x > (window.vs.playSlider.width()/2)) x = x - (window.vs.playSlider.width()/2);
+
+                  window.vs.playSlider.css("left", x+"px");
+               }
+            };
+            
+            if(window.vs.data.timelineZoomed == true){
+               window.setTimeout(clickHandler, 200);//give the user enough time to double click
+            }
+            else {
+               clickHandler();
             }
          }
       });
+      
+      console.log("graphObject = ", graphObject);
    };
    
    
