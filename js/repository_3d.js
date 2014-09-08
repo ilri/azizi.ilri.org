@@ -45,7 +45,7 @@ function Repository3D(inTemplate) {
    window.r3d.statsBox.style.top = (HEIGHT * 0.6 ) + "px";
    window.r3d.virtBox = document.getElementById("virt_box");
    window.r3d.virtBox.style.left = (WIDTH -  jQuery(window.r3d.virtBox).width() - 100) + "px";
-   window.r3d.virtBox.style.top = (HEIGHT * 0.2) + "px";
+   window.r3d.virtBox.style.top = ((HEIGHT * 0.6 ) - jQuery(window.r3d.virtBox).height() - 30) + "px";
    window.r3d.tooltip = document.getElementById("sample_ttip");
    
    window.r3d.zoomOut = document.getElementById("zoom_out");
@@ -407,7 +407,7 @@ Repository3D.prototype.onDocumentResize = function() {
    window.r3d.statsBox.style.left = (WIDTH -  jQuery(window.r3d.statsBox).width() - 100) + "px";
    window.r3d.statsBox.style.top = (HEIGHT * 0.6 ) + "px";
    window.r3d.virtBox.style.left = (WIDTH -  jQuery(window.r3d.virtBox).width() - 100) + "px";
-   window.r3d.virtBox.style.top = (HEIGHT * 0.2) + "px";
+   window.r3d.virtBox.style.top = ((HEIGHT * 0.6 ) - jQuery(window.r3d.virtBox).height() - 30) + "px";
 };
 
 /**
