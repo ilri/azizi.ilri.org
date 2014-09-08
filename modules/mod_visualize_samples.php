@@ -4,6 +4,8 @@ class VisualizeSamples {
    
    public function __construct() {
       require_once 'repository_config';
+      $logSettings = Config::$logSettings;
+      $logSettings['workingDir'] = "../";
       
       require_once OPTIONS_COMMON_FOLDER_PATH . 'dbmodules/mod_objectbased_dbase_v1.0.php';
       require_once OPTIONS_COMMON_FOLDER_PATH . 'mod_general_v0.6.php';
@@ -16,7 +18,7 @@ class VisualizeSamples {
          die('Something wicked happened when connecting to the dbase.');
       }
 
-      $this->Dbase->InitializeLogs();
+      $this->Dbase->InitializeLogs($logSettings);
       
       Config::$config['user'] = Config::$config['rw_user']; Config::$config['pass'] = Config::$config['rw_pass'];
       
@@ -575,19 +577,14 @@ else{
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       <title>Azizi Samples Visualised</title>
-      <script type='text/javascript' src='../../common/jquery/jquery-1.8.3.min.js' /></script>
+      <link rel="stylesheet" href="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>leaflet/leaflet.css" />
+      <script src="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>leaflet/leaflet.js"></script>
+      <script type='text/javascript' src='<?php echo OPTIONS_COMMON_FOLDER_PATH;?>jquery/jquery-1.8.3.min.js' /></script>
       <script src='../js/visualize_samples.js'></script>
       <script src='../js/ol.js'></script>
-      <!--?php echo "<script src='".OPTIONS_COMMON_FOLDER_PATH."dygraphs/dygraph-combined.js'></script>" ?--> <!-- Outdated version of the lib -->
-      <script src="http://dygraphs.com/dygraph-combined.js"></script>
-      <!--?php echo "<script src='".OPTIONS_COMMON_FOLDER_PATH."d3/d3.min.js' charset='utf-8'></script>" ?-->
-      <?php //echo "<script src='".OPTIONS_COMMON_FOLDER_PATH."/leaflet-0.7.3/leaflet.js'></script>"; ?>
-      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-      <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+      <script src="<?php echo OPTIONS_COMMON_FOLDER_PATH;?>dygraphs-1.0.1/dygraph-combined.js"></script>
       <link href="../css/azizi.css" rel="stylesheet" type="text/css" />
       <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css' />
-      <!--link href='<?php echo OPTIONS_COMMON_FOLDER_PATH; ?>/leaflet-0.7.3/leaflet.css' />
-      <!--script src="http://www.mapquestapi.com/sdk/leaflet/v1.0/mq-map.js?key=Fmjtd%7Cluur250220%2C8w%3Do5-9w7w9f "></script><!-- the key in this get request is owned by Jason Rogena -->
    </head>
    <body>
       <script src='../js/leaflet-heat.js'></script>

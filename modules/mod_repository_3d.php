@@ -16,6 +16,8 @@ class Repository3D{
 
    public function TrafficController() {
       require_once 'repository_config';
+      $logSettings = Config::$logSettings;
+      $logSettings['workingDir'] = "../";
       
       define(OPTIONS_COMMON_FOLDER_PATH, '../../common/');
       require_once OPTIONS_COMMON_FOLDER_PATH . 'dbmodules/mod_objectbased_dbase_v1.0.php';
@@ -29,7 +31,7 @@ class Repository3D{
          die('Something wicked happened when connecting to the dbase.');
       }
 
-      $this->Dbase->InitializeLogs();
+      $this->Dbase->InitializeLogs($logSettings);
       
       Config::$config['user'] = Config::$config['rw_user']; Config::$config['pass'] = Config::$config['rw_pass'];
       
@@ -234,7 +236,7 @@ else {
    <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       <title>Bio-Repository in 3D</title>
-      <script type='text/javascript' src='../../common/jquery/jquery-1.8.3.min.js' /></script>
+      <script type='text/javascript' src='<?php echo OPTIONS_COMMON_FOLDER_PATH;?>jquery/jquery-1.8.3.min.js' /></script>
       <script src='../js/three.min.js'></script>
       <script src='../js/tween.min.js'></script>
       <script src='../js/stats.min.js'></script>
