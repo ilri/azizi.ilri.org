@@ -21,7 +21,12 @@ function VisualizeSamples() {
    window.vs.resultContainer = jQuery("#result_container");
    window.vs.resultList = jQuery("#result_list");
    window.vs.playButton = jQuery("#play_button");
+   window.vs.stopButton = jQuery("#stop_button");
    window.vs.playSlider = jQuery("#play_slider");
+   window.vs.headsUp = jQuery("#samples_heads_up");
+   window.vs.emailDialog = jQuery("#email_dialog");
+   window.vs.sendButton = jQuery("#send_button");
+   window.vs.emailDialogToggle = jQuery("#email_dialog_toggle");
    
    window.vs.loadingDialog = jQuery("#loading_box");
    window.vs.loadingDialog.show();
@@ -31,7 +36,9 @@ function VisualizeSamples() {
       toggleOn: "url(../images/ic_action_accept.png)",
       loading:"url(../images/ic_action_loading.gif)",
       play:"url(../images/ic_action_play.png)",
-      pause:"url(../images/ic_action_pause.png)"
+      pause:"url(../images/ic_action_pause.png)",
+      stop:"url(../images/ic_action_stop.png)",
+      download:"url(../images/ic_action_download.png)"
    };
    
    jQuery(".filter_toggle").css("background-image", window.vs.assets.loading);
@@ -42,6 +49,8 @@ function VisualizeSamples() {
    window.vs.sampleTypesSelectAll = jQuery("#sample_types_sel_all");
    window.vs.sampleTypesToggle = jQuery("#sample_types_toggle");
    window.vs.sampleCountDialog = jQuery("#sample_count");
+   window.vs.downloadStatus = jQuery("#samples_download_btn");
+   window.vs.downloadStatus.css("background-image", window.vs.assets.download);
    window.vs.testSelectAll = jQuery("#test_sel_all");
    window.vs.testToggle = jQuery("#test_toggle");
    window.vs.resultSelectAll = jQuery("#result_sel_all");
@@ -53,6 +62,7 @@ function VisualizeSamples() {
    window.vs.data = {};
    window.vs.data.filterIn = new Array();//samples that have passed all filters
    window.vs.data.filterOut = new Array();//samples that failed at least one filter
+   window.vs.data.downloadData = new Array();//samples that will be downloaded when user presses download button
    window.vs.data.onTimeline = {samples: new Array(), days:{}};//subset of filterIn samples that are currently being displayed in timeline
    window.vs.data.projects = new Array();
    window.vs.data.organisms = new  Array();
@@ -216,10 +226,24 @@ function VisualizeSamples() {
    });
    
    //init events for the play button
-   window.vs.playButton.mousedown(function() {
+   window.vs.stopButton.mouseup(function() {
+      console.log("stop button clicked");
+      window.vs.stopTimelinePlay(true);
    });
    window.vs.playButton.mouseup(function() {
       window.vs.play();
+   });
+   
+   window.vs.headsUp.click(function() {
+      window.vs.emailDialog.show();
+   });
+   
+   window.vs.sendButton.click(function() {
+      window.vs.sendSampleData();
+   });
+   
+   window.vs.emailDialogToggle.click(function() {
+      window.vs.emailDialog.hide();
    });
 };
 
@@ -243,6 +267,13 @@ VisualizeSamples.prototype.windowResized = function(){
    window.vs.playSlider.css("top", (window.innerHeight - window.vs.timeline.height()) + "px");
    
    window.vs.playButton.css("top", (window.innerHeight - window.vs.timeline.height() - window.vs.playButton.height() - 20) + "px");
+   window.vs.stopButton.css("top", (window.innerHeight - window.vs.timeline.height() - window.vs.playButton.height() - 20) + "px");
+   window.vs.stopButton.css("left", (window.vs.playButton.position().left + window.vs.playButton.width() + 25 )+"px");
+   
+   window.vs.headsUp.css("left", (window.innerWidth - window.vs.headsUp.width() - 100) + "px");
+   
+   window.vs.emailDialog.css("left", (window.innerWidth/2 - window.vs.emailDialog.width()/2) + "px");
+   window.vs.emailDialog.css("top", (window.innerHeight/2 - window.vs.emailDialog.height()/2) + "px");
    
    /*var height = window.innerHeight;
    console.log("  window height = ", height);
@@ -335,6 +366,8 @@ VisualizeSamples.prototype.getAllSampleData = function(onComplete){
 VisualizeSamples.prototype.play = function() {
    //calculate the time represented by the width of the timeline
    if(window.vs.data.tlBounds.ceiling != -1 && window.vs.data.tlBounds.floor != -1){
+      window.vs.stopButton.show();
+      
       if(window.vs.data.playInterval == -1){//slider is not sliding at the moment. make it slide
          var tlWidth = window.vs.timeline.width();
          var timeDiff = window.vs.data.tlBounds.ceiling - window.vs.data.tlBounds.floor;//time difference in milliseconds
@@ -403,8 +436,45 @@ VisualizeSamples.prototype.play = function() {
    }
 };
 
+VisualizeSamples.prototype.sendSampleData = function() {
+   if(window.vs.data.downloadData.length > 0){
+      //get the box ids from downloadData array
+      var sampleIDs = new Array();
+      for(var sIndex = 0; sIndex < window.vs.data.downloadData.length; sIndex++){
+         sampleIDs.push(window.vs.data.downloadData[sIndex].count);
+      }
+
+      console.log("sampleIDs = ", sampleIDs);
+      
+      var emailAddress = jQuery("#user_email").val();
+      
+      var emailRegex = /.+@.+\.[a-z0-9]+/i;
+      
+      if(emailAddress.match(emailRegex)){
+         window.vs.emailDialog.hide();
+         window.alert("Data on the samples will be sent to the email you provided");
+         
+         var uri = window.vs.serverURI + "send_sample_data";
+         
+         var data = {email:emailAddress, sampleIDs:sampleIDs};
+
+         jQuery.ajax({
+            url: uri,
+            type: 'POST',
+            data: data,
+            async: true
+         }).done(function(d){
+            //TODO: do something to show the user the data is being sent
+         });
+      }
+      else {
+         
+      }
+   }
+};
+
 VisualizeSamples.prototype.togglePlayButton = function(){
-   if(window.vs.data.playInterval != -1){
+   if(window.vs.data.playInterval != -1){//not playing at the moment
       window.clearInterval(window.vs.data.playInterval);
       window.vs.playButton.css("background-image", window.vs.assets.play);
       window.vs.playButton.css("background-position-x", "3px");
@@ -423,7 +493,14 @@ VisualizeSamples.prototype.stopTimelinePlay = function(refreshHeatmap) {
       window.vs.playSlider.css("left", "0px");
       
       if(refreshHeatmap == true){
+         window.vs.stopButton.hide();
          window.vs.refreshHeatmap(window.vs.data.onTimeline.samples);
+      }
+   }
+   else {//currently not playing, might mean play has been paused but stop button was clicke
+      if(refreshHeatmap == true){
+         window.vs.data.playInterval = 0;
+         window.vs.stopTimelinePlay(true);
       }
    }
 };
@@ -1075,8 +1152,9 @@ VisualizeSamples.prototype.refreshHeatmap = function(data, playingTimeline){
    var sampleLabel = " Samples";
    if(samplesData.length == 1) sampleLabel = " Sample";
    
-   window.vs.sampleCountDialog.show();
+   window.vs.headsUp.show();
    window.vs.sampleCountDialog.html(samplesData.length + sampleLabel);
+   window.vs.headsUp.css("left", (window.innerWidth - window.vs.headsUp.width() - 100) + "px");
    
    var maxRadius = 20;
    var allSamples = window.vs.data.filterIn.length + window.vs.data.filterOut.length;
@@ -1108,6 +1186,8 @@ VisualizeSamples.prototype.refreshHeatmap = function(data, playingTimeline){
       
 //      if(index % 500 == 0) window.vs.layers.heatmapLayer.redraw();
    }
+   
+   window.vs.data.downloadData = samplesData;
    
    window.vs.layers.heatmapLayer.redraw();
 };
@@ -1387,8 +1467,14 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          valueFormatter: function(d, options, dygraph){
             if(d.toString().length == 13){//means that this is probably unix timestamp
                var date = new Date(d);
+               var dateSuf = "th ";
+               
+               if(date.getDate().toString().slice(-1) == "1" && (date.getDate().toString().length == 1 || date.getDate().toString().charAt(0) == "2")) dateSuf = "st ";
+               else if(date.getDate().toString().slice(-1) == "2" && (date.getDate().toString().length == 1 || date.getDate().toString().charAt(0) == "2")) dateSuf = "nd ";
+               else if(date.getDate().toString().slice(-1) == "3" && (date.getDate().toString().length == 1 || date.getDate().toString().charAt(0) == "2")) dateSuf = "rd ";
+               
                var months=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
-               return date.getDate() + " - " + months[date.getMonth()] + " - " + (date.getYear() + 1900);
+               return date.getDate() + dateSuf + months[date.getMonth()] + " " + (date.getYear() + 1900);
             }
             return d;
          },
@@ -1441,6 +1527,7 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
          window.vs.timeline.show();
          
          window.vs.playButton.css("top", (window.innerHeight - tHeight - window.vs.playButton.height() - 20) + "px");
+         window.vs.stopButton.css("top", (window.innerHeight - tHeight - window.vs.playButton.height() - 20) + "px");
          window.vs.playSlider.css("top", (window.innerHeight - tHeight)+"px");
          window.vs.playSlider.css("height", tHeight+"px");
          window.vs.playButton.show();
