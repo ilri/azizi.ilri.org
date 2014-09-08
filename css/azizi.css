@@ -122,11 +122,9 @@ td.search_columns {min-width: 200px;}
    cursor: pointer;
    background: #ffffff;
    position:absolute;
-   left: 80%;
-   top: 20%;
    z-index:1;
-   width:18rem;
-   height:18rem;
+   width:15rem;
+   height:15rem;
    outline: 0;
    border:0;
    font-size:0.8rem;
@@ -137,11 +135,8 @@ td.search_columns {min-width: 200px;}
 #stats_box {
    background: #ffffff;
    position:absolute;
-   left: 80%;
-   top: 60%;
    z-index:1;
-   width:18rem;
-   margin: 0 1rem 1rem;
+   width:15rem;
    outline: 0;
    border:0;
    font-size:1.2rem;

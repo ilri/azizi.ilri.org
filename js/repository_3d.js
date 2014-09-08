@@ -41,15 +41,19 @@ function Repository3D(inTemplate) {
    
    //init other views in the window that will be used
    window.r3d.statsBox = document.getElementById("stats_box");
+   window.r3d.statsBox.style.left = (WIDTH -  jQuery(window.r3d.statsBox).width() - 100) + "px";
+   window.r3d.statsBox.style.top = (HEIGHT * 0.6 ) + "px";
    window.r3d.virtBox = document.getElementById("virt_box");
+   window.r3d.virtBox.style.left = (WIDTH -  jQuery(window.r3d.virtBox).width() - 100) + "px";
+   window.r3d.virtBox.style.top = (HEIGHT * 0.2) + "px";
    window.r3d.tooltip = document.getElementById("sample_ttip");
    
    window.r3d.zoomOut = document.getElementById("zoom_out");
-   window.r3d.zoomOut.style.left = (WIDTH - 100) + 'px';
-   window.r3d.zoomOut.style.top = 140 + 'px';
+   window.r3d.zoomOut.style.left = (WIDTH - 80) + 'px';
+   window.r3d.zoomOut.style.top = 90 + 'px';
    
    window.r3d.zoomIn = document.getElementById("zoom_in");
-   window.r3d.zoomIn.style.left = (WIDTH - 100) + 'px';
+   window.r3d.zoomIn.style.left = (WIDTH - 130) + 'px';
    window.r3d.zoomIn.style.top = 90 + 'px';
    
    window.r3d.loadingBox = document.getElementById("loading_box");
@@ -68,53 +72,69 @@ function Repository3D(inTemplate) {
    window.r3d.projector = new THREE.Projector();
 
    //create a renderer
-   window.r3d.renderer = new THREE.WebGLRenderer({antialias:true});;
-   window.r3d.renderer.setSize(WIDTH, HEIGHT);
-   window.r3d.renderer.setClearColor(0xe2ecb8, 1);
-   window.r3d.renderer.shadowMapEnabled = true;
-   window.r3d.renderer.shadowMapCullFace = THREE.CullFaceBack;
-   window.r3d.container = document.getElementById("repo_container");
-   window.r3d.container.appendChild(window.r3d.renderer.domElement);
+   try {
+      window.r3d.renderer = new THREE.WebGLRenderer({antialias:true});
+   }
+   catch (error){
+      window.r3d.renderer = new THREE.CanvasRenderer({antialias:true});
+      window.alert("Your browser either does not support WebGL or has it turned off. The experience on this site will therefore be less than par. Try turning on WebGL or using another browser.");
+   }
+   
+   if(typeof window.r3d.renderer != 'undefined'){
+      window.r3d.renderer.setSize(WIDTH, HEIGHT);
+      window.r3d.renderer.setClearColor(0xe2ecb8, 1);
+      window.r3d.renderer.shadowMapEnabled = true;
+      window.r3d.renderer.shadowMapCullFace = THREE.CullFaceBack;
+      window.r3d.container = document.getElementById("repo_container");
+      window.r3d.container.appendChild(window.r3d.renderer.domElement);
 
-   //create a camera
-   window.r3d.camera = new THREE.PerspectiveCamera(50, WIDTH/HEIGHT, 0.1, 2000);
-   window.r3d.camera.position.set(0,15,20);
-   window.r3d.tmp['lookAt'] = {x : 0, y : 0, z : 1};
-   window.r3d.camera.lookAt(window.r3d.tmp['lookAt']);
-   window.r3d.scene.add(window.r3d.camera);
-   
-   
-   //init event listeners
-   jQuery(window.r3d.clearSearch).click(function () {
-      jQuery(window.r3d.searchBox).val('');
-      jQuery(window.r3d.searchCanvas).empty();
-      jQuery(window.r3d.clearSearch).hide();
-   });
-   jQuery(window.r3d.searchBox).keyup(window.r3d.onSearchChange);
-   
-   window.addEventListener('resize', window.r3d.onDocumentResize);
-   
-   window.r3d.container.addEventListener('mousedown', window.r3d.onDocumentMouseDown, false);
-   
-   jQuery(window.r3d.zoomIn).click(function (){
-      window.r3d.zoom(-1);
-   });
-   
-   jQuery(window.r3d.zoomOut).click(function () {
-      window.r3d.zoom(1);
-   });
+      //create a camera
+      window.r3d.camera = new THREE.PerspectiveCamera(50, WIDTH/HEIGHT, 0.1, 2000);
+      window.r3d.camera.position.set(0,15,20);
+      window.r3d.tmp['lookAt'] = {x : 0, y : 0, z : 1};
+      window.r3d.camera.lookAt(window.r3d.tmp['lookAt']);
+      window.r3d.scene.add(window.r3d.camera);
 
-   //init the scene
-   window.r3d.initScene();
-   window.r3d.animate();
+
+      //init event listeners
+      jQuery(window.r3d.clearSearch).click(function () {
+         jQuery(window.r3d.searchBox).val('');
+         jQuery(window.r3d.searchCanvas).empty();
+         jQuery(window.r3d.clearSearch).hide();
+      });
+      jQuery(window.r3d.searchBox).keyup(window.r3d.onSearchChange);
+
+      window.addEventListener('resize', window.r3d.onDocumentResize);
+
+      window.r3d.container.addEventListener('mousedown', window.r3d.onDocumentMouseDown, false);
+
+      jQuery(window.r3d.zoomIn).click(function (){
+         window.r3d.zoom(-1);
+      });
+
+      jQuery(window.r3d.zoomOut).click(function () {
+         window.r3d.zoom(1);
+      });
+
+      //init the scene
+      window.r3d.initScene();
+      window.r3d.animate();
+
+      //set default positions for camera
+      window.r3d.tmp['defaultCP'] = { x: window.r3d.camera.position.x, y: window.r3d.camera.position.y, z: window.r3d.camera.position.z};
+      window.r3d.tmp['defaultCLA'] = window.r3d.tmp['lookAt'];
+      window.r3d.zoomOutButton.addEventListener('mousedown', function () {
+         //console.log("zoom button clicked");
+         window.r3d.handleZoomButtonEvent();
+      }, false);
+   }
+   else {
+      window.alert("A problem occurred while trying to initializing the rendering engine. Try accessing this site using a different browser.");
+   }
    
-   //set default positions for camera
-   window.r3d.tmp['defaultCP'] = { x: window.r3d.camera.position.x, y: window.r3d.camera.position.y, z: window.r3d.camera.position.z};
-   window.r3d.tmp['defaultCLA'] = window.r3d.tmp['lookAt'];
-   window.r3d.zoomOutButton.addEventListener('mousedown', function () {
-      //console.log("zoom button clicked");
-      window.r3d.handleZoomButtonEvent();
-   }, false);
+   if(WIDTH < 1280){
+      window.alert("This site will look and work better if you view it on a bigger screen");
+   }
 };
 
 /**
@@ -375,6 +395,19 @@ Repository3D.prototype.onDocumentResize = function() {
    window.r3d.renderer.setSize(WIDTH, HEIGHT);
    window.r3d.camera.aspect = WIDTH/HEIGHT;
    window.r3d.camera.updateProjectionMatrix();
+   
+   window.r3d.zoomOutButton.style.left = (WIDTH - 140) + 'px';
+   window.r3d.zoomOut.style.left = (WIDTH - 80) + 'px';
+   window.r3d.zoomOut.style.top = 90 + 'px';
+   window.r3d.zoomIn.style.left = (WIDTH - 130) + 'px';
+   window.r3d.zoomIn.style.top = 90 + 'px';
+   window.r3d.loadingBox.style.left = (WIDTH / 2 - (jQuery(window.r3d.loadingBox).width() / 2));
+   window.r3d.loadingBox.style.top = (HEIGHT / 2 - (jQuery(window.r3d.loadingBox).height() / 2));
+   window.r3d.clearSearch.style.left = window.r3d.searchBox.style.left + jQuery(window.r3d.searchBox).width();
+   window.r3d.statsBox.style.left = (WIDTH -  jQuery(window.r3d.statsBox).width() - 100) + "px";
+   window.r3d.statsBox.style.top = (HEIGHT * 0.6 ) + "px";
+   window.r3d.virtBox.style.left = (WIDTH -  jQuery(window.r3d.virtBox).width() - 100) + "px";
+   window.r3d.virtBox.style.top = (HEIGHT * 0.2) + "px";
 };
 
 /**
