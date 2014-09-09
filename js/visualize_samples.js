@@ -71,6 +71,7 @@ function VisualizeSamples() {
    window.vs.data.results = new Array();
    window.vs.data.tlBounds = {floor:-1, ceiling:-1};
    window.vs.data.playInterval = -1;
+   window.vs.filterWebWorker = -1;
    
    window.vs.filters = {projects:[], organisms:[], sampleTypes:[], tests:[], results:[]};
    
@@ -115,7 +116,11 @@ function VisualizeSamples() {
    });
    
    window.vs.projectSelectAll.change(function(){
-      window.vs.projectToggle.css("background-image", window.vs.assets.loading);
+      var filter = true;
+      if(window.vs.filters.projects.length == window.vs.data.projects.length) filter = false;
+      
+      if(filter == true) window.vs.projectToggle.css("background-image", window.vs.assets.loading);
+      
       window.vs.filters.projects = new Array();
       
       if(jQuery(this).is(":checked")){//user just added all projects to filter list
@@ -130,7 +135,7 @@ function VisualizeSamples() {
          }
       }
       
-      window.setTimeout(window.vs.filter, 100);
+      if(filter == true) window.vs.filter();
    });
    
    window.vs.organismToggle.click(function(){
@@ -138,7 +143,11 @@ function VisualizeSamples() {
    });
    
    window.vs.organismSelectAll.change(function(){
-      window.vs.organismToggle.css("background-image", window.vs.assets.loading);
+      var filter = true;
+      if(window.vs.filters.organisms.length == window.vs.data.organisms.length) filter = false;
+      
+      if(filter == true) window.vs.organismToggle.css("background-image", window.vs.assets.loading);
+      
       window.vs.filters.organisms = new Array();
       
       if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
@@ -153,15 +162,19 @@ function VisualizeSamples() {
          }
       }
       
-      window.setTimeout(window.vs.filter, 100);
+      if(filter == true) window.vs.filter();
    });
    
    window.vs.sampleTypesToggle.click(function(){
       window.vs.toggleSampleTypes();
    });
    
-   window.vs.sampleTypesSelectAll.change(function(){
-      window.vs.sampleTypesToggle.css("background-image", window.vs.assets.loading);
+   window.vs.sampleTypesSelectAll.change(function(){      
+      var filter = true;
+      if(window.vs.filters.sampleTypes.length == window.vs.data.sampleTypes.length) filter = false;
+
+      if(filter == true) window.vs.sampleTypesToggle.css("background-image", window.vs.assets.loading);
+      
       window.vs.filters.sampleTypes = new Array();
       
       if(!jQuery(this).is(":checked")){//at least something in projects filter, clear everything
@@ -176,7 +189,7 @@ function VisualizeSamples() {
          }
       }
       
-      window.setTimeout(window.vs.filter, 100);
+      if(filter == true) window.vs.filter();
    });
    
    window.vs.testToggle.click(function(){
@@ -199,7 +212,7 @@ function VisualizeSamples() {
          }
       }
       
-      window.setTimeout(window.vs.filter, 100);
+      window.vs.filter();
    });
    
    window.vs.resultToggle.click(function(){
@@ -222,7 +235,7 @@ function VisualizeSamples() {
          }
       }
       
-      window.setTimeout(window.vs.filter, 100);
+      window.vs.filter();
    });
    
    //init events for the play button
@@ -235,7 +248,9 @@ function VisualizeSamples() {
    });
    
    window.vs.headsUp.click(function() {
-      window.vs.emailDialog.show();
+      if(window.vs.data.downloadData.length > 0 && window.vs.data.downloadData.length < 50000){
+         window.vs.emailDialog.show();
+      }
    });
    
    window.vs.sendButton.click(function() {
@@ -262,6 +277,20 @@ VisualizeSamples.prototype.windowResized = function(){
    jQuery(".filter_toggle").css("height", labelHeight);
    jQuery(".filter_toggle").css("width", labelHeight);
    jQuery(".filter_label").css("width", filterWidth - labelHeight);
+   
+   var ctnrDist = window.vs.projectContainer.height() + 30;
+   var ctnrTop = window.innerHeight * 0.1;
+   
+   window.vs.projectContainer.css("top", ctnrTop + "px");
+   window.vs.projectContainer.css("left", (window.innerWidth * 0.05) + "px")
+   window.vs.organismContainer.css("top", (ctnrDist + ctnrTop) + "px");
+   window.vs.organismContainer.css("left", (window.innerWidth * 0.05) + "px")
+   window.vs.sampleTypesContainer.css("top", (ctnrDist*2 + ctnrTop) + "px");
+   window.vs.sampleTypesContainer.css("left", (window.innerWidth * 0.05) + "px")
+   window.vs.testContainer.css("top", (ctnrDist*3 + ctnrTop) + "px");
+   window.vs.testContainer.css("left", (window.innerWidth * 0.05) + "px")
+   window.vs.resultContainer.css("top", (ctnrDist*4 + ctnrTop) + "px");
+   window.vs.resultContainer.css("left", (window.innerWidth * 0.05) + "px")
    
    window.vs.timeline.css("top", (window.innerHeight - window.vs.timeline.height()) + "px");
    window.vs.playSlider.css("top", (window.innerHeight - window.vs.timeline.height()) + "px");
@@ -437,7 +466,7 @@ VisualizeSamples.prototype.play = function() {
 };
 
 VisualizeSamples.prototype.sendSampleData = function() {
-   if(window.vs.data.downloadData.length > 0){
+   if(window.vs.data.downloadData.length > 0 && window.vs.data.downloadData.length < 50000){
       //get the box ids from downloadData array
       var sampleIDs = new Array();
       for(var sIndex = 0; sIndex < window.vs.data.downloadData.length; sIndex++){
@@ -667,14 +696,20 @@ VisualizeSamples.prototype.showSampleTypes = function() {
          var stIndex = e.data.stIndex;
          var stId = window.vs.data.sampleTypes[stIndex].count;
          
+         var checkFilterIn = false;
+         
          if(this.checked == true){//add organimsId to filters
             window.vs.filters.sampleTypes.push(stId);
+            if(window.vs.filters.sampleTypes.length == 1){
+               checkFilterIn = true;
+            }
          }
          else {
+            checkFilterIn = true;
             window.vs.filters.sampleTypes.splice(jQuery.inArray(stId, window.vs.filters.sampleTypes),1);
          }
          
-         window.setTimeout(window.vs.filter, 100);
+         window.vs.filter(checkFilterIn);
          //window.vs.filterOrganisms(organismIndex, this.checked);
       });
    }
@@ -707,14 +742,20 @@ VisualizeSamples.prototype.showOrganisms = function() {
          var organismIndex = e.data.organismIndex;
          var orgId = window.vs.data.organisms[organismIndex].org_id;
          
+         var checkFilterIn = false;
+         
          if(this.checked == true){//add organimsId to filters
             window.vs.filters.organisms.push(orgId);
+            if(window.vs.filters.organisms.length == 1){
+               checkFilterIn = true;
+            }
          }
          else {
+            checkFilterIn = true;
             window.vs.filters.organisms.splice(jQuery.inArray(orgId, window.vs.filters.organisms),1);
          }
          
-         window.setTimeout(window.vs.filter, 100);
+         window.vs.filter(checkFilterIn);
          //window.vs.filterOrganisms(organismIndex, this.checked);
       });
    }
@@ -748,7 +789,7 @@ VisualizeSamples.prototype.showTests = function() {
             window.vs.filters.tests.splice(jQuery.inArray(test, window.vs.filters.tests),1);
          }
          
-         window.setTimeout(window.vs.filter, 100);
+         window.vs.filter();
       });
    }
 };
@@ -781,7 +822,7 @@ VisualizeSamples.prototype.showResults = function() {
             window.vs.filters.results.splice(jQuery.inArray(result, window.vs.filters.results),1);
          }
          
-         window.setTimeout(window.vs.filter, 100);
+         window.vs.filter();
       });
    }
 };
@@ -813,255 +854,80 @@ VisualizeSamples.prototype.showProjects = function() {
          var projectIndex = e.data.projectIndex;
          var projectId = window.vs.data.projects[projectIndex].val_id;
          
+         var checkFilterIn = false;
+         
          if(this.checked == true){
             window.vs.filters.projects.push(projectId);
+            if(window.vs.filters.projects.length == 1){
+               console.log("going to check filter in array");
+               checkFilterIn = true;
+            }
          }
          else {
+            console.log("going to check filter in array");
+            checkFilterIn = true;
             window.vs.filters.projects.splice(jQuery.inArray(projectId, window.vs.filters.projects),1);
          }
          
-         window.setTimeout(window.vs.filter, 100);
+         window.vs.filter(checkFilterIn);
       });
    }
 };
 
-VisualizeSamples.prototype.filter = function() {
-   console.log("filter called");
-   console.log("size of filterIn before = ", window.vs.data.filterIn.length);
-   console.log("size of filterOut before = ", window.vs.data.filterOut.length);
+VisualizeSamples.prototype.filter = function(checkFilterIn) {
+   if(typeof checkFilterIn == 'undefined') checkFilterIn == null;
    
-   /*
-    * In an effort to eliminate looping through all the filters to determine if a sample qualifies:
-    *    - generate strings corresponding to the different filters 
-    *          e.g string containing ids of projects seperated by a delimiter (in this case :)
-    *    - for each sample check in the corresponding filter string if the sample's value is contained in the string
-    *          e.g for sample 'a' check if the substring ':' + a.Project + ':' is in projI
-    *          #genius
-    */
-   var projI = ":" + window.vs.filters.projects.join(":") + ":";
-   console.log("project search index = ", projI);
-   var orgI = ":" + window.vs.filters.organisms.join(":") + ":";
-   console.log("organism search index = ", orgI);
-   var stI = ":" + window.vs.filters.sampleTypes.join(":") + ":";
-   console.log("sample type index = ",stI);
-   var testI = ":" + window.vs.filters.tests.join(":") + ":";
-   console.log("test index = ", testI);
-   var resI = ":" + window.vs.filters.results.join(":") + ":";
-   console.log("result index = ", resI);
-   
-   var histogram = new Array();
-   
-   for(var index = 0; index < window.vs.data.filterIn.length; index++){
-      //check if element meets all the criteria
+   if(window.vs.filterWebWorker == -1){//means that there is no other async task running
+      window.vs.loadingDialog.html("Filtering");
+      window.vs.loadingDialog.show();
+      var data = {
+         filterIn: window.vs.data.filterIn,
+         filterOut: window.vs.data.filterOut
+      };
+
+      var message = {
+         data: data,
+         filters: window.vs.filters,
+         checkFilterIn: checkFilterIn
+      };
       
-      if(projI.indexOf(":" + window.vs.data.filterIn[index].Project + ":") == -1 ){//sample's project not part of filter
-         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-         window.vs.data.filterIn.splice(index, 1);
-         index--;
-         continue;
-      }
+      window.vs.filterWebWorker = new Worker("../js/filter_samples_web_worker.js");
       
-      if(orgI.indexOf(":" + window.vs.data.filterIn[index].org + ":") == -1){
-         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-         window.vs.data.filterIn.splice(index, 1);
-         index--;
-         continue;
-      }
-      
-      if(stI.indexOf(":" + window.vs.data.filterIn[index].sample_type + ":") == -1) {
-         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-         window.vs.data.filterIn.splice(index, 1);
-         index--;
-         continue;
-      }
-      
-      if(window.vs.data.filterIn[index].tests.length == 0){//no tests done
-         window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-         window.vs.data.filterIn.splice(index, 1);
-         index--;
-         continue;
-      }
-      else {//at least one test done
-         var sampleTestIndex = "";
-         var sampleResIndex = "";
+      if(typeof window.vs.filterWebWorker == 'undefined' || window.vs.filterWebWorker == null){
+         window.alert("It looks like you are using a browser that does not support a core functionality of this site. Try using a different browser.");
          
-         /*
-          * If user has added at least one test to the filter list, only add results to sampleResIndex from tests that are in the filter list
-          */
-         
-         var specResults = false;
-         if(window.vs.filters.tests.length > 0) specResults = true;
-         
-         for(var tIndex = 0; tIndex < window.vs.data.filterOut[index].tests.length; tIndex++){
-            sampleTestIndex = sampleTestIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].test + ":";
-            if(specResults == false){
-               sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
-            }
-            else {//user has added at least one test to the filter list, add result to sampleResIndex only if current test is in filter list
-               if(testI.indexOf(":" + window.vs.data.filterOut[index].tests[tIndex].test + ":") != -1){
-                  sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
-               }
-            }
-         }
-         
-         //look for a filter is in sample's test done
-         var passed = false;
-         for(var tIndex = 0; tIndex < window.vs.filters.tests.length; tIndex++){
-            if(sampleTestIndex.indexOf(":" + window.vs.filters.tests[tIndex] + ":") != -1){
-               //one of the filter tests is in sample's tests done
-               console.log("found 1");
-               passed = true;
-               break;
-            }
-         }
-         
-         if(passed == false){//none of the tests done to sample in filter list
-            window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-            window.vs.data.filterIn.splice(index, 1);
-            index--;
-            continue;
-         }
-         
-         passed = false;
-         for(var rIndex = 0; rIndex < window.vs.filters.results.length; rIndex++){
-            if(sampleResIndex.indexOf(":" + window.vs.filters.results[rIndex] + ":") != -1) {
-               //one of the filter results is in sample results
-               console.log("found 2");
-               passed = true;
-               break;
-            }
-         }
-         
-         if(passed == false){
-            window.vs.data.filterOut.push(window.vs.data.filterIn[index]);
-            window.vs.data.filterIn.splice(index, 1);
-            index--;
-            continue;
-         }
-      }
-      
-      //if has reached this point then it passes all curr sample passes all filters
-      //add to histogram
-      var sampleDate = window.vs.data.filterIn[index].date_created.split(" ")[0];//get only the date and discard the time
-      var unixTimestamp = new Date(sampleDate).getTime();
-      
-      if(typeof histogram[unixTimestamp] == 'undefined') {
-         histogram[unixTimestamp] = 1;
+         window.vs.loadingDialog.html("Download");
+         window.vs.loadingDialog.hide();
       }
       else {
-         histogram[unixTimestamp]++;
-      }
-   }
-   
-   console.log("size of filterIn katikati = ", window.vs.data.filterIn.length);
-   console.log("size of filterOut katikati = ", window.vs.data.filterOut.length);
-   
-   for(var index = 0; index < window.vs.data.filterOut.length; index++){
-      
-      if(window.vs.filters.projects.length > 0 && projI.indexOf(":" + window.vs.data.filterOut[index].Project + ":") == -1 ){//sample's project not part of filter
-         //console.log(":" + window.vs.data.filterOut[index].Project + ":");
-         continue;
-      }
-      if(window.vs.filters.organisms.length > 0 && orgI.indexOf(":" + window.vs.data.filterOut[index].org + ":") == -1){
-         //console.log(":" + window.vs.data.filterOut[index].org + ":");
-         continue;
-      }
-      if(window.vs.filters.sampleTypes.length > 0 && stI.indexOf(":" + window.vs.data.filterOut[index].sample_type + ":") == -1){
-         continue;
-      }
-      
-      if(window.vs.data.filterOut[index].tests.length == 0){//no test done on this sample
-         if(window.vs.filters.tests.length > 0){
-            continue;
-         }
-         if(window.vs.filters.results.length > 0){
-            continue;
-         }
-      }
-      else {//sample with at least one test
-         //console.log("at least one test done on ", window.vs.data.filterOut[index]);
-         var sampleTestIndex = "";
-         var sampleResIndex = "";
-         
-         /*
-          * If user has added at least one test to the filter list, only add results to sampleResIndex from tests that are in the filter list
-          */
-         
-         var specResults = false;
-         if(window.vs.filters.tests.length > 0) specResults = true;
-         
-         for(var tIndex = 0; tIndex < window.vs.data.filterOut[index].tests.length; tIndex++){
-            sampleTestIndex = sampleTestIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].test + ":";
-            if(specResults == false){
-               sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
-            }
-            else {//user has added at least one test to the filter list, add result to sampleResIndex only if current test is in filter list
-               if(testI.indexOf(":" + window.vs.data.filterOut[index].tests[tIndex].test + ":") != -1){
-                  sampleResIndex = sampleResIndex + ":" + window.vs.data.filterOut[index].tests[tIndex].result + ":";
-               }
-            }
-         }
-         
-         //look for a test in the filter array that is in sampleTestIndex and move to next sample if none exists
-         var passed = false;
-         for(var tIndex = 0; tIndex < window.vs.filters.tests.length; tIndex++){
-            if(sampleTestIndex.indexOf(":" + window.vs.filters.tests[tIndex] + ":") != -1){
-               //one of the filter tests in sample tests
-               console.log("found 3");
-               passed = true;
-               break;
-            }
-         }
-         
-         if(passed == false && window.vs.filters.tests.length > 0){//sample does not have one of the tests in filter list
-            continue;
-         }
-         
-         passed = false;
-         for(var rIndex = 0; rIndex < window.vs.filters.results.length; rIndex++){
-            if(sampleResIndex.indexOf(":" + window.vs.filters.results[rIndex] + ":") != -1) {
-               //one of the filter results in sample results
-               console.log("found 4");
-               passed = true;
-               break;
-            }
-         }
-         
-         
-         if(passed == false && window.vs.filters.results.length > 0){//none of the test done to sample in filter list
-            continue;
-         }
-      }
-      
-      //if we have reached this far, it means the sample passes all filters
-      var allFilters = window.vs.filters.organisms.length + window.vs.filters.projects.length + window.vs.filters.sampleTypes.length + window.vs.filters.tests.length + window.vs.filters.results.length;
-      
-      if(allFilters > 0){
-         window.vs.data.filterIn.push(window.vs.data.filterOut[index]);
-         
-         //add to histogram
-         var sampleDate = window.vs.data.filterOut[index].date_created.split(" ")[0];//get only the date and discard the time
-         var unixTimestamp = new Date(sampleDate).getTime();
+         window.vs.filterWebWorker.addEventListener('message', function(e){
+            var jsonString = e.data;
 
-         if(typeof histogram[unixTimestamp] == 'undefined') {
-            histogram[unixTimestamp] = 1;
-         }
-         else {
-            histogram[unixTimestamp]++;
-         }
-         
-         window.vs.data.filterOut.splice(index, 1);
-         index--;
+            var data = jQuery.parseJSON(jsonString);
+
+            window.vs.data.filterIn = data.data.filterIn;
+            window.vs.data.filterOut = data.data.filterOut;
+
+            window.vs.filters = data.filters;
+            var histogram = data.histogram;
+
+            console.log("histogram = ", histogram);
+
+            window.vs.refreshHeatmap();
+            window.vs.initTimeline(histogram);
+
+            window.vs.resetFilterIcons();
+
+            window.vs.filterWebWorker.terminate();
+            window.vs.filterWebWorker = -1;
+
+            window.vs.loadingDialog.html("Loading");
+            window.vs.loadingDialog.hide();
+         });
+
+         window.vs.filterWebWorker.postMessage(JSON.stringify(message));
       }
    }
-   
-   console.log("size of filterIn after = ", window.vs.data.filterIn.length);
-   console.log("size of filterOut after = ", window.vs.data.filterOut.length);
-   window.vs.refreshHeatmap();
-   window.vs.initTimeline(histogram);
-   
-   window.vs.resetFilterIcons();
-   console.log("done");
 };
 
 VisualizeSamples.prototype.resetFilterIcons = function() {
@@ -1189,7 +1055,50 @@ VisualizeSamples.prototype.refreshHeatmap = function(data, playingTimeline){
    
    window.vs.data.downloadData = samplesData;
    
+   if(window.vs.data.downloadData.length > 50000 || window.vs.data.downloadData.length == 0){
+      window.vs.downloadStatus.hide();
+   }
+   else {
+      window.vs.downloadStatus.show();
+   }
+   window.vs.headsUp.css("left", (window.innerWidth - window.vs.headsUp.width() - 100) + "px");
+   
    window.vs.layers.heatmapLayer.redraw();
+};
+
+VisualizeSamples.prototype.hideProjectList = function(){
+   window.vs.projectSelectAll.parent().hide();
+   if(window.vs.projectToggle.css("background-image").indexOf("loading") == -1) window.vs.projectToggle.css("background-image", "");
+   window.vs.projectList.empty();
+   window.vs.projectContainer.css("z-index",2);
+};
+
+VisualizeSamples.prototype.hideOrganismList = function(){
+   window.vs.organismSelectAll.parent().hide();
+   if(window.vs.organismToggle.css("background-image").indexOf("loading") == -1) window.vs.organismToggle.css("background-image", "");
+   window.vs.organismList.empty();
+   window.vs.organismContainer.css("z-index",2);
+};
+
+VisualizeSamples.prototype.hideSampleTypeList = function(){
+   window.vs.sampleTypesSelectAll.parent().hide();
+   if(window.vs.sampleTypesToggle.css("background-image").indexOf("loading") == -1) window.vs.sampleTypesToggle.css("background-image", "");
+   window.vs.sampleTypesList.empty();
+   window.vs.sampleTypesContainer.css("z-index",2);
+};
+
+VisualizeSamples.prototype.hideTestList = function(){
+   window.vs.testSelectAll.parent().hide();
+   if(window.vs.testToggle.css("background-image").indexOf("loading") == -1) window.vs.testToggle.css("background-image", "");
+   window.vs.testList.empty();
+   window.vs.testContainer.css("z-index",2);
+};
+
+VisualizeSamples.prototype.hideResultList = function(){
+   window.vs.resultSelectAll.parent().hide();
+   if(window.vs.resultToggle.css("background-image").indexOf("loading") == -1) window.vs.resultToggle.css("background-image", "");
+   window.vs.resultList.empty();
+   window.vs.resultContainer.css("z-index",2);
 };
 
 VisualizeSamples.prototype.toggleProjects = function(){
@@ -1199,29 +1108,17 @@ VisualizeSamples.prototype.toggleProjects = function(){
       if(jQuery("#project_"+window.vs.data.projects[0].val_id).length == 0) isVisible = false;
       
       if(isVisible == true) {
-         window.vs.projectSelectAll.parent().hide();
-         window.vs.projectToggle.css("background-image", "");
-         window.vs.projectList.empty();
-         window.vs.projectContainer.css("z-index",2);
+         window.vs.hideProjectList();
       }
       else {
          window.vs.projectToggle.css("background-image", window.vs.assets.toggleOff);
-         window.vs.organismSelectAll.parent().hide();
-         window.vs.organismList.empty();
-         window.vs.sampleTypesSelectAll.parent().hide();
-         window.vs.sampleTypesList.empty();
-         window.vs.testSelectAll.parent().hide();
-         window.vs.testList.empty();
-         window.vs.resultSelectAll.parent().hide();
-         window.vs.resultList.empty();
-         
-         //window.vs.organismContainer.hide();
          window.vs.projectContainer.css("z-index",3);
-         window.vs.organismContainer.css("z-index",2);
-         window.vs.sampleTypesContainer.css("z-index",2);
-         window.vs.testContainer.css("z-index",2);
-         window.vs.resultContainer.css("z-index",2);
          window.vs.showProjects();
+         
+         window.vs.hideOrganismList();
+         window.vs.hideSampleTypeList();
+         window.vs.hideTestList();
+         window.vs.hideResultList();
       }
    }
 };
@@ -1232,29 +1129,17 @@ VisualizeSamples.prototype.toggleOrganisms = function() {
       if(jQuery("#organism_"+window.vs.data.organisms[0].org_id).length == 0) isVisible = false;
       
       if(isVisible == true) {
-         window.vs.organismToggle.css("background-image", "");
-         window.vs.organismSelectAll.parent().hide();
-         window.vs.organismList.empty();
-         window.vs.organismContainer.css("z-index",2);
+         window.vs.hideOrganismList();
       }
       else {
          window.vs.organismToggle.css("background-image", window.vs.assets.toggleOff);
-         window.vs.projectSelectAll.parent().hide();
-         window.vs.projectList.empty();
-         window.vs.sampleTypesSelectAll.parent().hide();
-         window.vs.sampleTypesList.empty();
-         window.vs.testSelectAll.parent().hide();
-         window.vs.testList.empty();
-         window.vs.resultSelectAll.parent().hide();
-         window.vs.resultList.empty();
-         
-         //window.vs.projectContainer.hide();
          window.vs.organismContainer.css("z-index",3);
-         window.vs.projectContainer.css("z-index",2);
-         window.vs.sampleTypesContainer.css("z-index",2);
-         window.vs.testContainer.css("z-index",2);
-         window.vs.resultContainer.css("z-index",2);
          window.vs.showOrganisms();
+         
+         window.vs.hideProjectList();
+         window.vs.hideSampleTypeList();
+         window.vs.hideTestList();
+         window.vs.hideResultList();
       }
    }
 };
@@ -1265,29 +1150,17 @@ VisualizeSamples.prototype.toggleSampleTypes = function(){
       if(jQuery("#sample_type_"+window.vs.data.sampleTypes[0].count).length == 0) isVisible = false;
       
       if(isVisible == true) {
-         window.vs.sampleTypesToggle.css("background-image", "");
-         window.vs.sampleTypesSelectAll.parent().hide();
-         window.vs.sampleTypesList.empty();
-         window.vs.sampleTypesContainer.css("z-index",2);
+         window.vs.hideSampleTypeList();
       }
       else {
          window.vs.sampleTypesToggle.css("background-image", window.vs.assets.toggleOff);
-         window.vs.projectSelectAll.parent().hide();
-         window.vs.projectList.empty();
-         window.vs.organismSelectAll.parent().hide();
-         window.vs.organismList.empty();
-         window.vs.testSelectAll.parent().hide();
-         window.vs.testList.empty();
-         window.vs.resultSelectAll.parent().hide();
-         window.vs.resultList.empty();
-         
-         //window.vs.projectContainer.hide();
          window.vs.sampleTypesContainer.css("z-index",3);
-         window.vs.projectContainer.css("z-index",2);
-         window.vs.organismContainer.css("z-index",2);
-         window.vs.testContainer.css("z-index",2);
-         window.vs.resultContainer.css("z-index",2);
          window.vs.showSampleTypes();
+         
+         window.vs.hideProjectList();
+         window.vs.hideOrganismList();
+         window.vs.hideTestList();
+         window.vs.hideResultList();
       }
    }
 };
@@ -1298,29 +1171,17 @@ VisualizeSamples.prototype.toggleTests = function(){
       if(jQuery("#test_"+window.vs.data.tests[0].replace(/[^a-z0-9]/gi, "_")).length == 0) isVisible = false;
       
       if(isVisible == true) {
-         window.vs.testToggle.css("background-image", "");
-         window.vs.testSelectAll.parent().hide();
-         window.vs.testList.empty();
-         window.vs.testContainer.css("z-index",2);
+         window.vs.hideTestList();
       }
       else {
          window.vs.testToggle.css("background-image", window.vs.assets.toggleOff);
-         window.vs.projectSelectAll.parent().hide();
-         window.vs.projectList.empty();
-         window.vs.organismSelectAll.parent().hide();
-         window.vs.organismList.empty();
-         window.vs.sampleTypesSelectAll.parent().hide();
-         window.vs.sampleTypesList.empty();
-         window.vs.resultSelectAll.parent().hide();
-         window.vs.resultList.empty();
-         
-         //window.vs.projectContainer.hide();
          window.vs.testContainer.css("z-index",3);
-         window.vs.projectContainer.css("z-index",2);
-         window.vs.organismContainer.css("z-index",2);
-         window.vs.sampleTypesContainer.css("z-index",2);
-         window.vs.resultContainer.css("z-index",2);
          window.vs.showTests();
+         
+         window.vs.hideProjectList();
+         window.vs.hideOrganismList();
+         window.vs.hideSampleTypeList();
+         window.vs.hideResultList();
       }
    }
 };
@@ -1331,29 +1192,17 @@ VisualizeSamples.prototype.toggleResults = function(){
       if(jQuery("#result_"+window.vs.data.results[0]).length == 0) isVisible = false;
       
       if(isVisible == true) {
-         window.vs.resultToggle.css("background-image", "");
-         window.vs.resultSelectAll.parent().hide();
-         window.vs.resultList.empty();
-         window.vs.resultContainer.css("z-index",2);
+         window.vs.hideResultList();
       }
       else {
          window.vs.resultToggle.css("background-image", window.vs.assets.toggleOff);
-         window.vs.projectSelectAll.parent().hide();
-         window.vs.projectList.empty();
-         window.vs.organismSelectAll.parent().hide();
-         window.vs.organismList.empty();
-         window.vs.sampleTypesSelectAll.parent().hide();
-         window.vs.sampleTypesList.empty();
-         window.vs.testSelectAll.parent().hide();
-         window.vs.testList.empty();
-         
-         //window.vs.projectContainer.hide();
          window.vs.resultContainer.css("z-index",3);
-         window.vs.projectContainer.css("z-index",2);
-         window.vs.organismContainer.css("z-index",2);
-         window.vs.sampleTypesContainer.css("z-index",2);
-         window.vs.testContainer.css("z-index",2);
          window.vs.showResults();
+         
+         window.vs.hideProjectList();
+         window.vs.hideOrganismList();
+         window.vs.hideSampleTypeList();
+         window.vs.hideTestList();
       }
    }
 };
@@ -1438,6 +1287,7 @@ VisualizeSamples.prototype.initTimeline = function(histogram){
             }
          },
          axisLabelFontSize: 12,
+         axisLabelWidth: 70,
          axisLabelColor: "#006064",
          zoomCallback: function(minDate, maxDate, yRanges) {
             console.log("ZoomCallback called");

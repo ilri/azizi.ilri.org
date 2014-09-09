@@ -307,7 +307,7 @@ td.search_columns {min-width: 200px;}
    border-radius: 50%;
    z-index: 2;
    box-shadow: 0 2px 4px #aaa;
-   background: #e0f7fa;
+   background: #dd2c00;
    background-image: url(../images/ic_action_play.png);
    background-size: cover;
    background-repeat: no-repeat;
@@ -325,7 +325,7 @@ td.search_columns {min-width: 200px;}
    border-radius: 50%;
    z-index: 2;
    box-shadow: 0 2px 4px #aaa;
-   background: #e0f7fa;
+   background: #dd2c00;
    background-image: url(../images/ic_action_stop.png);
    background-size: cover;
    background-repeat: no-repeat;
@@ -344,6 +344,7 @@ td.search_columns {min-width: 200px;}
 }
 
 .filter_container {
+   position: absolute;
    z-index: 2;
    width: 20rem;
    border-radius: 2px;
@@ -352,36 +353,6 @@ td.search_columns {min-width: 200px;}
    padding: 10px;
    color: #3d3d3d;
    font-family: 'Roboto', sans-serif;
-}
-
-#project_container {
-   position: absolute;
-   left: 5%;
-   top: 10%;
-}
-
-#organism_container {
-   position: absolute;
-   left: 5%;
-   top: 16%;
-}
-
-#sample_types_container {
-   position: absolute;
-   left: 5%;
-   top: 22%;
-}
-
-#test_container {
-   position: absolute;
-   left: 5%;
-   top: 28%;
-}
-
-#result_container {
-   position: absolute;
-   left: 5%;
-   top: 34%;
 }
 
 .filter_list {

@@ -241,281 +241,284 @@ class VisualizeSamples {
       $this->Dbase->CreateLogEntry("sendSampleData called", "fatal");
       
       $sampleIDs = $_POST['sampleIDs'];
-      $implodedSIDs = implode(",", $sampleIDs);
       
-      //$this->Dbase->CreateLogEntry($implodedSIDs, "fatal");
+      if(count($sampleIDs) < 50000){//do not allow downloading of data greater than 50000 samples
+         $implodedSIDs = implode(",", $sampleIDs);
       
-      $email = $_POST['email'];
-      
-      //get box owners
-      $query = "SELECT a.box_id, b.name as keeper, b.email"
-              . " FROM ".Config::$config['azizi_db'].".boxes_def AS a"
-              . " INNER JOIN ".Config::$config['azizi_db'].".contacts AS b ON a.keeper = b.count";
-      $boxKeepers = $this->Dbase->ExecuteQuery($query);
-      //put the box keepers in a better data structure
-      $keepers = array();
-      foreach ($boxKeepers as $currKeeper){
-         $keepers[$currKeeper['box_id']] = array("name" => $currKeeper['keeper'], "email" => $currKeeper['email']);
-      }
-      
-      $query = "select b.*"
-              . " from ".Config::$config['azizi_db'].".samples as a"
-              . " inner join ".Config::$config['azizi_db'].".sample_types_def as b on a.sample_type = b.count"
-              . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
-              . " group by a.sample_type";
-      $tmpSTypes = $this->Dbase->ExecuteQuery($query);
-      
-      $sampleTypes = array();
-      foreach($tmpSTypes as $currType){
-         $sampleTypes[$currType['count']] = $currType['sample_type_name'];
-      }
-      //$this->Dbase->CreateLogEntry(print_r($sampleTypes, true), "fatal");
-      
-      $query = "select b.* from ".Config::$config['azizi_db'].".samples as a"
-              . " inner join ".Config::$config['azizi_db'].".modules_custom_values as b on a.Project = b.val_id"
-              . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
-              . " group by a.Project";
-      $tmpProjects = $this->Dbase->ExecuteQuery($query);
-      
-      $projects = array();
-      foreach($tmpProjects as $currProject){
-         $projects[$currProject['val_id']] = $currProject['value'];
-      }
-      //$this->Dbase->CreateLogEntry(print_r($projects, true), "fatal");
-      
-      $query = "select b.* from ".Config::$config['azizi_db'].".samples as a"
-              . " inner join ".Config::$config['azizi_db'].".organisms as b on a.org = b.org_id"
-              . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
-              . " group by a.org";
-      $tmpOrg = $this->Dbase->ExecuteQuery($query);
-      $organisms = array();
-      foreach ($tmpOrg as $currOrg){
-         $organisms[$currOrg['org_id']] = $currOrg['org_name'];
-      }
-      //$this->Dbase->CreateLogEntry(print_r($organisms, true), "fatal");
-      
-      $oaQuery = "SELECT count, label, comments, date_created, sample_type, origin, org, box_id, Project, open_access"
-              . " FROM ".Config::$config['azizi_db'].".samples"
-              . " WHERE count in (" . $implodedSIDs . ") AND open_access = 1";
-      
-      $oaResult = $this->Dbase->ExecuteQuery($oaQuery);
-      
-      //get ids for Open acces samples
-      //append projects to all open access samples
-      $this->Dbase->CreateLogEntry("About to process open access samples ".  count($oaResult), "fatal");
-      
-      $oaIDs = array();
-      for($oaIndex = 0; $oaIndex < count($oaResult); $oaIndex++){
-         //$this->Dbase->CreateLogEntry("org = ".$oaResult[$oaIndex]['org'], "fatal");
-         array_push($oaIDs, $oaResult[$oaIndex]['count']);
-         unset($oaResult[$oaIndex]['count']);
-         
-         $oaResult[$oaIndex]['keeper'] = $keepers[$oaResult[$oaIndex]['box_id']]['name'];
-         $oaResult[$oaIndex]['keeper_email'] = $keepers[$oaResult[$oaIndex]['box_id']]['email'];
-         unset($oaResult[$oaIndex]['box_id']);
-         
-         $oaResult[$oaIndex]['sample_type'] = $sampleTypes[$oaResult[$oaIndex]['sample_type']];
-         $oaResult[$oaIndex]['Project'] = $projects[$oaResult[$oaIndex]['Project']];
-         $oaResult[$oaIndex]['org'] = $organisms[$oaResult[$oaIndex]['org']];
-         $oaResult[$oaIndex]['open_access'] = "Yes";
-      }
-      
-      $caQuery = "SELECT label, date_created, sample_type, Project, open_access, box_id, org"
-              . " FROM ".Config::$config['azizi_db'].".samples"
-              . " WHERE count in (" . $implodedSIDs . ") AND open_access = 0";
-      
-      $caResult = $this->Dbase->ExecuteQuery($caQuery);
-      
-      $this->Dbase->CreateLogEntry("About to process closed access samples ".  count($caResult), "fatal");
-      for($caIndex = 0; $caIndex < count($caResult); $caIndex++){
-         //$this->Dbase->CreateLogEntry("org = ".$caResult[$caIndex]['org'], "fatal");
-         
-         $caResult[$caIndex]['keeper'] = $keepers[$caResult[$caIndex]['box_id']]['name'];
-         $caResult[$caIndex]['keeper_email'] = $keepers[$caResult[$caIndex]['box_id']]['email'];
-         unset($caResult[$caIndex]['box_id']);
-         
-         $caResult[$caIndex]['sample_type'] = $sampleTypes[$caResult[$caIndex]['sample_type']];
-         $caResult[$caIndex]['Project'] = $projects[$caResult[$caIndex]['Project']];
-         $caResult[$caIndex]['org'] = $organisms[$caResult[$caIndex]['org']];
-         $caResult[$caIndex]['open_access'] = "No";
-      }
-      
-      require_once OPTIONS_COMMON_FOLDER_PATH.'PHPExcel/Classes/PHPExcel.php';
-      
-      $phpExcel = new PHPExcel();
-      $phpExcel->getProperties()->setCreator($email);
-      $phpExcel->getProperties()->setLastModifiedBy($email);
-      $phpExcel->getProperties()->setTitle("ILRI Biorepository Samples");
-      $phpExcel->getProperties()->setSubject("Created using Azizi Samples Visualizer");
-      $phpExcel->getProperties()->setDescription("This Excel file has been generated using Azizi Samples Visualizer that utilizes the PHPExcel library on PHP. Azizi Samples Visualizer was created by Jason Rogena (j.rogena@cgiar.org)");
-      
-      //merge the open access and closed access data sets
-      $samples = array();
-      for($index = 0; $index < count($oaResult); $index++ ){
-         $currSample = $oaResult[$index];
-         
-         $columns = array_keys($currSample);
-         
-         for($cIndex = 0; $cIndex < count($columns); $cIndex++){
-            if(!isset($samples[$columns[$cIndex]])){
-               $samples[$columns[$cIndex]] = array();
-            }
-            
-            $samples[$columns[$cIndex]][$index] = $currSample[$columns[$cIndex]];
-         }
-      }
-      
-      $noOASamples = count($oaResult);
-      
-      $this->Dbase->CreateLogEntry("Samples after adding Open Access samples ". count($samples), "fatal");
-      
-      for($index = 0; $index < count($caResult); $index++ ){
-         $currSample = $caResult[$index];
-         
-         $columns = array_keys($currSample);
-         
-         for($cIndex = 0; $cIndex < count($columns); $cIndex++){
-            if(!isset($samples[$columns[$cIndex]])){
-               $samples[$columns[$cIndex]] = array();
-            }
-            
-            $samples[$columns[$cIndex]][$index + $noOASamples] = $currSample[$columns[$cIndex]];
-         }
-      }
-      
-      $columnHeadings = array_keys($samples);
-      
-      //sort the column headings
-      $sorted = array('label', 'open_access', 'sample_type', 'org', 'date_created', 'Project', 'keeper', 'keeper_email', 'origin');
-      $commentsExisted = false;
-      for($index = 0; $index < count($columnHeadings); $index++){
-         if(array_search($columnHeadings[$index], $sorted) === false){
-            if($columnHeadings[$index] != 'comments'){
-               array_push($sorted, $columnHeadings[$index]);
-            }
-            else {
-               $commentsExisted = true;
-            }
-         }
-      }
-      
-      /*if($commentsExisted == true){
-         array_push($sorted, "comments");
-      }*/
-      
-      $this->Dbase->CreateLogEntry(print_r($sorted, true), "fatal");
-      $this->Dbase->CreateLogEntry(print_r($columnHeadings, true), "fatal");
-      
-      for($index = 0; $index < count($sorted); $index++){
-         if(array_search($sorted[$index], $columnHeadings) === false){
-            unset($sorted[$index]);
-            //$index--;
-         }
-      }
-      
-      $columnHeadings = $sorted;
-      
-      $trans = array(
-          "org" => "Organism",
-          "date_created" => "Date Collected",
-          "sample_type" => "Sample Type",
-          "origin" => "Origin",
-          "open_access" => "Open Access",
-          "keeper" => "Contact Person",
-          "keeper_email" => "C.P Email"
-      );
-      
-      for($index = 0; $index < count($columnHeadings); $index++){
-         $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
-         $phpExcel->getActiveSheet()->setTitle("Samples");
-         $this->Dbase->CreateLogEntry($cIndex." " .$columnHeadings[$index], "fatal");
-         
-         $columnName = $columnHeadings[$index];
-         if(isset($trans[$columnName])) $columnName = $trans[$columnName];
-         
-         $phpExcel->getActiveSheet()->setCellValue($cIndex."1", $columnName);
-         
-         $phpExcel->getActiveSheet()->getStyle($cIndex."1")->getFont()->setBold(TRUE);
-         $phpExcel->getActiveSheet()->getColumnDimension($cIndex)->setAutoSize(true);
-         
-         $columnSamples = $samples[$columnHeadings[$index]];
-         for($sIndex = 0; $sIndex < count($columnSamples); $sIndex++){
-            $rIndex = $sIndex + 2;
-            $phpExcel->getActiveSheet()->setCellValue($cIndex.$rIndex, $columnSamples[$sIndex]);
-         }
-      }
-      
-      $this->Dbase->CreateLogEntry("Getting the tests", "fatal");
-      
-      $oatQuery = "SELECT a.date as Date, a.sample_id, b.label as Sample, c.option_name as Result, d.label as Test"
-              . " FROM ".Config::$config['azizi_db'].".processes as a"
-              . " INNER JOIN ".Config::$config['azizi_db'].".samples as b on b.count=a.sample_id"
-              . " INNER JOIN ".Config::$config['azizi_db'].".modules_options as c on a.status = c.option_id"
-              . " INNER JOIN ".Config::$config['azizi_db'].".process_type_def as d on a.process_type=d.count";
-      
-      $oatResults = $this->Dbase->ExecuteQuery($oatQuery);
-      
-      $testHeadings = array();
-      $good = 0;
-      for($index = 0; $index < count($oatResults); $index++){
-         $sampleId = $oatResults[$index]['sample_id'];
-         unset($oatResults[$index]['sample_id']);
-         if(array_search($sampleId, $oaIDs) === false){
-            unset($oatResults[$index]);
-            //$index--;
-         }
-         else {
-            $good++;
-            if(count($testHeadings) == 0){
-               $testHeadings = $oatResults[$index];
-            }
-         }
-      }
-      
-      $this->Dbase->CreateLogEntry("Pruned all the chuff and left with ".$good, "fatal");
-      $this->Dbase->CreateLogEntry(print_r($testHeadings, true), "fatal");
-      
-      if(count($testHeadings) > 0){//means that there is at least one relevant test left         
-         $phpExcel->setActiveSheetIndex(1);
-         $phpExcel->getActiveSheet()->setTitle("Tests");
-         
-         for($index = 0; $index < count($testHeadings); $index++){
-            $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
-            
-            $phpExcel->getActiveSheet()->setCellValue($cIndex."1", $testHeadings[$index]);
-         
-            $phpExcel->getActiveSheet()->getStyle($cIndex."1")->getFont()->setBold(TRUE);
-            $phpExcel->getActiveSheet()->getColumnDimension($cIndex)->setAutoSize(true);
-         }
-         
-         $this->Dbase->CreateLogEntry("Done adding headings. now adding results", "fatal");
-         
-         for($tIndex = 0; $tIndex < count($oatResults); $tIndex++){
-            if(is_array($oatResults[$tIndex])){//done to exclude all unset rows
-               $this->Dbase->CreateLogEntry($tIndex, "fatal");
-               for($index = 0; $index < count($testHeadings); $index++){
-                  $rIndex = $tIndex + 2;
-                  $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
+         //$this->Dbase->CreateLogEntry($implodedSIDs, "fatal");
 
-                  $phpExcel->getActiveSheet()->setCellValue($cIndex.$rIndex, $oatResults[$tIndex][$testHeadings[$index]]);
+         $email = $_POST['email'];
+
+         //get box owners
+         $query = "SELECT a.box_id, b.name as keeper, b.email"
+                 . " FROM ".Config::$config['azizi_db'].".boxes_def AS a"
+                 . " INNER JOIN ".Config::$config['azizi_db'].".contacts AS b ON a.keeper = b.count";
+         $boxKeepers = $this->Dbase->ExecuteQuery($query);
+         //put the box keepers in a better data structure
+         $keepers = array();
+         foreach ($boxKeepers as $currKeeper){
+            $keepers[$currKeeper['box_id']] = array("name" => $currKeeper['keeper'], "email" => $currKeeper['email']);
+         }
+
+         $query = "select b.*"
+                 . " from ".Config::$config['azizi_db'].".samples as a"
+                 . " inner join ".Config::$config['azizi_db'].".sample_types_def as b on a.sample_type = b.count"
+                 . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
+                 . " group by a.sample_type";
+         $tmpSTypes = $this->Dbase->ExecuteQuery($query);
+
+         $sampleTypes = array();
+         foreach($tmpSTypes as $currType){
+            $sampleTypes[$currType['count']] = $currType['sample_type_name'];
+         }
+         //$this->Dbase->CreateLogEntry(print_r($sampleTypes, true), "fatal");
+
+         $query = "select b.* from ".Config::$config['azizi_db'].".samples as a"
+                 . " inner join ".Config::$config['azizi_db'].".modules_custom_values as b on a.Project = b.val_id"
+                 . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
+                 . " group by a.Project";
+         $tmpProjects = $this->Dbase->ExecuteQuery($query);
+
+         $projects = array();
+         foreach($tmpProjects as $currProject){
+            $projects[$currProject['val_id']] = $currProject['value'];
+         }
+         //$this->Dbase->CreateLogEntry(print_r($projects, true), "fatal");
+
+         $query = "select b.* from ".Config::$config['azizi_db'].".samples as a"
+                 . " inner join ".Config::$config['azizi_db'].".organisms as b on a.org = b.org_id"
+                 . " where a.Longitude is not null and a.Longitude != '' and a.Latitude is not null and a.Latitude != ''"
+                 . " group by a.org";
+         $tmpOrg = $this->Dbase->ExecuteQuery($query);
+         $organisms = array();
+         foreach ($tmpOrg as $currOrg){
+            $organisms[$currOrg['org_id']] = $currOrg['org_name'];
+         }
+         //$this->Dbase->CreateLogEntry(print_r($organisms, true), "fatal");
+
+         $oaQuery = "SELECT count, label, comments, date_created, sample_type, origin, org, box_id, Project, open_access"
+                 . " FROM ".Config::$config['azizi_db'].".samples"
+                 . " WHERE count in (" . $implodedSIDs . ") AND open_access = 1";
+
+         $oaResult = $this->Dbase->ExecuteQuery($oaQuery);
+
+         //get ids for Open acces samples
+         //append projects to all open access samples
+         $this->Dbase->CreateLogEntry("About to process open access samples ".  count($oaResult), "fatal");
+
+         $oaIDs = array();
+         for($oaIndex = 0; $oaIndex < count($oaResult); $oaIndex++){
+            //$this->Dbase->CreateLogEntry("org = ".$oaResult[$oaIndex]['org'], "fatal");
+            array_push($oaIDs, $oaResult[$oaIndex]['count']);
+            unset($oaResult[$oaIndex]['count']);
+
+            $oaResult[$oaIndex]['keeper'] = $keepers[$oaResult[$oaIndex]['box_id']]['name'];
+            $oaResult[$oaIndex]['keeper_email'] = $keepers[$oaResult[$oaIndex]['box_id']]['email'];
+            unset($oaResult[$oaIndex]['box_id']);
+
+            $oaResult[$oaIndex]['sample_type'] = $sampleTypes[$oaResult[$oaIndex]['sample_type']];
+            $oaResult[$oaIndex]['Project'] = $projects[$oaResult[$oaIndex]['Project']];
+            $oaResult[$oaIndex]['org'] = $organisms[$oaResult[$oaIndex]['org']];
+            $oaResult[$oaIndex]['open_access'] = "Yes";
+         }
+
+         $caQuery = "SELECT label, date_created, sample_type, Project, open_access, box_id, org"
+                 . " FROM ".Config::$config['azizi_db'].".samples"
+                 . " WHERE count in (" . $implodedSIDs . ") AND open_access = 0";
+
+         $caResult = $this->Dbase->ExecuteQuery($caQuery);
+
+         $this->Dbase->CreateLogEntry("About to process closed access samples ".  count($caResult), "fatal");
+         for($caIndex = 0; $caIndex < count($caResult); $caIndex++){
+            //$this->Dbase->CreateLogEntry("org = ".$caResult[$caIndex]['org'], "fatal");
+
+            $caResult[$caIndex]['keeper'] = $keepers[$caResult[$caIndex]['box_id']]['name'];
+            $caResult[$caIndex]['keeper_email'] = $keepers[$caResult[$caIndex]['box_id']]['email'];
+            unset($caResult[$caIndex]['box_id']);
+
+            $caResult[$caIndex]['sample_type'] = $sampleTypes[$caResult[$caIndex]['sample_type']];
+            $caResult[$caIndex]['Project'] = $projects[$caResult[$caIndex]['Project']];
+            $caResult[$caIndex]['org'] = $organisms[$caResult[$caIndex]['org']];
+            $caResult[$caIndex]['open_access'] = "No";
+         }
+
+         require_once OPTIONS_COMMON_FOLDER_PATH.'PHPExcel/Classes/PHPExcel.php';
+
+         $phpExcel = new PHPExcel();
+         $phpExcel->getProperties()->setCreator($email);
+         $phpExcel->getProperties()->setLastModifiedBy($email);
+         $phpExcel->getProperties()->setTitle("ILRI Biorepository Samples");
+         $phpExcel->getProperties()->setSubject("Created using Azizi Samples Visualizer");
+         $phpExcel->getProperties()->setDescription("This Excel file has been generated using Azizi Samples Visualizer that utilizes the PHPExcel library on PHP. Azizi Samples Visualizer was created by Jason Rogena (j.rogena@cgiar.org)");
+
+         //merge the open access and closed access data sets
+         $samples = array();
+         for($index = 0; $index < count($oaResult); $index++ ){
+            $currSample = $oaResult[$index];
+
+            $columns = array_keys($currSample);
+
+            for($cIndex = 0; $cIndex < count($columns); $cIndex++){
+               if(!isset($samples[$columns[$cIndex]])){
+                  $samples[$columns[$cIndex]] = array();
+               }
+
+               $samples[$columns[$cIndex]][$index] = $currSample[$columns[$cIndex]];
+            }
+         }
+
+         $noOASamples = count($oaResult);
+
+         $this->Dbase->CreateLogEntry("Samples after adding Open Access samples ". count($samples), "fatal");
+
+         for($index = 0; $index < count($caResult); $index++ ){
+            $currSample = $caResult[$index];
+
+            $columns = array_keys($currSample);
+
+            for($cIndex = 0; $cIndex < count($columns); $cIndex++){
+               if(!isset($samples[$columns[$cIndex]])){
+                  $samples[$columns[$cIndex]] = array();
+               }
+
+               $samples[$columns[$cIndex]][$index + $noOASamples] = $currSample[$columns[$cIndex]];
+            }
+         }
+
+         $columnHeadings = array_keys($samples);
+
+         //sort the column headings
+         $sorted = array('label', 'open_access', 'sample_type', 'org', 'date_created', 'Project', 'keeper', 'keeper_email', 'origin');
+         $commentsExisted = false;
+         for($index = 0; $index < count($columnHeadings); $index++){
+            if(array_search($columnHeadings[$index], $sorted) === false){
+               if($columnHeadings[$index] != 'comments'){
+                  array_push($sorted, $columnHeadings[$index]);
+               }
+               else {
+                  $commentsExisted = true;
                }
             }
          }
+
+         /*if($commentsExisted == true){
+            array_push($sorted, "comments");
+         }*/
+
+         $this->Dbase->CreateLogEntry(print_r($sorted, true), "fatal");
+         $this->Dbase->CreateLogEntry(print_r($columnHeadings, true), "fatal");
+
+         for($index = 0; $index < count($sorted); $index++){
+            if(array_search($sorted[$index], $columnHeadings) === false){
+               unset($sorted[$index]);
+               //$index--;
+            }
+         }
+
+         $columnHeadings = $sorted;
+
+         $trans = array(
+             "org" => "Organism",
+             "date_created" => "Date Collected",
+             "sample_type" => "Sample Type",
+             "origin" => "Origin",
+             "open_access" => "Open Access",
+             "keeper" => "Contact Person",
+             "keeper_email" => "C.P Email"
+         );
+
+         for($index = 0; $index < count($columnHeadings); $index++){
+            $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
+            $phpExcel->getActiveSheet()->setTitle("Samples");
+            $this->Dbase->CreateLogEntry($cIndex." " .$columnHeadings[$index], "fatal");
+
+            $columnName = $columnHeadings[$index];
+            if(isset($trans[$columnName])) $columnName = $trans[$columnName];
+
+            $phpExcel->getActiveSheet()->setCellValue($cIndex."1", $columnName);
+
+            $phpExcel->getActiveSheet()->getStyle($cIndex."1")->getFont()->setBold(TRUE);
+            $phpExcel->getActiveSheet()->getColumnDimension($cIndex)->setAutoSize(true);
+
+            $columnSamples = $samples[$columnHeadings[$index]];
+            for($sIndex = 0; $sIndex < count($columnSamples); $sIndex++){
+               $rIndex = $sIndex + 2;
+               $phpExcel->getActiveSheet()->setCellValue($cIndex.$rIndex, $columnSamples[$sIndex]);
+            }
+         }
+
+         $this->Dbase->CreateLogEntry("Getting the tests", "fatal");
+
+         $oatQuery = "SELECT a.date as Date, a.sample_id, b.label as Sample, c.option_name as Result, d.label as Test"
+                 . " FROM ".Config::$config['azizi_db'].".processes as a"
+                 . " INNER JOIN ".Config::$config['azizi_db'].".samples as b on b.count=a.sample_id"
+                 . " INNER JOIN ".Config::$config['azizi_db'].".modules_options as c on a.status = c.option_id"
+                 . " INNER JOIN ".Config::$config['azizi_db'].".process_type_def as d on a.process_type=d.count";
+
+         $oatResults = $this->Dbase->ExecuteQuery($oatQuery);
+
+         $testHeadings = array();
+         $good = 0;
+         for($index = 0; $index < count($oatResults); $index++){
+            $sampleId = $oatResults[$index]['sample_id'];
+            unset($oatResults[$index]['sample_id']);
+            if(array_search($sampleId, $oaIDs) === false){
+               unset($oatResults[$index]);
+               //$index--;
+            }
+            else {
+               $good++;
+               if(count($testHeadings) == 0){
+                  $testHeadings = $oatResults[$index];
+               }
+            }
+         }
+
+         $this->Dbase->CreateLogEntry("Pruned all the chuff and left with ".$good, "fatal");
+         $this->Dbase->CreateLogEntry(print_r($testHeadings, true), "fatal");
+
+         if(count($testHeadings) > 0){//means that there is at least one relevant test left         
+            $phpExcel->setActiveSheetIndex(1);
+            $phpExcel->getActiveSheet()->setTitle("Tests");
+
+            for($index = 0; $index < count($testHeadings); $index++){
+               $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
+
+               $phpExcel->getActiveSheet()->setCellValue($cIndex."1", $testHeadings[$index]);
+
+               $phpExcel->getActiveSheet()->getStyle($cIndex."1")->getFont()->setBold(TRUE);
+               $phpExcel->getActiveSheet()->getColumnDimension($cIndex)->setAutoSize(true);
+            }
+
+            $this->Dbase->CreateLogEntry("Done adding headings. now adding results", "fatal");
+
+            for($tIndex = 0; $tIndex < count($oatResults); $tIndex++){
+               if(is_array($oatResults[$tIndex])){//done to exclude all unset rows
+                  $this->Dbase->CreateLogEntry($tIndex, "fatal");
+                  for($index = 0; $index < count($testHeadings); $index++){
+                     $rIndex = $tIndex + 2;
+                     $cIndex = PHPExcel_Cell::stringFromColumnIndex($index);
+
+                     $phpExcel->getActiveSheet()->setCellValue($cIndex.$rIndex, $oatResults[$tIndex][$testHeadings[$index]]);
+                  }
+               }
+            }
+         }
+
+         $tmpDir = "../tmp";
+         if(!file_exists($tmpDir)){
+            mkdir($tmpDir, 0755);//everything for owner, read & exec for everybody else
+         }
+
+         $filename = $tmpDir ."/". time() . ".xlsx";
+
+         $this->Dbase->CreateLogEntry("Saving xls file", "fatal");
+         $objWriter = new PHPExcel_Writer_Excel2007($phpExcel);
+         $objWriter->save($filename);
+         $this->Dbase->CreateLogEntry("Done creating excel file, about to send it to the user", "fatal");
+
+         $this->sendEmail($email, $filename);
       }
-      
-      $tmpDir = "../tmp";
-      if(!file_exists($tmpDir)){
-         mkdir($tmpDir, 0755);//everything for owner, read & exec for everybody else
-      }
-      
-      $filename = $tmpDir ."/". time() . ".xlsx";
-      
-      $this->Dbase->CreateLogEntry("Saving xls file", "fatal");
-      $objWriter = new PHPExcel_Writer_Excel2007($phpExcel);
-      $objWriter->save($filename);
-      $this->Dbase->CreateLogEntry("Done creating excel file, about to send it to the user", "fatal");
-      
-      $this->sendEmail($email, $filename);
    }
    
    private function sendEmail($email, $filename){
@@ -614,7 +617,7 @@ else{
          <div id="sample_types_list" class="filter_list"></div>   
       </div>
       <div id="test_container" class="filter_container">
-         <div id="test_label" class="filter_label">Test done</div>
+         <div id="test_label" class="filter_label">Tests done</div>
          <div id="test_toggle" class="filter_toggle"></div>
          <div style="display: none;"><input id="test_sel_all" type="checkbox"/>Select all<br /></div>
          <div id="test_list" class="filter_list"></div>   
