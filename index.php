@@ -16,7 +16,7 @@
   <body>
      <div id="top" class="transform_slow">
         <div id="search">
-           <input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" />
+           <input type="text" class="search form-control" name="azizi_search" id="azizi_search" placeholder="Search our repository" style="width: 350px;" />
            <!-- a href='javascript:;'>Advanced Search</a -->
         </div>
         <div id="title" class="center bold">Azizi Biorepository</div>

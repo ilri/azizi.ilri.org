@@ -1,5 +1,5 @@
 var Azizi = {
-   resultsPerPage: 15, iisPageCount: 10,
+   resultsPerPage: 15, iisPageCount: 10, pageIndex:0,
 
    refreshEquipmentStatus: function(){
       if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){
@@ -254,17 +254,23 @@ var Azizi = {
     * @returns {undefined}
     */
    startSearch: function(event){
-      if(this.value.length < 3){
+      if(event != null) Azizi.pageIndex = 0;//reset the pageIndex if the function is called by the search box changing
+      
+      if($("#azizi_search").val() < 3){
          if(Azizi.isSearching !== undefined && Azizi.isSearching){
             $('.narrow_top').attr('id', 'top');
             $('#top').removeClass('narrow_top');
             $('#bottom_panel').html($('#info p').html());
             $('#results').fadeOut('slow', 'linear');
+            $('#results_count').fadeOut('slow', 'linear');
             $('#contents').fadeIn('slow', 'linear');
+            $('#equipment_status').fadeIn('slow', 'linear');
+            $('#extra').fadeIn('slow', 'linear');
             $('#bottom_panel, #up_arrow').fadeOut('slow', 'linear');
             Azizi.isSearching = false;
             Azizi.stopUpdateStatus = false;
-            this.value = '';
+            $("#azizi_search").val("");
+            Azizi.pageIndex = 0;
          }
       }
       else{
@@ -273,13 +279,16 @@ var Azizi = {
             $('#top').addClass('narrow_top');
             $('#top').removeAttr('id');
             $('#contents').fadeOut('slow', 'linear');
+            $('#equipment_status').fadeOut('slow', 'linear');
+            $('#extra').fadeOut('slow', 'linear');
             $('#bottom_panel, #up_arrow').fadeIn('slow', 'linear');
             $('#results').fadeIn('slow', 'linear');
+            $('#results_count').fadeIn('slow', 'linear');
             Azizi.isSearching = true;
             Azizi.stopUpdateStatus = true;
          }
          $.ajax({
-            type:"POST", url:'/azizi/mod_ajax.php?page=search&q='+this.value, dataType:'json', error: Azizi.communicationError, success: Azizi.updateSearchResults
+            type:"GET", url:'/azizi/mod_ajax.php?page=search&q='+$("#azizi_search").val()+'&start='+(Azizi.pageIndex*Azizi.resultsPerPage)+"&size="+Azizi.resultsPerPage, dataType:'json', error: Azizi.communicationError, success: Azizi.updateSearchResults
          });
       }
    },
@@ -292,32 +301,93 @@ var Azizi = {
     */
    updateSearchResults: function(data){
       Azizi.currentResults = data;
-      Azizi.moreIndex = 0;
-      Azizi.displaySamples(0, Azizi.moreIndex);
+      Azizi.displaySamples();
    },
 
-   displaySamples: function(groupIndex, moreIndex){
-      var clearing = (Azizi.currentResults.data.length === 0) ? 'No Results...' : '';
-      $('#results .left').html(clearing);
+   displaySamples: function(){
+      //var clearing = (Object.keys(Azizi.currentResults.data).length === 0) ? 'No Results...' : '';
+      $('#results .left').html('');
       $('#results .right').html('');
       $('#results .extreme_right').html('');
-      var k = (moreIndex === undefined) ? Azizi.moreIndex : moreIndex;
-      var start = (groupIndex * Azizi.resultsPerPage + k*Azizi.iisPageCount*Azizi.resultsPerPage);
-      for(var i = start, j = 0; i < Azizi.currentResults.count; i++, j++){
+      
+      var time = Azizi.currentResults.time/1000;
+      //console.log(time);
+      $("#results .left").append("<div style='margin-left:50px;font-size:14px;color:#428bca;margin-bottom:10px;'>"+Azizi.currentResults.count+" results in "+time+" seconds</div>");
+      
+      for(var i = 0; i < Object.keys(Azizi.currentResults.data).length; i++){
          var t = Azizi.currentResults.data[i];
-         if(j > Azizi.resultsPerPage) break;
-         if(t.collection === 'azizi') Azizi.displayAziziSamples(t)
+         if(t.collection === 'samples') Azizi.displayAziziSamples(t);
          else if(t.collection === 'stabilates') Azizi.displayStabilatesSamples(t);
       }
 
-      if(moreIndex !== undefined){
-         var repeat = Math.ceil((Azizi.currentResults.count-start) / Azizi.resultsPerPage);
-         repeat = (repeat > Azizi.iisPageCount) ? Azizi.iisPageCount : repeat;
-         var additional = (start + Azizi.resultsPerPage*Azizi.iisPageCount < Azizi.currentResults.count) ? "<span><a class='iis more' href='javascript:;'>>></a></span>" : '';
-         var less = (moreIndex > 0) ? "<span><a class='iis less' href='javascript:;'><<</a></span>" : '';
-         var iis = Azizi.repeatString("<a class='iis' href='javascript:;'>i</a>", repeat);
+      //construct the aziiiizi tings
+      if(Object.keys(Azizi.currentResults.data).length > 0){
+         var totalNoPages = Azizi.currentResults.count / Azizi.resultsPerPage;
+         var groupIndex = Math.floor(Azizi.pageIndex / Azizi.iisPageCount);
+         
+         var repeat = totalNoPages - (groupIndex*Azizi.iisPageCount);
+         if(repeat > Azizi.iisPageCount){
+            repeat = Azizi.iisPageCount;
+         }
+         
+         var additional = "";
+         
+         if(groupIndex < Math.floor((totalNoPages-1)/Azizi.iisPageCount)){//check if this is the last group
+            additional = "<span><a class='iis more' id='next_group' href='javascript:;'>>></a></span>";//TODO: implement on click
+         }
+         
+         var less = "";
+         if(Azizi.pageIndex >= Azizi.iisPageCount){
+            less = "<span><a class='iis less' id='prev_group' href='javascript:;'><<</a></span>";
+         }
+         
+         var iis = "";
+         for(var index = 0; index < repeat; index++){
+            if(index === (Azizi.pageIndex - (groupIndex*Azizi.iisPageCount))){
+               iis = iis + "<a class='iis' href='javascript:;' style='font-size:24px;'>i</a>";
+            }
+            else {
+               console.log()
+               iis = iis + "<a class='iis' id='page_"+((groupIndex*Azizi.iisPageCount)+index)+"' href='javascript:;' style='font-size:18px;'>i</a>";
+            }
+         }
+         
+         //var iis = Azizi.repeatString("<a class='iis' href='javascript:;'>i</a>", repeat);
          var content = sprintf("<div>%sAz%szi%s</div>", less, iis, additional);
          $('#results_count').html(content);
+         
+         $("#next_group").click(function(){
+            //get the first page in the next group
+            var currGroupIndex = Math.floor(Azizi.pageIndex / Azizi.iisPageCount);
+            var firstIndexNG = (currGroupIndex+1) * Azizi.iisPageCount;
+            console.log(firstIndexNG);
+            Azizi.pageIndex = firstIndexNG;
+            Azizi.startSearch(null);
+         });
+         
+         $("#prev_group").click(function(){
+            //get the first page in the next group
+            var currGroupIndex = Math.floor(Azizi.pageIndex / Azizi.iisPageCount);
+            if((currGroupIndex - 1) >= 0 ){
+               var firstIndexNG = (currGroupIndex - 1) * Azizi.iisPageCount;
+               console.log(firstIndexNG);
+               Azizi.pageIndex = firstIndexNG;
+               Azizi.startSearch(null);
+            }
+         });
+         
+         $(".iis").click(function(){
+            var id = $(this).attr("id").replace("page_", "");
+            //var firstIndex = id * Azizi.resultsPerPage;
+            if(!isNaN(id)){
+               Azizi.pageIndex = id;
+               console.log(Azizi.pageIndex);
+               Azizi.startSearch(null);
+            }
+         });
+      }
+      else{
+         $('#results_count').empty();
       }
    },
 
@@ -336,12 +406,12 @@ var Azizi = {
       if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
       access = 'open-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-         <a href='javascript:;' class='stabilates_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+         <a href='javascript:;' class='stabilates_%s'><span>%s:</span><span>%s,</span> %s</a>\n\
       </div>\n\
       <div class='second_line'>\n\
          <span>P: %s</span>%s\n\
       </div></div>",
-         access, t.id, t.stab_no, t.host_name, t.parasite_name, t.infection_host, t.country_name, others);
+         access, t.id, t.stab_no, t.parasite_name, t.infection_host, t.country_name, others);
       $('#results .left').append(content);
    },
 
@@ -352,20 +422,20 @@ var Azizi = {
     * @returns {undefined}
     */
    displayAziziSamples: function(t){
-      var content = '', others, access;
+      var content = '', others = "", access;
       //cater for azizi samples
-      if(t.animal_id !== null) others += sprintf("  <span>A: %s</span>", t.animal_id);
-      if(t.collection_date !== null) others += sprintf("  <span>Col. Date: %s</span>", t.collection_date);
-      if(t.Latitude !== null) others += sprintf("  <span>Lat: %s</span>", t.Latitude);
-      if(t.Longitude !== null) others += sprintf("  <span>Lon: %s</span>", t.Longitude);
+      if(t.organism !== "") others += sprintf("  <span>A: %s</span>", t.organism);
+      if(t.date_created !== "") others += sprintf("  <span>Col. Date: %s</span>", t.date_created);
+      if(t.origin !== "") others += sprintf("  <span>Origin: %s</span>", t.origin);
+      
       access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-         <a href='javascript:;' class='azizi_%s'><span>%s:</span> <span>%s</span>, <span>%s,</span> %s</a>\n\
+         <a href='javascript:;' class='azizi_%s'><span>%s:</span> <span>%s</span>, <span>%s</span></a>\n\
       </div>\n\
       <div class='second_line'>\n\
          <span>P: %s</span>%s\n\
       </div></div>",
-         access, t.sample_id, t.sample_id, t.label, t.org_name, t.sample_type, t.project, others);
+         access, t.sample_id, t.sample_name, (t.organism == '')?'Unknown organims':t.organism, (t.sample_type == '')?"Unknown type":t.sample_type, t.project_name, others);
       $('#results .left').append(content);
    },
 

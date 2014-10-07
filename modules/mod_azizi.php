@@ -318,45 +318,121 @@ class Azizi{
     * Performs a global search for the searched item in the database
     */
    private function SearchDatabase(){
-      $database = Config::$aziziDb;
-      $query = "select 'azizi' as collection, a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access "
-         . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count left join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
-         . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments ';
-
-      $vals = array('label' => "%{$_GET['q']}%", 'origin' => "%{$_GET['q']}%", 'animalId' => "%{$_GET['q']}%", 'trayId' => "%{$_GET['q']}%", 'project' => "%{$_GET['q']}%", 'comments' => "%{$_GET['q']}%");
-      $azizi = $this->Dbase->ExecuteQuery($query, $vals);
-      if($azizi == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
-
-      //build the query to fetch the stabilates matching search query
-      $database = Config::$stabilatesDb;
-      $query = "SELECT 'stabilates' as collection, a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
-        " a.`strain_morphology`, a.`strain_infectivity`, a.`strain_pathogenicity`, b.`host_name`, c.`parasite_name`,".
-        " d.`method_name` AS  `isolation_method`, e.`method_name` AS  `preservation_method`, f.`host_name` AS `infection_host`,".
-        " g.`user_names`, h.`country_name`".
-        " FROM $database.`stabilates` AS a".
-          " INNER JOIN $database.`hosts` AS b ON a.host = b.id".
-          " INNER JOIN $database.`parasites` AS c ON a.`parasite_id` = c.id".
-          " INNER JOIN $database.`isolation_methods` AS d ON a.`isolation_method` = d.id".
-          " INNER JOIN $database.`preservation_methods` AS e ON a.`freezing_method` = e.id".
-          " INNER JOIN $database.`infection_host` AS f ON a.`infection_host` = f.id".
-          " INNER JOIN $database.`users` AS g ON a.`frozen_by` = g.id".
-          " INNER JOIN $database.`origin_countries` AS h ON a.country = h.id".
-        " WHERE a.`stab_no` LIKE :searchString OR a.locality LIKE :searchString OR a.`isolation_date` LIKE :searchString OR".
-          " a.`preservation_date` LIKE :searchString OR a.`number_frozen` LIKE :searchString OR a.`strain_count` LIKE :searchString OR".
-          " a.`strain_morphology` LIKE :searchString OR a.`strain_infectivity` LIKE :searchString OR a.`strain_pathogenicity` LIKE :searchString OR".
-          " b.`host_name` LIKE :searchString OR c.`parasite_name` LIKE :searchString OR".
-          " d.`method_name` LIKE :searchString OR e.`method_name` LIKE :searchString OR f.`host_name` LIKE :searchString OR".
-          " g.`user_names` LIKE :searchString OR h.`country_name` LIKE :searchString";
-
-      //get result from the built query
-      $vals = array('searchString' => "%{$_GET['q']}%");
-      $stabilates = $this->Dbase->ExecuteQuery($query, $vals);
-
-      if($stabilates == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
-
+      $start = $_GET['start'];
+      $size = $_GET['size'];
+      
+      //search samples
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(store_label:*".$string."*";
+         }
+         else {
+            $query .= " AND (store_label:*".$string."*";
+         }
+         
+         $query .= " OR origin:*".$string."*";
+         $query .= " OR organism:*".$string."*";
+         $query .= " OR box_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR project_name:*".$string."*";
+         $query .= " OR sample_type:*".$string."*";
+         $query .= " OR comments:*".$string."*)";
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_samples']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $ch = curl_init();
+      
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $numResults = 0;
+      $samples = array();
+      $error = false;
+      $qTime = 0;
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $qTime = $raw['responseHeader']['QTime'];
+         $samples = $raw["response"]["docs"];
+         for($index = 0; $index < count($samples); $index++){
+            $samples[$index]['collection'] = "samples";
+            $samples[$index]['date_created'] = preg_replace("/T.*/", "", $samples[$index]['date_created']);
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else {
+         $error = true;
+      }
+      
+      //search stabilates
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $size = $size - count($samples);
+      $start = $start - $numResults;
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(stab_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+         else {
+            $query .= " AND (stab_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+         
+         $query .= " OR isolation_date:*".$string."*";
+         $query .= " OR isolation_method:*".$string."*";
+         $query .= " OR infection_host:*".$string."*";
+         $query .= " OR country_name:*".$string."*";
+         $query .= " OR preservation_date:*".$string."*";
+         $query .= " OR locality:*".$string."*";
+         $query .= " OR preservation_method:*".$string."*";
+         $query .= " OR parasite_name:*".$string."*";
+         $query .= " OR strain_morphology:*".$string."*";
+         $query .= " OR strain_pathogenicity:*".$string."*";
+         $query .= " OR strain_infectivity:*".$string."*)";
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $ch = curl_init();
+      
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $stabilates = array();
+      if($http_status == 200){
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
+         $raw = json_decode($curlResult, true);
+         $stabilates = $raw["response"]["docs"];
+         for($index = 0; $index < count($stabilates); $index++){
+            $stabilates[$index]['collection'] = "stabilates";
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else if($start>=0) {//if the error was cause by $start being negative, ignore it
+         $error = true;
+      }
+      else {
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
+      }
+      
       //we are all good. lets return this data
-      $data = array_merge($azizi, $stabilates);
-      die(json_encode(array('error' => false, 'data' => $data, 'count' => count($data)), JSON_FORCE_OBJECT));
+      $data = array_merge($samples, $stabilates);
+      die(json_encode(array('error' => $error, 'data' => $data, 'count' => $numResults, 'time' => $qTime), JSON_FORCE_OBJECT));
    }
 
    /**
