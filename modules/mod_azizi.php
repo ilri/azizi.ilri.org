@@ -388,7 +388,7 @@ class Azizi{
          else {
             $query .= " AND (stab_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
          }
-         
+
          $query .= " OR isolation_date:*".$string."*";
          $query .= " OR isolation_method:*".$string."*";
          $query .= " OR infection_host:*".$string."*";
@@ -401,19 +401,24 @@ class Azizi{
          $query .= " OR strain_pathogenicity:*".$string."*";
          $query .= " OR strain_infectivity:*".$string."*)";
       }
+
+      if($start<0){//done to prevent errors on the solr side
+         $start = 0;
+         $size = 0;
+      }
+      $stabilates = array();
       
       $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
       $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
       $ch = curl_init();
-      
+
       curl_setopt($ch, CURLOPT_URL, $query);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
       $curlResult = curl_exec($ch);
       $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
       curl_close($ch);
-      
-      $stabilates = array();
+
       if($http_status == 200){
          $qTime = $qTime + $raw['responseHeader']['QTime'];
          $raw = json_decode($curlResult, true);
@@ -423,11 +428,8 @@ class Azizi{
          }
          $numResults = $numResults + $raw["response"]['numFound'];
       }
-      else if($start>=0) {//if the error was cause by $start being negative, ignore it
-         $error = true;
-      }
       else {
-         $qTime = $qTime + $raw['responseHeader']['QTime'];
+         $error = true;
       }
       
       //we are all good. lets return this data
