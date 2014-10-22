@@ -1,5 +1,5 @@
 var Azizi = {
-   resultsPerPage: 15, iisPageCount: 10, pageIndex:0,
+   resultsPerPage: 15, iisPageCount: 10, pageIndex:0, searchTimoutID:0,
 
    refreshEquipmentStatus: function(){
       if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){

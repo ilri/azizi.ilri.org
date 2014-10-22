@@ -89,8 +89,11 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
   Azizi.sysConfig = <?php require_once 'azizi_config';  echo json_encode(Config::$sysConfig); ?>;
-
-  $('[name=azizi_search]').focus().live('keyup', Azizi.startSearch);
+  Azizi.searchTimoutID = 0;
+  $('[name=azizi_search]').focus().live('keyup', function(){
+     window.clearTimeout(Azizi.searchTimoutID);
+     Azizi.searchTimoutID = window.setTimeout(Azizi.startSearch, 500);
+  });
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
   $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
