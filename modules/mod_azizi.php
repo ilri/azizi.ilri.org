@@ -94,7 +94,7 @@ class Azizi{
    private function PlantGeneralStatus(){
       /* I am not re-factoring these sql statements at this time, 2013-08-25 13:10. Its time will come and for all the other queries too */
       //ln2 plant run time
-      $query ="
+      /*$query ="
          SELECT
             format((SUM( IF (a.LN2_plant >= 1, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 0) as running,
             format ((SUM( IF (a.LN2_plant < 1, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 0) as stopped
@@ -121,9 +121,42 @@ class Azizi{
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $row = $row[0];
       $total_up_duty = round( (100*$row["running"])/ ($row["running"] + $row["stopped"]), 0);
-      $total_running_hours = number_format($row["running"]);
+      $total_running_hours = number_format($row["running"]);*/
+      
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_plant']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
 
-      return array('upDuty' => $up_duty, 'totalUpDuty' => $total_up_duty, 'totalRunningHours' => $total_running_hours);
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            $up_duty = round( (100*$data[0]["ud_running"])/ ($data[0]["ud_running"]+$data[0]["ud_stopped"]), 0);
+            $total_up_duty = round( (100*$data[0]["t_running"])/ ($data[0]["t_running"] + $data[0]["t_stopped"]), 0);
+            $total_running_hours = number_format($data[0]["t_running"]);
+            
+            return array('upDuty' => $up_duty, 'totalUpDuty' => $total_up_duty, 'totalRunningHours' => $total_running_hours);
+         }
+         else if(count($data) == 0) {
+            $error = "No data cached in the Solr server";
+         }
+         else {
+            $error = "More than one record (".count($data).") fetched from the Solr server. Only one record expected";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -133,7 +166,7 @@ class Azizi{
     */
    private function FillPointStatus(){
       //fill point usage in the past few days
-      $query = "
+      /*$query = "
          SELECT
             format((SUM( IF (a.fill_point < 0, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 1) as running
          FROM pressure a
@@ -156,7 +189,40 @@ class Azizi{
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $fillPointTotalUsage = $row[0]['running'];
 
-      return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);
+      return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);*/
+      
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_fill_point']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            $fillPointUsage = $data[0]["u_running"];
+            $fillPointTotalUsage = $data[0]['t_running'];
+            return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);
+         }
+         else if(count($data) == 0) {
+            $error = "No data cached in the Solr server";
+         }
+         else {
+            $error = "More than one record (".count($data).") fetched from the Solr server. Only one record expected";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -194,6 +260,34 @@ class Azizi{
       }
 
       return $fridgeStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['TankID']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -226,6 +320,37 @@ class Azizi{
       if($ancilliaryStatus == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
       return $ancilliaryStatus[0];
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            return $data[0];
+         }
+         else if(count($data) > 1) {
+            $error = "More than one record found in the Solr server. Expected only one";
+         }
+         else {
+            $error = "No record found in the Solr server";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -255,6 +380,34 @@ class Azizi{
       foreach($rows as $row) $fridgeStatuses[$row['freezer']] = $row;
 
       return $fridgeStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['freezer']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -284,6 +437,34 @@ class Azizi{
       foreach($rows as $row) $otherStatuses[$row['freezer']] = $row;
 
       return $otherStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['freezer']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**

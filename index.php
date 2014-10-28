@@ -34,7 +34,7 @@
             <p class='center'>This page provides links to resources and real-time monitoring of critical systems.</p>
          </div>
          <div id="links" class="center">
-           <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">Biorepository LIMS</a></span>
+           <span><a href="/labcollector" target="_blank">Biorepository LIMS</a></span>
            <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>ILRI's Research Computing Cluster</a></span>
            <span><a href="javascript:;" id='doc_link'>Documentation</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
