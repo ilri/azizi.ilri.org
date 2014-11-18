@@ -62,7 +62,9 @@ class Azizi{
 
       if(OPTIONS_REQUESTED_MODULE == 'equimentStatus') $this->EquipmentStatus();
       elseif(OPTIONS_REQUESTED_MODULE == 'search') $this->SearchDatabase();
-      elseif(OPTIONS_REQUESTED_MODULE == 'sample_details') $this->SampleDetails();
+      elseif(OPTIONS_REQUESTED_MODULE == 'sample_details') {
+         $this->SampleDetails();
+      }
       elseif(OPTIONS_REQUESTED_MODULE == 'stabilates') $this->StabilateHistory();
    }
 
@@ -474,7 +476,7 @@ class Azizi{
     */
    private function OtherStates(){
       //HPC RAID status - are the disks in the hardware RAID ok?
-      $query = "
+      /*$query = "
          SELECT
             if(DATE(date) = DATE(NOW()), date_format(date, '%H:%i'), date_format(date, '%e %b  %H:%i')) AS smart_date,
             xml_data, ((unix_timestamp(now()) - unix_timestamp(date))/3600) AS hours_old
@@ -484,7 +486,8 @@ class Azizi{
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $hpcStatus = $row[0];
       $xml = simplexml_load_string($hpcStatus['xml_data']);    //turn it into a SimpleXMLObject
-      $hpcDiskCount = count($xml->xpath('//disk[status="Online"]'));
+      $hpcDiskCount = count($xml->xpath('//disk[status="Online"]'));*/
+      $hpcDiskCount = 0;
 
       //email/sms monitoring status
       $query = "select time, success, date_format(NOW(), '%H:%i:%s') as servertime, time<DATE_SUB(NOW(), INTERVAL {$this->phoneHoursOld} HOUR) as old from phone_status order by time desc limit 1";
@@ -524,7 +527,12 @@ class Azizi{
          $query .= " OR comments:*".$string."*)";
       }
       
-      $query = str_replace(" ", "+", Config::$config['solr_samples']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $fieldList = "";
+      if($_GET['light'] == 1){
+         $fieldList = "&fl=sample_id";//only get the sample id
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_samples']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
       $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
       $ch = curl_init();
       
@@ -545,6 +553,7 @@ class Azizi{
          $samples = $raw["response"]["docs"];
          for($index = 0; $index < count($samples); $index++){
             $samples[$index]['collection'] = "samples";
+            if(!isset($_GET['light']) && $_GET['light'] == 0)
             $samples[$index]['date_created'] = preg_replace("/T.*/", "", $samples[$index]['date_created']);
          }
          $numResults = $numResults + $raw["response"]['numFound'];
@@ -589,7 +598,12 @@ class Azizi{
       }
       $stabilates = array();
       
-      $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $fieldList = "";
+      if($_GET['light'] == 1){
+         $fieldList = "&fl=stab_id";//only get the sample id
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
       $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
       $ch = curl_init();
 
@@ -629,14 +643,25 @@ class Azizi{
       if($ids[1] == 'azizi'){
          //build query to fetch azizi data
          $database = Config::$aziziDb;
-         $query = "select comments, open_access from $database.samples where count = :id";
+         $query = "select a.comments, a.open_access, a.label, a.date_created, b.sample_type_name as sample_type, c.value as Project, a.open_access, d.box_name, e.org_name"
+                 . " from $database.samples as a"
+                 . " left join $database.sample_types_def as b on a.sample_type = b.count"
+                 . " left join $database.modules_custom_values as c on a.Project = c.val_id"
+                 . " left join $database.boxes_def as d on a.box_id = d.box_id"
+                 . " left join $database.organisms as e on a.org = e.org_id"
+                 . " where a.count = :id";
+         $this->Dbase->CreateLogEntry($query,"debug");
          $res = $this->Dbase->ExecuteQuery($query, array('id' => $ids[2]));
          if($res == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
          //we are all good. lets return this data
          $res[0]['collection'] = 'azizi';
-         if($res[0]['open_access'] == 1) die(json_encode(array('error' => false, 'data' => $res[0]), JSON_NUMERIC_CHECK));
-         else die(json_encode(array('error' => false, 'data' => array('collection' => 'azizi', 'comments' => 'Sorry! This record closed for public access.'))));
+         if($res[0]['open_access'] == 0){
+            $res[0]['comments'] = "Extra details hidden";
+         } 
+            
+         die(json_encode(array('error' => false, 'data' => $res[0]), JSON_NUMERIC_CHECK));
+         //else die(json_encode(array('error' => false, 'data' => array('collection' => 'azizi', 'comments' => 'Other details hidden'))));
       }
       elseif($ids[1] == 'stabilates'){
          //build query to fetch stabilate data

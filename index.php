@@ -18,6 +18,11 @@
         <div id="search">
            <input type="text" class="search form-control" name="azizi_search" id="azizi_search" placeholder="Search our repository" style="width: 350px;" />
            <!-- a href='javascript:;'>Advanced Search</a -->
+           <div id="search_utils" style="margin-top: 10px; width:450px; display: none;">
+              <a id="search_results_download" href="#" style="margin-right: 15px;">Download search results</a>
+              <a id="search_results_add_mta" href="#" style="margin-right: 15px;">Add search results to MTA</a>
+              <a id="search_send_mta" href="#" style="display: none;">Send MTA</a>
+           </div>
         </div>
         <div id="title" class="center bold">Azizi Biorepository</div>
         <div id="ngombe_image"><img src="/azizi/images/WTPlogo.jpg" width="150" alt="azizi"  border="0" /></div>
@@ -76,6 +81,51 @@
      <div id="results_count"></div>
      <div id="bottom_panel" class="hidden transform_slow"></div>
      <div id="up_arrow" class="hidden transform_slow"><span class="up_arrow"></span></div>
+     <div id="email_dialog">
+        <div id="email_dialog_toggle"></div>
+        <p style="margin-top: 1rem;">The data about to be sent to you is protected by the <a href="http://www.cgiar.org/resources/open/" target="_blank">CGIAR's Open Access Policy</a>. You ought to have read this policy before clicking 'Send'. If you want the samples moved to your Organisation, fill a <a href="#" id="mta_link">Material Transfer Agreement</a> instead.</p>
+        <input type="email" id="user_email" placeholder="Enter your email address" /> <button id="send_result_btn">Send</button>
+     </div>
+     <div id="mta_dialog">
+         <div id="mta_dialog_toggle"></div>
+         <div style="margin-bottom: 15px; font-size: 20px;">Material Transfer Agreement</div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_pi_name">Principal Investigator</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_pi_name" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_pi_email">P.I's Email Address</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_pi_email" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_research_title">Research Title</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_research_title" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_org">Organisation</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_org" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_material">Sample Material</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_material" type="text" placeholder="e.g serum" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_format">Format</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_format" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_storage_safety">Handling, Storage & Safety</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_storage_safety" type="text" /></div>
+         </div>
+         <div class="form-group" style="margin-bottom:10px; width:auto;">
+            <div style="width: 200px; margin-left:50px; display:inline-block;"><label for="mta_assoc_data">Accompanying data</label></div>
+            <div style="width: 100px; display:inline-block;"><input id="mta_assoc_data" type="text" value="associated metadata" /></div>
+         </div>
+         <div class="center">
+            <button id="mta_submit_btn">Send Request</button>
+         </div>
+      </div>
+     <div id="loading_box">Loading</div>
 	</body>
 
 <!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second  -->
@@ -92,11 +142,44 @@
   Azizi.searchTimoutID = 0;
   $('[name=azizi_search]').focus().live('keyup', function(){
      window.clearTimeout(Azizi.searchTimoutID);
-     Azizi.searchTimoutID = window.setTimeout(Azizi.startSearch, 500);
+     Azizi.searchTimoutID = window.setTimeout(Azizi.startSearch, 1000);
   });
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
   $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
+  
+   $('#search_results_download').click(function(){
+     $('#email_dialog').show();
+   });
+   $('#email_dialog_toggle').click(function(){
+      $('#email_dialog').hide();
+   });
+   $('#send_result_btn').click(function(){
+      Azizi.sendSearchResults();
+   });
+   $("#search_results_add_mta").click(function(){
+      Azizi.addQueryToMTA();
+   });
+   $("#search_send_mta").click(function(){
+      $("#mta_dialog").show();
+   });
+   $("#mta_dialog_toggle").click(function(){
+      $("#mta_dialog").hide();
+   });
+   $("#mta_submit_btn").click(function(){
+      Azizi.sendMTA();
+   });
+   $("#mta_link").click(function(){
+      Azizi.addQueryToMTA();
+      $("#mta_dialog").show();
+   });
+  
+  
+  Azizi.windowResized();
+  $(window).resize(function(){
+     Azizi.windowResized();
+  });
+  
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
 

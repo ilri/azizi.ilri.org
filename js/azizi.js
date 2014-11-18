@@ -1,5 +1,5 @@
 var Azizi = {
-   resultsPerPage: 15, iisPageCount: 10, pageIndex:0, searchTimoutID:0,
+   resultsPerPage: 15, iisPageCount: 10, pageIndex:0, searchTimoutID:0, mtaCache:{queries:[], sample_ids:[]}/*the MTA cache stores both queries and sample_ids.*/,
 
    refreshEquipmentStatus: function(){
       if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){
@@ -58,7 +58,7 @@ var Azizi = {
     */
    updateMonitoringStatus: function(data){
       var smsContent, systemContent, hpcContent;
-      if(data.emailSmsStatus.old == 0){
+      if(data.emailSmsStatus != null && data.emailSmsStatus.old == 0){
          systemContent = "<img src='/azizi/images/ok.jpg' height='15'>";
          smsContent = (data.emailSmsStatus.success == 1) ? "<img src='/azizi/images/ok.jpg' height='15' />" : "<img src='/azizi/images/not_ok.jpg' height='15' />";
       }
@@ -282,7 +282,9 @@ var Azizi = {
             $('#equipment_status').fadeOut('slow', 'linear');
             $('#extra').fadeOut('slow', 'linear');
             $('#bottom_panel, #up_arrow').fadeIn('slow', 'linear');
+            $('#search_utils').hide();
             $('#results').fadeIn('slow', 'linear');
+            $('#results .right').html('');
             $('#results_count').fadeIn('slow', 'linear');
             Azizi.isSearching = true;
             Azizi.stopUpdateStatus = true;
@@ -309,10 +311,10 @@ var Azizi = {
       $('#results .left').html('');
       $('#results .right').html('');
       $('#results .extreme_right').html('');
-      
+      $('#search_utils').show();
       var time = Azizi.currentResults.time/1000;
       //console.log(time);
-      $("#results .left").append("<div style='margin-left:50px;font-size:14px;color:#428bca;margin-bottom:10px;'>"+Azizi.currentResults.count+" results in "+time+" seconds</div>");
+      $("#results .left").append("<div style='margin-left:50px;font-size:14px;color: #b77aae;margin-bottom:10px;'>"+Azizi.currentResults.count+" results in "+time+" seconds</div>");
       
       for(var i = 0; i < Object.keys(Azizi.currentResults.data).length; i++){
          var t = Azizi.currentResults.data[i];
@@ -398,6 +400,7 @@ var Azizi = {
     * @returns {undefined}
     */
    displayStabilatesSamples: function(t){
+      console.log(t);
       var content = '', others, access;
       /*Cater for the stabilates*/
       if(t.locality !== null) others += sprintf("  <span>Loc: %s</span>", t.locality);
@@ -411,7 +414,7 @@ var Azizi = {
       <div class='second_line'>\n\
          <span>P: %s</span>%s\n\
       </div></div>",
-         access, t.id, t.stab_no, t.parasite_name, t.infection_host, t.country_name, others);
+         access, t.stab_id, t.stab_no, t.parasite_name, t.infection_host, t.country_name, others);
       $('#results .left').append(content);
    },
 
@@ -451,15 +454,44 @@ var Azizi = {
          error: Azizi.communicationError,
          success: function(data) {
             if (data.error)  return;
-            else if(data.data.collection === 'stabilates') Azizi.showStabilatesDetails(data);
+            else if(data.data.collection === 'stabilates') {
+               Azizi.showStabilatesDetails(data);
+            }
             else if(data.data.collection === 'azizi'){
-               $('#results .right').html(data.data.comments);
+               Azizi.showSampleDetails(data);
             }
          }
       });
    },
 
+   showSampleDetails: function(data){
+      var months = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+      console.log("showSampleDetails called");
+      var sample = data.data;
+      
+      var date = new Date(sample.date_created);
+      var dateString = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
+      var html = "<table class='search_details' style='font-size: 17px;margin-top: 50px;'>";
+      html = html + "<tr><td><span class='result_lables'>Label: </span></td><td>"+sample.label+"</td></tr>";
+      html = html + "<tr><td><span class='result_lables'>Cryobox label: </span></td><td>"+sample.box_name+"</td></tr>";
+      html = html + "<tr><td><span class='result_lables'>Organism: </span></td><td>"+sample.org_name+"</td></tr>";
+      html = html + "<tr><td><span class='result_lables'>Sample type: </span></td><td>"+sample.sample_type+"</td></tr>";
+      html = html + "<tr><td><span class='result_lables'>Project: </span></td><td>"+sample.Project+"</td></tr>";
+      html = html + "<tr><td><span class='result_lables'>Date collected: </span></td><td>"+dateString+"</td></tr>";//get the date, discard the time
+      if(sample.open_access == 1){
+         html = html + "<tr><td><span class='result_lables'>All data open: </span></td><td>Yes</td></tr>";
+         html = html + "<tr><td colspan='2'>" + sample.comments + "</td></tr>";
+      }
+      else {
+         html = html + "<tr><td><span class='result_lables'>All data open: </span></td><td>No</td></tr>";
+      }
+      html = html + "</table>";
+      
+      $('#results .right').html(html);
+   },
+   
    showStabilatesDetails: function(data){
+      console.log("showStabilatesDetails called ", data);
       //update the right hand div with the data as received from the database
       var stabilate = data.data.stabilate;
       var passages = data.data.passages;
@@ -679,6 +711,180 @@ var Azizi = {
          $('.iis').removeClass('iis_selected');
          $(this).addClass('iis_selected');
          Azizi.displaySamples($(this).index());
+      }
+   },
+   
+   sendSearchResults: function(){
+      var url = "http://"+document.domain+"/repository/mod_ajax.php?page=mta&do=send_data";
+      $("#send_result_btn").attr("disabled", true);
+      $('#loading_box').show();
+      jQuery.ajax({
+         url: url,
+         async: true,
+         type:'GET',
+         data:{
+            solr_query:$("#azizi_search").val(),
+            user_email:$("#user_email").val()
+         },
+         error:function(){
+            window.alert("A problem occurred while trying to contact the server");
+            $("#send_result_btn").removeAttr("disabled");
+            $('#loading_box').hide();
+         },
+         success:function(data){
+            $("#send_result_btn").removeAttr("disabled");
+            $('#loading_box').hide();
+            var json = jQuery.parseJSON(data);
+            if(json.error == true){
+               window.alert(json.error_message);
+            }
+            else {
+               window.alert("An email has been sent to you with the requested data");
+               $("#email_dialog").hide();
+            }
+         }
+      });
+   },
+   
+   /**
+    * This function does everying that needs to be done when the window resizes.
+    * Make sure you want code that you want to run when this event occures here
+    * and not anywhere else.
+    * This function is called when the window is first loaded
+    * 
+    * @returns {undefined}
+    */
+   windowResized: function(){
+      $('#email_dialog').css('left', (window.innerWidth/2) - ($('#email_dialog').width()/2) + "px");
+      $('#email_dialog').css('top', (window.innerHeight/2) - ($('#email_dialog').height()/2) - 50 + "px");
+      $("#mta_dialog").css('left', (window.innerWidth/2) - ($("#mta_dialog").width()/2) + "px");
+      $("#mta_dialog").css('top', (window.innerHeight/2) - ($("#mta_dialog").height()/2) - 50 + "px");
+      $("#loading_box").css('left', (window.innerWidth/2) - ($("#loading_box").width()/2) + "px");
+      $("#loading_box").css('top', (window.innerHeight/2) - ($("#loading_box").height()/2) - 50 + "px");
+   },
+   
+   /**
+    * This function sends makes an MTA request for the user
+    * @returns {undefined}
+    */
+   sendMTA: function(){
+      var emailRegex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+   
+      if($("#mta_pi_name").val().length == 0){
+         window.alert("Please enter the Principal Investigator's name");
+         $("#mta_pi_name").focus();
+         return false;
+      }
+      else if($("#mta_pi_name").val().split(/\s+/).length < 2){
+         window.alert("Please provide the Principal Investigator's two names");
+         $("#mta_pi_name").focus();
+         return false;
+      }
+      if($("#mta_pi_email").val().length == 0){
+         window.alert("Please enter the Principal Investigator's email address");
+         $("#mta_pi_email").focus();
+         return false;
+      }
+      else if(emailRegex.test($("#mta_pi_email").val()) != true){
+         window.alert("Email address provided is wrong");
+         $("#mta_pi_email").focus();
+         return false;
+      }
+      if($("#mta_research_title").val().length == 0){
+         window.alert("Please provide the research title");
+         $("#mta_research_title").focus();
+         return false;
+      }
+      if($("#mta_org").val().length == 0){
+         window.alert("Please provide your Organisation's name");
+         $("#mta_org").focus();
+         return false;
+      }
+      if($("#mta_material").val().length == 0){
+         window.alert("Please enter the type of sample material");
+         $("#mta_material").focus();
+         return false;
+      }
+      if($("#mta_format").val().length == 0){
+         window.alert("Please provide a format");
+         $("#mta_format").focus();
+         return false;
+      }
+      if($("#mta_assoc_data").val().length == 0){
+         window.alert("What associated data do you need?");
+         $("#mta_assoc_data").focus();
+         return false;
+      }
+
+      //check if any samples selected
+      if(Azizi.mtaCache.queries.length == 0 && Azizi.mtaCache.samples.length == 0){
+         window.alert("No samples selected");
+         return false;
+      }
+
+      //if we've come this far, data's validated and fine
+      $("#mta_submit_btn").attr("disabled", true);
+      $("#loading_box").show();
+      
+      var solrQueries = Azizi.mtaCache.queries.join("#@$!");
+      var sampleIDs = Azizi.mtaCache.sample_ids.join(",");
+      var url = "http://"+document.domain+"/repository/mod_ajax.php?page=mta&do=process_mta";
+      jQuery.ajax({
+         url:url,
+         method:'POST',
+         async:true,
+         data:{
+            pi_name:$("#mta_pi_name").val(),
+            pi_email:$("#mta_pi_email").val(),
+            research_title:$("#mta_research_title").val(),
+            org:$("#mta_org").val(),
+            material:$("#mta_material").val(),
+            format:$("#mta_format").val(),
+            storage_safety:$("#mta_storage_safety").val(),
+            assoc_data:$("#mta_assoc_data").val(),
+            solr_query:solrQueries,
+            sample_ids:sampleIDs
+         },
+         success:function(data){
+            console.log(data);
+            var json = jQuery.parseJSON(data);
+            if(json.error == false){
+               Azizi.mtaCache.queries = new Array();
+               Azizi.mtaCache.samples = new Array();
+               $("#search_send_mta").hide();
+               $("#mta_dialog").hide();
+               window.alert("Your request has been successfully submitted");
+            }
+            else {
+               window.alert(json.error_message);
+            }
+         },
+         error:function(){
+            window.alert("An error occurred while proccessing your request");
+         },
+         complete: function(){
+            $("#loading_box").hide();
+            $("#mta_submit_btn").removeAttr("disabled");
+         }
+      });
+      
+      return true;
+   },
+   
+   addQueryToMTA: function(){
+      var found = false;
+      for(var index = 0; index < Azizi.mtaCache.queries.length; index++){
+        if(Azizi.mtaCache.queries[index] == $("#azizi_search").val()){
+           found = true;
+        }
+      }
+      
+      if(found == false){
+         $("#search_send_mta").show();
+         Azizi.mtaCache.queries.push($("#azizi_search").val());
+      }
+      else {
+         console.log("Query already in cache");
       }
    }
 };
