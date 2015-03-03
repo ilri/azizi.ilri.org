@@ -94,7 +94,7 @@ class Azizi{
    private function PlantGeneralStatus(){
       /* I am not re-factoring these sql statements at this time, 2013-08-25 13:10. Its time will come and for all the other queries too */
       //ln2 plant run time
-      $query ="
+      /*$query ="
          SELECT
             format((SUM( IF (a.LN2_plant >= 1, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 0) as running,
             format ((SUM( IF (a.LN2_plant < 1, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 0) as stopped
@@ -121,9 +121,42 @@ class Azizi{
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $row = $row[0];
       $total_up_duty = round( (100*$row["running"])/ ($row["running"] + $row["stopped"]), 0);
-      $total_running_hours = number_format($row["running"]);
+      $total_running_hours = number_format($row["running"]);*/
+      
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_plant']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
 
-      return array('upDuty' => $up_duty, 'totalUpDuty' => $total_up_duty, 'totalRunningHours' => $total_running_hours);
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            $up_duty = round( (100*$data[0]["ud_running"])/ ($data[0]["ud_running"]+$data[0]["ud_stopped"]), 0);
+            $total_up_duty = round( (100*$data[0]["t_running"])/ ($data[0]["t_running"] + $data[0]["t_stopped"]), 0);
+            $total_running_hours = number_format($data[0]["t_running"]);
+            
+            return array('upDuty' => $up_duty, 'totalUpDuty' => $total_up_duty, 'totalRunningHours' => $total_running_hours);
+         }
+         else if(count($data) == 0) {
+            $error = "No data cached in the Solr server";
+         }
+         else {
+            $error = "More than one record (".count($data).") fetched from the Solr server. Only one record expected";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -133,7 +166,7 @@ class Azizi{
     */
    private function FillPointStatus(){
       //fill point usage in the past few days
-      $query = "
+      /*$query = "
          SELECT
             format((SUM( IF (a.fill_point < 0, TIME_TO_SEC(TIMEDIFF(a.timestamp, (SELECT b.timestamp FROM pressure b WHERE b.id = a.id - 1))), 0))) / (60*60), 1) as running
          FROM pressure a
@@ -156,7 +189,40 @@ class Azizi{
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $fillPointTotalUsage = $row[0]['running'];
 
-      return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);
+      return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);*/
+      
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_fill_point']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            $fillPointUsage = $data[0]["u_running"];
+            $fillPointTotalUsage = $data[0]['t_running'];
+            return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);
+         }
+         else if(count($data) == 0) {
+            $error = "No data cached in the Solr server";
+         }
+         else {
+            $error = "More than one record (".count($data).") fetched from the Solr server. Only one record expected";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -194,6 +260,34 @@ class Azizi{
       }
 
       return $fridgeStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['TankID']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -226,6 +320,37 @@ class Azizi{
       if($ancilliaryStatus == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
       return $ancilliaryStatus[0];
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         if(count($data) == 1){
+            return $data[0];
+         }
+         else if(count($data) > 1) {
+            $error = "More than one record found in the Solr server. Expected only one";
+         }
+         else {
+            $error = "No record found in the Solr server";
+         }
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -255,6 +380,34 @@ class Azizi{
       foreach($rows as $row) $fridgeStatuses[$row['freezer']] = $row;
 
       return $fridgeStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['freezer']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -284,6 +437,34 @@ class Azizi{
       foreach($rows as $row) $otherStatuses[$row['freezer']] = $row;
 
       return $otherStatuses;
+      
+      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*");
+      
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $error="";
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $data = $raw["response"]["docs"];
+         $clean = array();
+         foreach($data as $row){//solr ensures that we have the latest status for every tank. No need to check if tank duplicates exist
+            $clean[$row['freezer']] = $row;
+         }
+         
+         return $clean;
+      }
+      else {
+         $error = "HTTP Status response from the Solr server was ".$http_status;
+      }
+      
+      die(json_encode(array('error' => true, 'data' => $error)));*/
    }
 
    /**
@@ -318,45 +499,123 @@ class Azizi{
     * Performs a global search for the searched item in the database
     */
    private function SearchDatabase(){
-      $database = Config::$aziziDb;
-      $query = "select 'azizi' as collection, a.count as sample_id, a.label, a.origin, a.AnimalID as animal_id, a.TrayID as tray_id, d.value as project, c.org_name, b.sample_type_name as sample_type, date(a.date_created) as collection_date, format(a.Latitude,4) as Latitude, format(a.Longitude, 4) as Longitude, a.open_access "
-         . "from $database.samples as a left join $database.sample_types_def as b on a.sample_type = b.count inner join $database.organisms as c on a.org=c.org_id inner join $database.modules_custom_values as d on a.Project = d.val_id "
-         . 'where a.label like :label or a.origin like :origin or a.AnimalID like :animalId or a.TrayID like :trayId or d.value like :project or  a.comments like :comments ';
+      $start = $_GET['start'];
+      $size = $_GET['size'];
+      
+      //search samples
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(store_label:*".$string."*";
+         }
+         else {
+            $query .= " AND (store_label:*".$string."*";
+         }
+         
+         $query .= " OR origin:*".$string."*";
+         $query .= " OR organism:*".$string."*";
+         $query .= " OR box_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR project_name:*".$string."*";
+         $query .= " OR sample_type:*".$string."*";
+         $query .= " OR comments:*".$string."*)";
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_samples']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $ch = curl_init();
+      
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+      
+      $numResults = 0;
+      $samples = array();
+      $error = false;
+      $qTime = 0;
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $qTime = $raw['responseHeader']['QTime'];
+         $samples = $raw["response"]["docs"];
+         for($index = 0; $index < count($samples); $index++){
+            $samples[$index]['collection'] = "samples";
+            $samples[$index]['date_created'] = preg_replace("/T.*/", "", $samples[$index]['date_created']);
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else {
+         $error = true;
+      }
+      
+      //search stabilates
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $size = $size - count($samples);
+      $start = $start - $numResults;
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(stab_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+         else {
+            $query .= " AND (stab_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
 
-      $vals = array('label' => "%{$_GET['q']}%", 'origin' => "%{$_GET['q']}%", 'animalId' => "%{$_GET['q']}%", 'trayId' => "%{$_GET['q']}%", 'project' => "%{$_GET['q']}%", 'comments' => "%{$_GET['q']}%");
-      $azizi = $this->Dbase->ExecuteQuery($query, $vals);
-      if($azizi == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         $query .= " OR isolation_date:*".$string."*";
+         $query .= " OR isolation_method:*".$string."*";
+         $query .= " OR infection_host:*".$string."*";
+         $query .= " OR country_name:*".$string."*";
+         $query .= " OR preservation_date:*".$string."*";
+         $query .= " OR locality:*".$string."*";
+         $query .= " OR preservation_method:*".$string."*";
+         $query .= " OR parasite_name:*".$string."*";
+         $query .= " OR strain_morphology:*".$string."*";
+         $query .= " OR strain_pathogenicity:*".$string."*";
+         $query .= " OR strain_infectivity:*".$string."*)";
+      }
 
-      //build the query to fetch the stabilates matching search query
-      $database = Config::$stabilatesDb;
-      $query = "SELECT 'stabilates' as collection, a.`id`, a.`stab_no`, a.`locality`, a.`isolation_date`, a.`preservation_date`, a.`number_frozen`, a.`strain_count`,".
-        " a.`strain_morphology`, a.`strain_infectivity`, a.`strain_pathogenicity`, b.`host_name`, c.`parasite_name`,".
-        " d.`method_name` AS  `isolation_method`, e.`method_name` AS  `preservation_method`, f.`host_name` AS `infection_host`,".
-        " g.`user_names`, h.`country_name`".
-        " FROM $database.`stabilates` AS a".
-          " INNER JOIN $database.`hosts` AS b ON a.host = b.id".
-          " INNER JOIN $database.`parasites` AS c ON a.`parasite_id` = c.id".
-          " INNER JOIN $database.`isolation_methods` AS d ON a.`isolation_method` = d.id".
-          " INNER JOIN $database.`preservation_methods` AS e ON a.`freezing_method` = e.id".
-          " INNER JOIN $database.`infection_host` AS f ON a.`infection_host` = f.id".
-          " INNER JOIN $database.`users` AS g ON a.`frozen_by` = g.id".
-          " INNER JOIN $database.`origin_countries` AS h ON a.country = h.id".
-        " WHERE a.`stab_no` LIKE :searchString OR a.locality LIKE :searchString OR a.`isolation_date` LIKE :searchString OR".
-          " a.`preservation_date` LIKE :searchString OR a.`number_frozen` LIKE :searchString OR a.`strain_count` LIKE :searchString OR".
-          " a.`strain_morphology` LIKE :searchString OR a.`strain_infectivity` LIKE :searchString OR a.`strain_pathogenicity` LIKE :searchString OR".
-          " b.`host_name` LIKE :searchString OR c.`parasite_name` LIKE :searchString OR".
-          " d.`method_name` LIKE :searchString OR e.`method_name` LIKE :searchString OR f.`host_name` LIKE :searchString OR".
-          " g.`user_names` LIKE :searchString OR h.`country_name` LIKE :searchString";
+      if($start<0){//done to prevent errors on the solr side
+         $start = 0;
+         $size = 0;
+      }
+      $stabilates = array();
+      
+      $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $ch = curl_init();
 
-      //get result from the built query
-      $vals = array('searchString' => "%{$_GET['q']}%");
-      $stabilates = $this->Dbase->ExecuteQuery($query, $vals);
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
 
-      if($stabilates == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
-
+      if($http_status == 200){
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
+         $raw = json_decode($curlResult, true);
+         $stabilates = $raw["response"]["docs"];
+         for($index = 0; $index < count($stabilates); $index++){
+            $stabilates[$index]['collection'] = "stabilates";
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else {
+         $error = true;
+      }
+      
       //we are all good. lets return this data
-      $data = array_merge($azizi, $stabilates);
-      die(json_encode(array('error' => false, 'data' => $data, 'count' => count($data)), JSON_FORCE_OBJECT));
+      $data = array_merge($samples, $stabilates);
+      die(json_encode(array('error' => $error, 'data' => $data, 'count' => $numResults, 'time' => $qTime), JSON_FORCE_OBJECT));
    }
 
    /**

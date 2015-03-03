@@ -16,7 +16,7 @@
   <body>
      <div id="top" class="transform_slow">
         <div id="search">
-           <input type="text" class="search form-control" name="azizi_search" placeholder="Search our repository" style="width: 350px;" />
+           <input type="text" class="search form-control" name="azizi_search" id="azizi_search" placeholder="Search our repository" style="width: 350px;" />
            <!-- a href='javascript:;'>Advanced Search</a -->
         </div>
         <div id="title" class="center bold">Azizi Biorepository</div>
@@ -25,21 +25,31 @@
      <div id="contents" class="transform_slow">
          <div id="info">
             <p>
-               Azizi is the storage system and associated informatics tools that comprise the biorepository at ILRI. The system supports a number of activities and projects including
-               <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://avid.icipe.org/" target="_blank">AVID</a>,
-               <a href="http://www.ilri.org/paz" target="_blank">PAZ</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank"> a group of projects targeting innate resistance to trypanosomiasis</a>,
-               the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 340,000 samples in vapour-phase liquid nitrogen
+               Azizi Biorepository is the long term storage system and associated informatics tools that comprise the biorepository at <a href='http://ilri.org' target='_blank'>International Livestock Research Institute (ILRI)</a>.</p><p> The system supports a number of activities and projects including
+               <a href="http://sites.google.com/site/idealprojectsite/Home" target="_blank">IDEAL</a>, <a href="http://icipe.org/avid/" target="_blank">AVID</a>,
+               <a href="http://www.zoonotic-diseases.org/home/research/paz" target="_blank">PAZ</a>, <a href='http://steps-centre.org/project/drivers_of_disease/' target='_blank'>DDDAC</a>, <a href="http://www.genomics.liv.ac.uk/tryps/" target="_blank">African Bovine Trypanosomiasis</a>,
+               the ILRI livestock diversity collection and ILRI's unique collection of pathogen isolates. The core collection is approximately 450,000 samples in vapour-phase liquid nitrogen
                with uniquely roubust, secure and well monitored ultra-cold conditions for long-term storage.
             </p>
-            <p>This page provides links to resources and real-time monitoring of critical systems.</p>
+            <p class='center'>This page provides links to resources and real-time monitoring of critical systems.</p>
          </div>
          <div id="links" class="center">
-           <span><a href="http://azizi.ilri.cgiar.org/labcollector" target="_blank">LIMS system</a></span>
-           <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>High Performance Computing at ILRI</a></span>
+           <span><a href="/labcollector" target="_blank">Biorepository LIMS</a></span>
+           <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>ILRI's Research Computing Cluster</a></span>
+           <span><a href="javascript:;" id='doc_link'>Documentation</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
-           <span><a href="/graphs/">Graphical summary of AVID sample collection</a></span>
+           <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
+           <span><a href="/repository/mod_ajax.php?page=repository_3d" target="_blank">Bio-Repository in 3D</a></span>
+           <span><a href="/repository/mod_ajax.php?page=samples_vis" target="_blank">Collected Samples</a></span>
          </div>
+	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
+   </div>
+   <div id='documentation' class='hidden center'>
+      <div class='desc'><a href="/azizi/documentation.html#infrastructure"><img src="/azizi/images/doc.png"></a><br /><span>Infrastructure</span></div>
+      <div class='desc'><a href="/azizi/documentation.html#sample_storage"><img src="/azizi/images/doc1.png"></a><br /><span>Sample Storage</span></div>
+      <div class='desc'><a href="/azizi/documentation.html#sampling_protocol"><img src="/azizi/images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
+   </div>
 
          <div id='equipment_status'>
              <div class="status center hidden">
@@ -68,7 +78,7 @@
      <div id="up_arrow" class="hidden transform_slow"><span class="up_arrow"></span></div>
 	</body>
 
-<!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second -->
+<!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second  -->
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-24006166-1']);
@@ -78,12 +88,17 @@
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-  Azizi.sysConfig = <?php require_once 'azizi_config'; echo json_encode(Config::$sysConfig); ?>;
-
-  $('[name=azizi_search]').focus().live('keyup', Azizi.startSearch);
+  Azizi.sysConfig = <?php require_once 'azizi_config';  echo json_encode(Config::$sysConfig); ?>;
+  Azizi.searchTimoutID = 0;
+  $('[name=azizi_search]').focus().live('keyup', function(){
+     window.clearTimeout(Azizi.searchTimoutID);
+     Azizi.searchTimoutID = window.setTimeout(Azizi.startSearch, 500);
+  });
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
+  $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
-<!--End of google analytics-->
+
+<!--End of google analytics  -->
 </html>
