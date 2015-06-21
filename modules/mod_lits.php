@@ -143,6 +143,7 @@ class LITS {
          
          //get the table names for all the ids
          $ids = $currForm['ids'];
+         $setColumns = "";
          foreach($ids as $currID){
             $idParts = explode("*", $currID);
             if(count($idParts) == 3){//should have three parts: form, table name, column name
@@ -151,6 +152,12 @@ class LITS {
                }
                
                array_push($tables[$idParts[1]], $idParts[2]);
+               if(strlen($setColumns) == 0) {
+                  $setColumns = "`".$idParts[1]."`.`".$idParts[2]."`";
+               }
+               else {
+                  $setColumns .= ", `".$idParts[1]."`.`".$idParts[2]."`";
+               }
             }
          }
          
@@ -246,10 +253,10 @@ class LITS {
          for($tableIndex = 0; $tableIndex < count($tableNames); $tableIndex++){
             foreach($tables[$tableNames[$tableIndex]] as $currColumn){
                if(strlen($select) == 0){
-                  $select = "SELECT ".$tableNames[$tableIndex].".".$currColumn;
+                  $select = "SELECT `".$tableNames[$tableIndex]."`.`".$currColumn."`";
                }
                else {
-                  $select .= ", ".$tableNames[$tableIndex].".".$currColumn;
+                  $select .= ", `".$tableNames[$tableIndex]."`.`".$currColumn."`";
                }
                
                if($tableNames[$tableIndex].".".$currColumn == $latColumn){
@@ -271,7 +278,9 @@ class LITS {
          }
          
          $query = $select . " " . $from;
-         
+         if(strlen($setColumns) > 0) {
+            $query .= " where length(concat(".$setColumns.")) > 0";
+         }
          $this->Dbase->CreateLogEntry("Query is ".$query, 'fatal');
          
          $formData = $this->Dbase->ExecuteQuery($query);
@@ -292,6 +301,7 @@ class LITS {
    private function getAnimalData(){
       $data = $_POST['data'];
       $forms = $_POST['forms'];
+      $animalIndex = $_POST['animal_index'];
       
       //$this->Dbase->CreateLogEntry(print_r($data, true), "fatal");
       //$this->Dbase->CreateLogEntry(print_r($forms, true), "fatal");
@@ -331,18 +341,18 @@ class LITS {
                $this->Dbase->CreateLogEntry("data = ".$data, "fatal");
                if(strlen($where) == 0){
                   if($data['ids'][$columnIndex] == 'null' || $data['ids'][$columnIndex] == null){
-                     $where = " WHERE " . $currColumn . " is null";
+                     $where = " WHERE `" . $currColumn . "` is null";
                   }
                   else{
-                     $where = " WHERE " . $currColumn . "='".$data['ids'][$columnIndex]."'";
+                     $where = " WHERE `" . $currColumn . "`='".$data['ids'][$columnIndex]."'";
                   }
                }
                else {
                   if($data['ids'][$columnIndex] == 'null' || $data['ids'][$columnIndex] == null){
-                     $where .= " AND " . $currColumn . " is null";
+                     $where .= " AND `" . $currColumn . "` is null";
                   }
                   else{
-                     $where .= " AND " . $currColumn . "='".$data['ids'][$columnIndex]."'";
+                     $where .= " AND `" . $currColumn . "`='".$data['ids'][$columnIndex]."'";
                   }
                }
                
@@ -360,6 +370,7 @@ class LITS {
       $data = array();
       $data['error'] = 0;
       $data['data'] = $animalDetails;
+      $data['animal_index'] = $animalIndex;
       
       echo json_encode($data);
    }
@@ -380,9 +391,12 @@ else {
       <title>ILRI LITS</title>
       <?php echo '<link rel="stylesheet" href="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.css" />';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/label/leaflet.label.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.textpath.js"></script>';?>
       <!--script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
       <script src="../js/lits.js"></script>
       <link href="../css/azizi.css" rel="stylesheet" type="text/css" />
+      <?php echo '<link href="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/label/leaflet.label.css" rel="stylesheet" type="text/css" />';?>
       <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css' />
    </head>
    <body>

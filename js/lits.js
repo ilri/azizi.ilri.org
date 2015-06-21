@@ -53,6 +53,9 @@ function LITS() {
    window.lits.searchBox = jQuery("#search_box_3d");
    window.lits.searchCanvas = jQuery("#lits_search_res");
    window.lits.animalDetails = jQuery("#animal_details");
+   window.lits.polylines = [];
+   window.lits.markers = [];
+   window.lits.localityLabels = [];
    
    window.lits.tooltip = jQuery("#mvmt_ttip");
    
@@ -128,6 +131,8 @@ function LITS() {
       }
       else {
          window.lits.searchCanvas.hide();
+         window.lits.visualizeAnimalData();
+         window.lits.animalDetails.hide();
       }
    });
 }
@@ -311,7 +316,6 @@ LITS.prototype.showIdModDiv = function(idIndex) {
       window.lits.idModName.val(window.lits.data.ids[idIndex]);
       window.lits.idModAddBtn.html("Modify");
    }
-   console.log("id index = ", idIndex);
    for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
       var formTables = window.lits.data.tmp.schemas[formIDs[formIndex]];
       
@@ -357,8 +361,6 @@ LITS.prototype.showIdModDiv = function(idIndex) {
 
 LITS.prototype.idModAddBtnClicked = function(){
    var idIndex = window.lits.idModIndex.val();
-   console.log("idIndex = ", idIndex);
-   
    var idName = window.lits.idModName.val();
    
    var trimRegex = /(^\s+)|(\s+$)/g;
@@ -389,10 +391,7 @@ LITS.prototype.idModAddBtnClicked = function(){
       
       for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
          var currFormRadio = jQuery("input:radio[name='"+formIDs[formIndex]+"']:checked");
-         
          var columnID = currFormRadio.val();
-         console.log("columnID is", columnID);
-         
          if(typeof columnID != 'undefined'){
             var columnIndexes = columnID.split("*");
             if(columnIndexes.length == 3){//means you have the form id, table name and column name
@@ -404,8 +403,6 @@ LITS.prototype.idModAddBtnClicked = function(){
                }
 
                window.lits.forms[columnIndexes[0]].ids[idIndex] = columnID;
-
-               console.log(window.lits.forms);
             }
             else {
                goodForHiding = false;
@@ -429,12 +426,8 @@ LITS.prototype.getAnimalData = function(animalIndex){
    var animal = window.lits.data.animals[animalIndex];
    
    var forms = window.lits.forms;
-   /*var animalData = window.lits.getDataFromServer("get_animal_data", false, {data:animal, forms: forms});
-   
-   window.lits.showAnimalData(animalData.data);*/
-   
-   window.lits.getDataFromServer("get_animal_data", true, {data:animal, forms: forms}, function(animalData){
-      window.lits.showAnimalData(animalData.data);
+   window.lits.getDataFromServer("get_animal_data", true, {data:animal, forms: forms, animal_index:animalIndex}, function(animalData){
+      window.lits.showAnimalData(animalData.data, animalData.animal_index);
    });
 };
 
@@ -444,7 +437,6 @@ LITS.prototype.cleanAnimalData = function(animalData){
     *       - columns that have null
     *       - meta columns (prefixed with a _)
     */
-   console.log(animalData);
    var formIDs = Object.keys(animalData);
    
    var cleanData = {};
@@ -476,7 +468,7 @@ LITS.prototype.cleanAnimalData = function(animalData){
    return cleanData;
 };
 
-LITS.prototype.showAnimalData = function(animalData) {
+LITS.prototype.showAnimalData = function(animalData, animalIndex) {
    var cAnimalData = window.lits.cleanAnimalData(animalData);
    
    var formIDs = Object.keys(cAnimalData);
@@ -527,9 +519,11 @@ LITS.prototype.showAnimalData = function(animalData) {
    var wWidth = window.innerWidth;
    var wHeight = window.innerHeight;
    
-   window.lits.animalDetails.css("left", (wWidth/2 - window.lits.animalDetails.width()/2)+"px");
-   window.lits.animalDetails.css("top", (wHeight/2 - window.lits.animalDetails.height()/2)+"px");
+   window.lits.animalDetails.css("left", (wWidth - window.lits.animalDetails.width() - 100)+"px");
+   window.lits.animalDetails.css("top", "0px");
    window.lits.animalDetails.show();
+   window.lits.visualizeAnimalData([window.lits.data.animals[animalIndex]]);
+   //TODO: update the map
 };
 
 LITS.prototype.setModLocLatClicked = function() {
@@ -617,7 +611,6 @@ LITS.prototype.genModAddBtnClicked = function(){
       var currFormRadio = jQuery("input:radio[name='"+formIDs[formIndex]+"']:checked");
 
       var columnID = currFormRadio.val();
-      console.log("columnID is", columnID);
 
       if(typeof columnID != 'undefined'){
          var columnIndexes = columnID.split("*");
@@ -630,7 +623,6 @@ LITS.prototype.genModAddBtnClicked = function(){
             
             if(mode == "Latitude"){//try automatically setting longitude
                var latRegex = /_LAT$/g;
-               console.log("lat regex = ", columnID.match(latRegex));
                
                if(columnID.match(latRegex) != null){
                   var lonColumn = columnID.replace(latRegex, '_LNG');
@@ -651,8 +643,6 @@ LITS.prototype.genModAddBtnClicked = function(){
                   pairSet = false;
                }
             }
-
-            console.log(window.lits.forms);
          }
          else {
             goodForHiding = false;
@@ -665,9 +655,6 @@ LITS.prototype.genModAddBtnClicked = function(){
    
    if(goodForHiding){
       window.lits.genModCtnr.hide();
-      
-      console.log("mode = ", mode);
-      
       if(mode == "Latitude"){
          window.lits.setModLocLat.html("Latitude: Set");
          
@@ -688,8 +675,6 @@ LITS.prototype.genModAddBtnClicked = function(){
       else if(mode == "Locality"){
          window.lits.setModLocalityValue.html("Set");
       }
-      
-      console.log(window.lits.forms);
    }
 };
 
@@ -743,12 +728,7 @@ LITS.prototype.genAnimalArray = function(formData) {
    
    for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
       var currFormData = formData[formIDs[formIndex]];
-      
-      console.log("*********** forms = ", window.lits.forms);
-      console.log("formID = ", formIDs[formIndex]);
-      
       var formsIDs = window.lits.forms[formIDs[formIndex]].ids;
-      
       for(var rowIndex = 0; rowIndex < currFormData.length; rowIndex++){
          //get the index of the animal ids in this row
          var latitude = currFormData[rowIndex].latitude;
@@ -758,7 +738,6 @@ LITS.prototype.genAnimalArray = function(formData) {
          
          var ids = new Array();
          for(var idIndex = 0; idIndex < formsIDs.length; idIndex++){
-            console.log("currFormData[rowIndex][formsIDs[idIndex]] = ", currFormData[rowIndex][formsIDs[idIndex]]);
             ids[idIndex] = currFormData[rowIndex][formsIDs[idIndex]];
          }
          
@@ -767,7 +746,6 @@ LITS.prototype.genAnimalArray = function(formData) {
          for(var animIndex = 0; animIndex < window.lits.data.animals.length; animIndex++){
             var compIDs = window.lits.data.animals[animIndex].ids;
             if(jQuery(compIDs).not(ids).length == 0 && jQuery(ids).not(compIDs).length == 0 ){
-               console.log("they match");
                window.lits.addPointToAnimal(animIndex, {time: time, locality: locality, latitude:latitude, longitude:longitude});
                
                found = true;
@@ -785,24 +763,18 @@ LITS.prototype.genAnimalArray = function(formData) {
          }
       }
    }
-   
-   //console.log(window.lits.data.animals);
    window.lits.visualizeAnimalData();
 };
 
 LITS.prototype.addPointToAnimal = function(animalIndex, point) {
    
    if(window.lits.data.animals[animalIndex].points.length > 0){
-      console.log("about to push ", point, " into ", window.lits.data.animals[animalIndex].points);
       
       var added = false;
       
       for(var index = 0; index < window.lits.data.animals[animalIndex].points.length; index++){
          var pointDate = new Date(point.time);
          var currIndexDate = new Date(window.lits.data.animals[animalIndex].points[index].time);
-         
-         console.log("Comparing ", pointDate.getTime(), " with ", currIndexDate.getTime());
-         
          if(pointDate.getTime() < currIndexDate.getTime()){
             window.lits.data.animals[animalIndex].points.splice(index, 0, point);
             added = true;
@@ -813,8 +785,6 @@ LITS.prototype.addPointToAnimal = function(animalIndex, point) {
       if(added == false){
          window.lits.data.animals[animalIndex].points.push(point);
       }
-      
-      console.log("points after push = ", window.lits.data.animals[animalIndex].points);
    }
    else {
       window.lits.data.animals[animalIndex].points.push(point);
@@ -841,24 +811,23 @@ LITS.prototype.visualizeAnimalData = function(animalData){
    if(typeof data == 'undefined'){
       data = window.lits.data.animals;
    }
-   
-   
+   var panLocation = null;
    var maxTimeDiff = 0;
+   window.lits.clearMap();
    for(var animIndex = 0; animIndex < data.length; animIndex++){
       var currAnimal = data[animIndex];
-      
+      if(animIndex == Math.floor(data.length/2)) {
+         var pIndex = Math.floor(currAnimal.points.length/2);
+         panLocation = new L.LatLng(currAnimal.points[pIndex].latitude, currAnimal.points[pIndex].longitude);
+      }
       if(currAnimal.points.length > 1){
-         
          var timeDiff = new Date(currAnimal.points[currAnimal.points.length - 1].time).getTime() - new Date(currAnimal.points[0].time).getTime();
-         
          if(timeDiff > maxTimeDiff) maxTimeDiff = timeDiff;
-         
          var pointList = new Array();
          for(var pointIndex = 0; pointIndex < currAnimal.points.length; pointIndex++){
+            window.lits.addMarker(new L.LatLng(currAnimal.points[pointIndex].latitude, currAnimal.points[pointIndex].longitude), currAnimal.points[pointIndex].locality);
             pointList.push(new L.LatLng(currAnimal.points[pointIndex].latitude, currAnimal.points[pointIndex].longitude));
          }
-
-         console.log("pointList", pointList);
 
          var animPolyline = new L.Polyline(pointList, {
             color: 'red',
@@ -866,20 +835,58 @@ LITS.prototype.visualizeAnimalData = function(animalData){
             opacity: 0.5,
             smoothFactor: 1
          });
-
-         animPolyline.addTo(window.lits.map);
+         animPolyline.on('mouseover', function () {
+            this.setText('  ►  ', {repeat: true, attributes: {fill: 'blue', 'font-size': 14}});
+         });
+         animPolyline.on('mouseout', function () {
+            this.setText(null);
+         });
+         //animPolyline.addTo(window.lits.map);
+         window.lits.map.addLayer(animPolyline);
+         window.lits.polylines[window.lits.polylines.length] = animPolyline;
+         //add markers for the first and last points in the polyline
+         //first check if the marker is already labeled
+         /*window.lits.addMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude), currAnimal.points[0].locality);
+         window.lits.addMarker(new L.LatLng(currAnimal.points[currAnimal.points.length - 1].latitude, currAnimal.points[currAnimal.points.length - 1].longitude), currAnimal.points[currAnimal.points.length - 1].locality);*/
       }
       else {
-         var circleMarker = new L.CircleMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude));
-         circleMarker.setRadius(2);
-         circleMarker.addTo(window.lits.map);
+         window.lits.addMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude), currAnimal.points[0].locality);
       }
    }
-   
-   window.lits.populateTimeline(maxTimeDiff);
-   
+   if(panLocation != null) {
+      window.lits.map.panTo(panLocation);
+   }
+   //window.lits.populateTimeline(maxTimeDiff);
+   //TODO: make the timeline more interesting
    window.lits.searchBox.show();
 };
+
+LITS.prototype.addMarker = function(latLnt, label) {
+   var circleMarker = null;
+   if(label != null && $.inArray(label, window.lits.localityLabels) === -1) {
+      circleMarker = new L.CircleMarker(latLnt).bindLabel(label, {noHide: true});
+      window.lits.localityLabels[window.lits.localityLabels.length] = label;
+   }
+   else {
+      circleMarker = new L.CircleMarker(latLnt);
+   }
+   circleMarker.setRadius(4);
+   circleMarker.addTo(window.lits.map);
+   //window.lits.map.addLayer(circleMarker);
+   window.lits.markers[window.lits.markers.length] = circleMarker;
+};
+
+LITS.prototype.clearMap = function() {
+   for(var index = 0; index < window.lits.polylines.length; index++) {
+      window.lits.map.removeLayer(window.lits.polylines[index]);
+   }
+   window.lits.polylines = [];
+   for(var index = 0; index < window.lits.markers.length; index++) {
+      window.lits.map.removeLayer(window.lits.markers[index]);
+   }
+   window.lits.markers = [];
+   window.lits.localityLabels = [];
+}
 
 /**
  * This method facilitates the searching of animal IDs in the window.lits.data.animals object
@@ -890,18 +897,22 @@ LITS.prototype.visualizeAnimalData = function(animalData){
 LITS.prototype.search = function(query) {
    
    var results = new Array();
-   
+   var maxResults = 30;
    for(var animIndex = 0; animIndex < window.lits.data.animals.length; animIndex++){
       var currAnimal =  window.lits.data.animals[animIndex];
       
       var animScore = 0;
-      
+      //search the animal ids
       for(var idIndex = 0; idIndex < currAnimal.ids.length; idIndex++){
          var score = window.lits.fuzzySearch(currAnimal.ids[idIndex], query);
          
          animScore = animScore + score;
       }
-      
+      //search the locality
+      for(var pointIndex = 0; pointIndex < currAnimal.points.length; pointIndex++){
+         var score = window.lits.fuzzySearch(currAnimal.points[pointIndex].locality, query);
+         animScore = animScore + score;
+      }
       if(animScore > 0) {
          var inserted = false;
          for(var resIndex = 0; resIndex < results.length; resIndex++){
@@ -916,6 +927,9 @@ LITS.prototype.search = function(query) {
             results.push({score:animScore, animalIndex:animIndex});
          }
       }
+      if(results.length > maxResults) {
+         break;
+      }
    }
    
    window.lits.showSearchResults(results);
@@ -928,8 +942,6 @@ LITS.prototype.search = function(query) {
  * @returns {undefined}
  */
 LITS.prototype.showSearchResults = function (results) {
-   
-   console.log("search results = ",results);
    
    if(results.length > 0){
       window.lits.searchCanvas.show();
@@ -951,7 +963,6 @@ LITS.prototype.showSearchResults = function (results) {
       
       jQuery("#res_"+results[resIndex].animalIndex).click({animalIndex:results[resIndex].animalIndex},function(e) {
          var animIndex = e.data.animalIndex;
-         
          window.lits.getAnimalData(animIndex);
          
       });
@@ -976,16 +987,10 @@ LITS.prototype.fuzzySearch = function(string, query){
          return (query.length/string.length) * score;
       }
    }
-   
-   else {
-      return 0;
-   }
+   return 0;
 };
 
 LITS.prototype.populateTimeline = function(maxTimeDiff) {
-   
-   console.log("maxTimeDiff = ", maxTimeDiff);
-   
    window.lits.mvmtTimeline.empty();
    
    var maxAnimalsTimeline = 20;
@@ -997,8 +1002,6 @@ LITS.prototype.populateTimeline = function(maxTimeDiff) {
    var timeDiffWidth = 0;
    if(maxTimeDiff > 0){
       timeDiffWidth = (tWidth - 200) / maxTimeDiff;
-      
-      console.log("timeDiffWidth = ", timeDiffWidth);
    }
    
    var noTimelineAnims = maxAnimalsTimeline;
@@ -1014,8 +1017,6 @@ LITS.prototype.populateTimeline = function(maxTimeDiff) {
       var currAnimal = window.lits.data.animals[index];
          
       var lineWidth = (new Date(currAnimal.points[currAnimal.points.length - 1].time).getTime() - new Date(currAnimal.points[0].time).getTime()) * timeDiffWidth;
-      console.log("lineWidth = ", lineWidth);
-      
       var lineDiv = "<div style='height:1px; width="+lineWidth+"px; background-color:blue;'></div><br />";
       
       //window.lits.mvmtTimeline.append(lineDiv);
@@ -1037,8 +1038,6 @@ LITS.prototype.populateTimeline = function(maxTimeDiff) {
          
          jQuery("#"+index+"_"+pointTime).mouseover({data:tmpData}, function(e){
             var data = e.data.data;
-            console.log("data = ", e);
-            
             window.lits.showTooltip(data, {left:(e.pageX + 20)+"px", top:(e.pageY - 80)+"px"});
          });
          
@@ -1052,8 +1051,6 @@ LITS.prototype.populateTimeline = function(maxTimeDiff) {
 };
 
 LITS.prototype.showTooltip = function(data, position){
-   console.log("position = ", position);
-   
    window.lits.tooltip.empty();
    window.lits.tooltip.show();
    
@@ -1101,14 +1098,12 @@ LITS.prototype.getDataFromServer = function(uri, async, data, onComplete) {
    
    var fullURL = window.lits.serverURL + uri;
    var returnData = {};
-   console.log(fullURL);
    jQuery.ajax ({
       url: fullURL,
       type: 'POST',
       async: async,
       data: data
    }).done(function(data){
-//      console.log("data from server = ", data);
       var jsonObject = jQuery.parseJSON(data);
 
       if(typeof onComplete !== 'undefined') {
