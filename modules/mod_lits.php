@@ -224,6 +224,12 @@ class LITS {
                $coreTableIndex = $tableIndex;
             }
          }
+         $villageColumns = "";
+         if($coreTableIndex != -1) {
+            if(strpos($tableNames[$coreTableIndex], "market") !== FALSE) {//table name has market in it
+               $villageColumns = ", `lits_market_animal_details`.`animal_details-which_source_village` as src_village_name, `lits_market_animal_details`.`village_latitude` as src_village_lat, `lits_market_animal_details`.`village_longitude` as src_village_lon";
+            }
+         }
          
          //start generating from section of query by starting with the core table
          if($coreTableIndex != -1){
@@ -276,6 +282,7 @@ class LITS {
                }
             }
          }
+         $select .= $villageColumns;
          
          $query = $select . " " . $from;
          if(strlen($setColumns) > 0) {
@@ -453,6 +460,7 @@ else {
       
       <div id="mvmt_ttip"></div>
       <div id="loading_box">Loading</div>
+      <div id="src_village_name" class="loading_box"></div>
       <script>
          var lits = new LITS();
       </script>

@@ -91,6 +91,22 @@ td.search_columns {min-width: 200px;}
    font-weight: bolder;
 }
 
+.loading_box {
+   cursor: pointer;
+   position: absolute;
+   background-color: #ffffff;
+   opacity: 70%;
+   border-radius: 1px;
+   z-index: 2;
+   width: 10rem;
+   height: 3rem;
+   border-radius:5px;
+   line-height: 3rem;
+   text-align: center;
+   font-weight: bolder;
+}
+
+
 #sample_ttip {
    background: #ffffff;
    position:absolute;

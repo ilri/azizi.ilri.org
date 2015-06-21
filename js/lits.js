@@ -50,6 +50,7 @@ function LITS() {
    window.lits.genModMode = jQuery("#gen_mod_mode");
    window.lits.mvmtTimeline = jQuery("#mvmt_timeline");
    window.lits.loadingBox = jQuery("#loading_box");
+   window.lits.srcVillageName = jQuery("#src_village_name");
    window.lits.searchBox = jQuery("#search_box_3d");
    window.lits.searchCanvas = jQuery("#lits_search_res");
    window.lits.animalDetails = jQuery("#animal_details");
@@ -169,6 +170,9 @@ LITS.prototype.windowResized = function () {
    
    window.lits.loadingBox.css("left", ((wWidth/2) - (window.lits.loadingBox.width() / 2)) + "px");
    window.lits.loadingBox.css("top", ((wHeight/2) - (window.lits.loadingBox.height() / 2)) + "px");
+   
+   window.lits.srcVillageName.css("left", (wWidth - window.lits.srcVillageName.width()) + "px");
+   window.lits.srcVillageName.css("top", ((wHeight/2) - (window.lits.srcVillageName.height() / 2)) + "px");
 };
 
 /**
@@ -735,6 +739,9 @@ LITS.prototype.genAnimalArray = function(formData) {
          var longitude = currFormData[rowIndex].longitude;
          var time = currFormData[rowIndex].time;
          var locality = currFormData[rowIndex].locality;
+         var srcVillageName = currFormData[rowIndex].src_village_name;
+         var srcVillageLat = currFormData[rowIndex].src_village_lat;
+         var srcVillageLon = currFormData[rowIndex].src_village_lng;
          
          var ids = new Array();
          for(var idIndex = 0; idIndex < formsIDs.length; idIndex++){
@@ -747,7 +754,16 @@ LITS.prototype.genAnimalArray = function(formData) {
             var compIDs = window.lits.data.animals[animIndex].ids;
             if(jQuery(compIDs).not(ids).length == 0 && jQuery(ids).not(compIDs).length == 0 ){
                window.lits.addPointToAnimal(animIndex, {time: time, locality: locality, latitude:latitude, longitude:longitude});
-               
+               if(typeof srcVillageName != 'undefined' && srcVillageName != null) {
+                  window.lits.data.animals[animIndex].src_village.name = srcVillageName;
+               }
+               if(typeof srcVillageName != 'undefined' && srcVillageName != null) {
+                  window.lits.data.animals[animIndex].src_village.latitude = srcVillageLat;
+                  window.lits.data.animals[animIndex].src_village.longitude = srcVillageLon;
+               }
+               if(window.lits.data.animals[animIndex].src_village.name != null && window.lits.data.animals[animIndex].src_village.name.length > 0) {
+                  console.log(animIndex, " has a village");
+               }
                found = true;
                break;
             }
@@ -757,7 +773,17 @@ LITS.prototype.genAnimalArray = function(formData) {
             var currAnimal = {};
             currAnimal.ids = ids;
             currAnimal.points = new Array();
-            currAnimal.points.push({time: time, locality: locality, latitude:latitude, longitude:longitude});
+            currAnimal.points.push({
+               time: time,
+               locality: locality,
+               latitude:latitude,
+               longitude:longitude,
+            });
+            currAnimal.src_village = {
+               name: srcVillageName,
+               latitude: srcVillageLat,
+               longitude: srcVillageLon
+            };
             
             window.lits.data.animals.push(currAnimal);
          }
@@ -814,6 +840,7 @@ LITS.prototype.visualizeAnimalData = function(animalData){
    var panLocation = null;
    var maxTimeDiff = 0;
    window.lits.clearMap();
+   window.lits.srcVillageName.hide();
    for(var animIndex = 0; animIndex < data.length; animIndex++){
       var currAnimal = data[animIndex];
       if(animIndex == Math.floor(data.length/2)) {
@@ -852,6 +879,9 @@ LITS.prototype.visualizeAnimalData = function(animalData){
       else {
          window.lits.addMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude), currAnimal.points[0].locality);
       }
+      if(data.length == 1) {//showing only details for one animal
+        window.lits.showSrcVillage(currAnimal); 
+      }
    }
    if(panLocation != null) {
       window.lits.map.panTo(panLocation);
@@ -859,6 +889,24 @@ LITS.prototype.visualizeAnimalData = function(animalData){
    //window.lits.populateTimeline(maxTimeDiff);
    //TODO: make the timeline more interesting
    window.lits.searchBox.show();
+};
+
+LITS.prototype.showSrcVillage = function(animal) {
+   window.lits.srcVillageName.html("");
+   if(typeof animal.src_village.name != 'undefined'
+           && animal.src_village.name != null
+           && animal.src_village.name.length > 0) {
+      if(typeof animal.src_village.latitude != 'undefined'
+           && animal.src_village.latitude != null
+           && animal.src_village.latitude.length > 0) {
+           window.lits.addMarker(new L.LatLng(animal.src_village.latitude, animal.src_longitude.longitude), animal.src_village.name);
+           window.lits.srcVillageName.hide();
+      }
+      else {
+         window.lits.srcVillageName.show();
+         window.lits.srcVillageName.html("Source village = "+animal.src_village.name);
+      }
+   }
 };
 
 LITS.prototype.addMarker = function(latLnt, label) {
@@ -958,7 +1006,11 @@ LITS.prototype.showSearchResults = function (results) {
             else idText = window.lits.data.ids[idIndex] + ": " + animal.ids[idIndex]; 
          }
       }
-      
+      if(typeof animal.src_village.name != 'undefined'
+              && animal.src_village.name != null
+              && animal.src_village.name.length > 0) {
+         idText = idText+" * ";
+      }
       window.lits.searchCanvas.append("<div id='res_"+results[resIndex].animalIndex+"' class='lits_search_res'>" + idText + "</div>");
       
       jQuery("#res_"+results[resIndex].animalIndex).click({animalIndex:results[resIndex].animalIndex},function(e) {
