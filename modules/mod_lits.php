@@ -229,6 +229,9 @@ class LITS {
             if(strpos($tableNames[$coreTableIndex], "market") !== FALSE) {//table name has market in it
                $villageColumns = ", `lits_market_animal_details`.`animal_details-which_source_village` as src_village_name, `lits_market_animal_details`.`village_latitude` as src_village_lat, `lits_market_animal_details`.`village_longitude` as src_village_lon";
             }
+            else {
+               $villageColumns = ", `lits_slaughter_animal_details`.`animal_details-muscle_result` as muscle, `lits_slaughter_animal_details`.`animal_details-liver_result` as liver, `lits_slaughter_animal_details`.`animal_details-kidney_result` as kidney, `lits_slaughter_animal_details`.`animal_details-spleen_result` as spleen";
+            }
          }
          
          //start generating from section of query by starting with the core table
@@ -339,8 +342,19 @@ class LITS {
             $this->Dbase->CreateLogEntry(print_r($tableNames, true), "fatal");
             $tableName = $tableNames[0];
             
-            $query = "SELECT * FROM ".$tableName;
-            
+            //$query = "SELECT * FROM ".$tableName;
+            if($tableName == "lits_market_animal_details"){
+               $query = "select date(b.start) as date_of_contact, b.`which_current_market` as current_market, a.`animal_details-which_next_destination` as next_destination, a.`animal_details-spec_source_market_name_ke` as kenyan_source_market, a.`animal_details-spec_source_market_name_tz` as tanzanian_source_market"
+                  . ", a.`animal_details-which_source_village` as source_village, a.`village_latitude` as source_village_latitude, a.`village_longitude` as source_village_longitude"
+                  . " from `lits_market_animal_details` as a"
+                  . " inner join `lits_market_core` as b on a.`_PARENT_AURI` = b.`_URI`";
+            }
+            else {
+               $query = "select date(b.start) as date_of_contact, b.`which_slaughterhouse` as current_slaughter_house, a.`animal_details-last_market` as source_market"
+                  . ", a.`animal_details-muscle_result` as muscle_results, a.`animal_details-liver_result` as liver_results, a.`animal_details-kidney_result` as kidney_results, a.`animal_details-spleen_result` as spleen_results"
+                  . " from `lits_slaughter_animal_details` as a"
+                  . " inner join `lits_slaughter_core` as b on a.`_PARENT_AURI` = b.`_URI`";
+            }
             $where = "";
             $columnIndex = 0;
             foreach($tables[$tableName] as $currColumn){
@@ -366,7 +380,7 @@ class LITS {
                $columnIndex++;
             }
             
-            $query .= $where;
+            $query .= $where." order by b.start";
             
             $currFormAnimalData = $this->Dbase->ExecuteQuery($query);
             
@@ -400,18 +414,32 @@ else {
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/label/leaflet.label.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.textpath.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet-heat.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxcore.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxdraw.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxdata.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxchart.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxwindow.js"></script>';?>
       <!--script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
       <script src="../js/lits.js"></script>
       <link href="../css/azizi.css" rel="stylesheet" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css" />
       <?php echo '<link href="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/label/leaflet.label.css" rel="stylesheet" type="text/css" />';?>
+      <?php echo '<link href="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/styles/jqx.base.css" rel="stylesheet" type="text/css" />';?>
       <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css' />
    </head>
    <body>
       <input id="search_box_3d" placeholder="Search using an animal's ID" style="display: none;" />
       <div id="lits_search_res"></div>
-      <div id="animal_details"></div>
+      <div id="animal_details_wndw">
+         <div id="animal_details_id"></div>
+         <div id="animal_details"></div>
+      </div>
       <div id="map"></div>
-      <div id="mvmt_timeline"></div>
+      <div id="mvmt_window">
+         <div>Animal traceability</div>
+         <div id="mvmt_timeline"></div>
+      </div>
       <div id='set_select_container'>
          <div id='set_select_inst'>Select the ODK forms that will make up your dataset</div>
          <div id='set_select_list'></div>
@@ -460,7 +488,9 @@ else {
       
       <div id="mvmt_ttip"></div>
       <div id="loading_box">Loading</div>
-      <div id="src_village_name" class="loading_box"></div>
+      <button class="btn btn-primary" id="show_data_points" class="lits_button">Show data points</button>
+      <button class="btn btn-primary" id="show_village_heatmap" class="lits_button">Hide source villages</button>
+      <button class="btn btn-primary" id="show_abnormal_res" class="lits_button">Track sick animals</button>
       <script>
          var lits = new LITS();
       </script>
