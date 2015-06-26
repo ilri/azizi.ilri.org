@@ -589,7 +589,7 @@ td.search_columns {min-width: 200px;}
 
 #animal_details_wndw {
    display: none;
-   height: 100%;
+   height: auto;
    width: 100%;
 }
 

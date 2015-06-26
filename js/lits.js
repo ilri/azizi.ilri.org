@@ -572,7 +572,7 @@ LITS.prototype.showAnimalData = function(animalData, animalIndex) {
       var formName = formIDs[fIndex];
       if(formIDs[fIndex] == "lits_market") formName = "Data from Markets";
       else if(formIDs[fIndex] == "lits_slaughter") formName = "Data from Slaughterhouse";
-      formHTML = formHTML + "<div style='font-size: 20px; margin-top: 10px; margin-bottom: 5px;'>" + formName + "</div>";
+      formHTML = formHTML + "<div id='form_data_"+formIDs[fIndex]+"' style='font-size: 20px; margin-top: 10px; margin-bottom: 5px;'>" + formName + "</div>";
       var columns = {};
       var rows = cAnimalData[formIDs[fIndex]];
       //go through all the rows and move the data to the columns object
@@ -623,9 +623,9 @@ LITS.prototype.showAnimalData = function(animalData, animalIndex) {
       y:(window.innerHeight - window.lits.animalDetailsWndw.height() - 100)+"px",
       x:(window.innerWidth - window.lits.animalDetailsWndw.width() - 100)+"px"
    };
-   //window.lits.animalDetailsWndw.jqxWindow({position: animalDetailsWindowPos, theme: ''});
+   window.lits.animalDetailsWndw.jqxWindow({height: "250px"});
    window.lits.animalDetailsWndw.jqxWindow("setTitle", window.lits.data.animals[animalIndex].ids[0]);
-   window.lits.animalDetails.css("height", "94%");
+   window.lits.animalDetails.css("height", "88%");
    window.lits.animalDetailsWndw.show();
    window.lits.visualizeAnimalData([window.lits.data.animals[animalIndex]]);
 };
@@ -1227,7 +1227,12 @@ LITS.prototype.showSearchResults = function (results) {
       if(typeof animal.src_village.name != 'undefined'
               && animal.src_village.name != null
               && animal.src_village.name.length > 0) {
-         idText = idText+" * ";
+         idText = idText+" *";
+      }
+      if(typeof animal.src_village.latitude != 'undefined'
+              && animal.src_village.latitude != null
+              && animal.src_village.latitude.length > 0) {
+         idText = idText+"*";
       }
       window.lits.searchCanvas.append("<div id='res_"+results[resIndex].animalIndex+"' class='lits_search_res'>" + idText + "</div>");
       
