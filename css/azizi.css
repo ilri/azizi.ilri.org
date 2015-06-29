@@ -13,7 +13,7 @@ body { margin: 0;	padding: 0;	font-family: 'Open Sans', "Lucida Grande", arial, 
 #ngombe_image{text-align: right; width: 23%; margin-right: 10%;}
 #links{margin-bottom: 20px;}
 #links span{padding: 2px 10px;}
-.ln2_fridges, .ancilliary, .fridge_freezers, .equipments_rooms, .general{ margin: 20px;}
+.ln2_fridges, .ancilliary, .fridge_freezers, .equipments_rooms, #organism_chart_container, .general{ margin: 20px;}
 .general{ width: 100%; text-align: center; }
 .ancilliary{ min-height: 270px;}
 .ln2_fridges{ margin-left: 110px; }
@@ -690,4 +690,8 @@ td.search_columns {min-width: 200px;}
 
 #user_email{
    width: 30rem;
+}
+
+.organism_chart {
+   width: 400px; height: 400px; display: inline-block;
 }

@@ -1,5 +1,5 @@
 var Azizi = {
-   resultsPerPage: 15, iisPageCount: 10, pageIndex:0, searchTimoutID:0, mtaCache:{queries:[], sample_ids:[]}/*the MTA cache stores both queries and sample_ids.*/,
+   resultsPerPage: 15, iisPageCount: 10, pageIndex:0, searchTimoutID:0, lessPopOrganismDataAdapter: null, morePopOrganismDataAdapter: null, mtaCache:{queries:[], sample_ids:[]}/*the MTA cache stores both queries and sample_ids.*/,
 
    refreshEquipmentStatus: function(){
       if(Azizi.stopUpdateStatus !== undefined && Azizi.stopUpdateStatus === true){
@@ -14,7 +14,103 @@ var Azizi = {
 		  success: Azizi.updateStatus
       });
    },
-
+   
+   /**
+    * This function refreshes the organism distribution chart
+    * @returns {undefined}
+    */
+   initOrganismChart: function() {
+      var source = {
+         datatype: "json",
+         datafields: [
+            {name: "organism", type: "string"},
+            {name: "open_access", type: "integer"},
+            {name: "closed_access", type: "integer"}
+         ],
+         root: "data",
+         url: "/azizi/mod_ajax.php?page=organism_data&populous=0"
+      };
+      Azizi.lessPopOrganismDataAdapter = new $.jqx.dataAdapter(source,{
+         async: true,
+         autoBind: true,
+         loadError: function() {
+            console.log("Could not get organism data");
+         }
+      });
+      var settings = {
+         title: "Diversity of samples in the Biorepository",
+         description: "Less popular organisms",
+         enableAnimations: true,
+         showLegend: true,
+         padding: { left: 5, top: 5, right: 5, bottom: 5 },
+         titlePadding: { left: 0, top: 0, right: 0, bottom: 5 },
+         source: Azizi.lessPopOrganismDataAdapter,
+         xAxis: {
+             dataField: 'organism',
+             valuesOnTicks: true,
+             labels: { autoRotate: true }
+         },
+         colorScheme: 'scheme02',
+         seriesGroups: [{
+               polar: true,
+               radius: 140,
+               type: 'splinearea',
+               enableSeriesToggle: false,
+               series: [
+                  { dataField: 'open_access', displayText: 'Open Access', opacity: 0.9, lineWidth: 3 },
+                  { dataField: 'closed_access', displayText: 'Closed Access', opacity: 0.9, lineWidth: 3 }
+               ]
+            }
+         ]
+      };
+      $("#less_populus_organism_chart").jqxChart(settings);
+      
+      var source2 = {
+         datatype: "json",
+         datafields: [
+            {name: "organism", type: "string"},
+            {name: "open_access", type: "integer"},
+            {name: "closed_access", type: "integer"}
+         ],
+         root: "data",
+         url: "/azizi/mod_ajax.php?page=organism_data&populous=1"
+      };
+      Azizi.morePopOrganismDataAdapter = new $.jqx.dataAdapter(source2,{
+         async: true,
+         autoBind: true,
+         loadError: function() {
+            console.log("Could not get organism data");
+         }
+      });
+      var settings = {
+         title: "Diversity of samples in the Biorepository",
+         description: "More popular organisms",
+         enableAnimations: true,
+         showLegend: true,
+         padding: { left: 5, top: 5, right: 5, bottom: 5 },
+         titlePadding: { left: 0, top: 0, right: 0, bottom: 5 },
+         source: Azizi.morePopOrganismDataAdapter,
+         xAxis: {
+             dataField: 'organism',
+             valuesOnTicks: true,
+             labels: { autoRotate: true }
+         },
+         colorScheme: 'scheme02',
+         seriesGroups: [{
+               polar: true,
+               radius: 140,
+               type: 'splinearea',
+               enableSeriesToggle: false,
+               series: [
+                  { dataField: 'open_access', displayText: 'Open Access', opacity: 0.9, lineWidth: 3 },
+                  { dataField: 'closed_access', displayText: 'Closed Access', opacity: 0.9, lineWidth: 3 }
+               ]
+            }
+         ]
+      };
+      $("#more_populus_organism_chart").jqxChart(settings);
+      $("#organism_chart_container").show();
+   },
    communicationError: function(data){
       //Keep asking for data
       setTimeout(Azizi.refreshEquipmentStatus, 10000);

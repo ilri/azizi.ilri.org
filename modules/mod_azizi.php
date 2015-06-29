@@ -65,6 +65,7 @@ class Azizi{
       elseif(OPTIONS_REQUESTED_MODULE == 'sample_details') {
          $this->SampleDetails();
       }
+      elseif(OPTIONS_REQUESTED_MODULE == 'organism_data') $this->getOrganismData();
       elseif(OPTIONS_REQUESTED_MODULE == 'stabilates') $this->StabilateHistory();
    }
 
@@ -234,7 +235,7 @@ class Azizi{
     */
    private function Ln2FridgesStatuses(){
       //number of active tanks
-      $query = 'select count(*) as active_tanks from units where active = 1';
+      /*$query = 'select count(*) as active_tanks from units where active = 1';
       $row = $this->Dbase->ExecuteQuery($query);
       if($row == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       $activeTanks = $row[0]['active_tanks'];
@@ -261,9 +262,9 @@ class Azizi{
          $i++;
       }
 
-      return $fridgeStatuses;
+      return $fridgeStatuses;*/
       
-      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*");
       
       $ch = curl_init();
 
@@ -289,7 +290,7 @@ class Azizi{
          $error = "HTTP Status response from the Solr server was ".$http_status;
       }
       
-      die(json_encode(array('error' => true, 'data' => $error)));*/
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -299,7 +300,7 @@ class Azizi{
     */
    private function AncilliaryStatus(){
       //bulk tank status
-      $query = "
+      /*$query = "
          select
             if(DATE(timestamp) = DATE(NOW()), date_format(timestamp, '%H:%i'), date_format(timestamp, '%e %b  %H:%i')) as smart_date,
             ((unix_timestamp(now()) - unix_timestamp(timestamp))/3600)  as hours_old,
@@ -321,9 +322,9 @@ class Azizi{
       $ancilliaryStatus = $this->Dbase->ExecuteQuery($query);
       if($ancilliaryStatus == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
 
-      return $ancilliaryStatus[0];
+      return $ancilliaryStatus[0];*/
       
-      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*");
       
       $ch = curl_init();
 
@@ -352,7 +353,7 @@ class Azizi{
          $error = "HTTP Status response from the Solr server was ".$http_status;
       }
       
-      die(json_encode(array('error' => true, 'data' => $error)));*/
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -362,7 +363,7 @@ class Azizi{
     */
    private function FridgesAndFreezersStatuses(){
       //another terrfying SQL from Martin
-      $query = "
+      /*$query = "
          SELECT
             fl.freezer, fu.location, fu.description, fu.contents, FORMAT((fl.temp),1) AS temp, fu.max_temp, fu.min_temp,
             ((UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(fl.created))/3600) AS hours_old,
@@ -381,9 +382,9 @@ class Azizi{
       if($rows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       foreach($rows as $row) $fridgeStatuses[$row['freezer']] = $row;
 
-      return $fridgeStatuses;
+      return $fridgeStatuses;*/
       
-      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*");
       
       $ch = curl_init();
 
@@ -409,7 +410,7 @@ class Azizi{
          $error = "HTTP Status response from the Solr server was ".$http_status;
       }
       
-      die(json_encode(array('error' => true, 'data' => $error)));*/
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -419,7 +420,7 @@ class Azizi{
     */
    private function EquipmentAndRoomsStatuses(){
       //another terrfying SQL from Martin
-      $query = "
+      /*$query = "
          SELECT
             fl.freezer, fu.location, fu.description, fu.contents, FORMAT((fl.temp),1) AS temp, FORMAT((fl.O2),1) AS O2, FORMAT((fl.CO2),1) AS CO2, fu.max_temp, fu.min_temp,
             fu.max_co2, fu.min_co2, fu.max_o2, fu.min_o2, ((UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(fl.created))/3600) AS hours_old,
@@ -438,9 +439,9 @@ class Azizi{
       if($rows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
       foreach($rows as $row) $otherStatuses[$row['freezer']] = $row;
 
-      return $otherStatuses;
+      return $otherStatuses;*/
       
-      /*$query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*");
       
       $ch = curl_init();
 
@@ -466,7 +467,7 @@ class Azizi{
          $error = "HTTP Status response from the Solr server was ".$http_status;
       }
       
-      die(json_encode(array('error' => true, 'data' => $error)));*/
+      die(json_encode(array('error' => true, 'data' => $error)));
    }
 
    /**
@@ -615,8 +616,8 @@ class Azizi{
       curl_close($ch);
 
       if($http_status == 200){
-         $qTime = $qTime + $raw['responseHeader']['QTime'];
          $raw = json_decode($curlResult, true);
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
          $stabilates = $raw["response"]["docs"];
          for($index = 0; $index < count($stabilates); $index++){
             $stabilates[$index]['collection'] = "stabilates";
@@ -630,6 +631,101 @@ class Azizi{
       //we are all good. lets return this data
       $data = array_merge($samples, $stabilates);
       die(json_encode(array('error' => $error, 'data' => $data, 'count' => $numResults, 'time' => $qTime), JSON_FORCE_OBJECT));
+   }
+   
+   /**
+    * This function gets organism graph data from Solr
+    */
+   private function getOrganismData() {
+      //"http://192.168.5.43:8080/solr/samples/select?q=open_access%3A0&wt=json&indent=true&group=true&group.field=organism";
+      //$openAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=!organism%3Acow AND open_access%3A1&wt=json&indent=true&group=true&group.field=organism");//open access samples grouped by organism
+      $openAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=open_access%3A1&wt=json&indent=true&group=true&group.field=organism");//open access samples grouped by organism
+      //$closedAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=!organism%3Acow AND open_access%3A0&wt=json&indent=true&group=true&group.field=organism");//closed access samples group by organism
+      $closedAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=open_access%3A0&wt=json&indent=true&group=true&group.field=organism");//closed access samples group by organism
+      $organisms = array();
+      //fetch the open access samples
+      $oaCH = curl_init();
+      curl_setopt($oaCH, CURLOPT_URL, $openAccessQuery);
+      curl_setopt($oaCH, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($oaCH, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($oaCH);
+      $http_status = curl_getinfo($oaCH, CURLINFO_HTTP_CODE);
+      curl_close($oaCH);
+      $error = false;
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $organismGroups = $raw['grouped']['organism']['groups'];
+         foreach($organismGroups as $currGroup) {
+            $organism = $currGroup['groupValue'];
+            if(strlen($organism) == 0) $organism = "unknown";
+            if(!isset($organisms[$organism])) {
+               $organisms[$organism] = array(
+                  "open_access" => 0,
+                  "closed_access" => 0
+               );
+            }
+            $organisms[$organism]['open_access'] = $currGroup['doclist']['numFound'];
+         }
+      }
+      else {
+         $this->Dbase->CreateLogEntry("An error occurred while trying to get organism details from solr for open access samples","fatal");
+         $error = true;
+      }
+      
+      //fetch the closed access samples
+      $caCH = curl_init();
+      curl_setopt($caCH, CURLOPT_URL, $closedAccessQuery);
+      curl_setopt($caCH, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($caCH, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult2 = curl_exec($caCH);
+      $http_status2 = curl_getinfo($caCH, CURLINFO_HTTP_CODE);
+      curl_close($caCH);
+      if($http_status2 == 200){
+         $raw = json_decode($curlResult2, true);
+         $organismGroups = $raw['grouped']['organism']['groups'];
+         foreach($organismGroups as $currGroup) {
+            $organism = $currGroup['groupValue'];
+            if(strlen($organism) == 0) $organism = "unknown";
+            if(!isset($organisms[$organism])) {
+               $organisms[$organism] = array(
+                  "open_access" => 0,
+                  "closed_access" => 0
+               );
+            }
+            $organisms[$organism]['closed_access'] = $currGroup['doclist']['numFound'];
+         }
+      }
+      else {
+         $this->Dbase->CreateLogEntry("An error occurred while trying to get organism details from solr for closed access samples","fatal");
+         $error = true;
+      }
+      
+      $organismKeys = array_keys($organisms);
+      $data = array();
+      foreach($organismKeys as $currKey) {
+         $data[] = array("organism" => $currKey, "open_access" => $organisms[$currKey]['open_access'], "closed_access" => $organisms[$currKey]['closed_access']);
+      }
+      function sortByOpenAccess($a, $b) {
+         return ($a['open_access'] + $a['closed_access']) - ($b['open_access'] + $b['closed_access']);
+      }
+      usort($data, 'sortByOpenAccess');
+      $data1 = array();
+      $data2 = array();
+      foreach($data as $currOrganism) {
+         if(($currOrganism['open_access'] + $currOrganism['closed_access']) > 3000) {
+            $data2[] = $currOrganism;
+         }
+         else {
+            $data1[] = $currOrganism;
+         }
+      }
+      if($_GET['populous'] == 0) {
+         $data = $data1;
+      }
+      else {
+         $data = $data2;
+      }
+      die(json_encode(array('error' => $error, 'data' => $data)));
    }
 
    /**

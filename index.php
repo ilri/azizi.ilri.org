@@ -7,9 +7,14 @@
 		<title>Azizi Biorepository</title>
 	   <link rel="stylesheet" type="text/css" href="/azizi/css/azizi.css" />
 	   <link rel="stylesheet" type="text/css" href="/azizi/css/bootstrap.min.css" />
+      <link rel="stylesheet" type="text/css" href="/common/jquery/jqwidgets/styles/jqx.base.css" />
       <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,800' rel='stylesheet' type='text/css' />
       <script type='text/javascript' src='/common/jquery/jquery-1.8.3.min.js'></script>
       <script type='text/javascript' src='/common/sprintf.js'></script>
+      <script type='text/javascript' src='/common/jquery/jqwidgets/jqxcore.js'></script>
+      <script type='text/javascript' src='/common/jquery/jqwidgets/jqxdata.js'></script>
+      <script type='text/javascript' src='/common/jquery/jqwidgets/jqxdraw.js'></script>
+      <script type='text/javascript' src='/common/jquery/jqwidgets/jqxchart.core.js'></script>
       <script type='text/javascript' src='/azizi/js/azizi.js'></script>
 	</head>
 
@@ -68,6 +73,10 @@
              </div>
              <div class="fridge_freezers float_left"></div>
              <div class="equipments_rooms"></div>
+             <div id="organism_chart_container" style="display: none;">
+                <div id="less_populus_organism_chart" class="organism_chart"></div>
+                <div id="more_populus_organism_chart" class="organism_chart"></div>
+             </div>
          </div>
          <div id="extra">
              <p><abbr title=" - Azizi is a Swahili word meaning a treasure, a valued thing, a rarity.">why azizi ?</abbr></p>
@@ -174,12 +183,13 @@
       $("#mta_dialog").show();
    });
   
-  
   Azizi.windowResized();
   $(window).resize(function(){
      Azizi.windowResized();
   });
-  
+  $(document).ready(function() {
+     Azizi.initOrganismChart();
+  });
   setTimeout(Azizi.refreshEquipmentStatus, 1000);
 </script>
 
