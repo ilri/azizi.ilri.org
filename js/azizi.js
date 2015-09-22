@@ -416,6 +416,7 @@ var Azizi = {
          var t = Azizi.currentResults.data[i];
          if(t.collection === 'samples') Azizi.displayAziziSamples(t);
          else if(t.collection === 'stabilates') Azizi.displayStabilatesSamples(t);
+         else if(t.collection === 'cell_cultures') Azizi.displayCellCulture(t);
       }
 
       //construct the aziiiizi tings
@@ -505,12 +506,36 @@ var Azizi = {
       if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
       access = 'open-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-         <a href='javascript:;' class='stabilates_%s'><span>%s:</span><span>%s,</span> %s</a>\n\
+         <a href='javascript:;' class='stabilates_%s'>Stabilate: <span>%s:</span><span>%s,</span> %s</a>\n\
       </div>\n\
       <div class='second_line'>\n\
          <span>P: %s</span>%s\n\
       </div></div>",
          access, t.stab_id, t.stab_no, t.parasite_name, t.infection_host, t.country_name, others);
+      $('#results .left').append(content);
+   },
+   
+   /**
+    * Displays a sample from the stabilate database
+    *
+    * @param   object   t     The sample details to be displayed
+    * @returns {undefined}
+    */
+   displayCellCulture: function(t){
+      console.log(t);
+      var content = '', others = '', access;
+      /*Cater for the stabilates*/
+      if(t.date_stored !== null) others += sprintf("  <span>Date stored: %s</span>", t.date_stored);
+      if(t.growth_medium !== null) others += sprintf("  <span>Growth Med.: %s</span>", t.growth_medium);
+      if(t.storage_medium !== null) others += sprintf("  <span>Storage Med.: %s</span>", t.storage_medium);
+      access = 'open-access.png';
+      content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+         <a href='javascript:;' class='cell_culture_%s'>Cell culture: <span>%s:</span><span>%s,</span> %s</a>\n\
+      </div>\n\
+      <div class='second_line'>\n\
+         %s\n\
+      </div></div>",
+         access, t.culture_id, t.culture_name, t.cell_type_details, t.animal_id, others);
       $('#results .left').append(content);
    },
 
@@ -529,7 +554,7 @@ var Azizi = {
       
       access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-         <a href='javascript:;' class='azizi_%s'><span>%s:</span> <span>%s</span>, <span>%s</span></a>\n\
+         <a href='javascript:;' class='azizi_%s'>Sample: <span>%s:</span> <span>%s</span>, <span>%s</span></a>\n\
       </div>\n\
       <div class='second_line'>\n\
          <span>P: %s</span>%s\n\

@@ -534,7 +534,7 @@ class Azizi{
       }
       
       $query = str_replace(" ", "+", Config::$config['solr_samples']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
-      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $this->Dbase->CreateLogEntry("Samples query = ".$query,"debug");
       $ch = curl_init();
       
       curl_setopt($ch, CURLOPT_URL, $query);
@@ -605,7 +605,7 @@ class Azizi{
       }
       
       $query = str_replace(" ", "+", Config::$config['solr_stabilates']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
-      $this->Dbase->CreateLogEntry("Query = ".$query,"debug");
+      $this->Dbase->CreateLogEntry("stabilates query = ".$query,"debug");
       $ch = curl_init();
 
       curl_setopt($ch, CURLOPT_URL, $query);
@@ -628,8 +628,70 @@ class Azizi{
          $error = true;
       }
       
+      //search cell cultures
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $size = $size - count($stabilates);
+      $start = $start - $numResults;
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(culture_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+         else {
+            $query .= " AND (culture_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+
+         $query .= " OR cell_type_details:*".$string."*";
+         $query .= " OR animal_id:*".$string."*";
+         $query .= " OR history:*".$string."*";
+         $query .= " OR date_stored:*".$string."*";
+         $query .= " OR growth_medium:*".$string."*";
+         $query .= " OR storage_medium:*".$string."*";
+         $query .= " OR reference_cultures:*".$string."*";
+         $query .= " OR comments:*".$string."*)";
+      }
+
+      if($start<0){//done to prevent errors on the solr side
+         $start = 0;
+         $size = 0;
+      }
+      $cellCultures = array();
+      
+      $fieldList = "";
+      if($_GET['light'] == 1){
+         $fieldList = "&fl=stab_id";//only get the sample id
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_cell_cultures']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Cell cultures query = ".$query,"debug");
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
+         $cellCultures = $raw["response"]["docs"];
+         for($index = 0; $index < count($cellCultures); $index++){
+            $cellCultures[$index]['collection'] = "cell_cultures";
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else {
+         $error = true;
+      }
+      
       //we are all good. lets return this data
-      $data = array_merge($samples, $stabilates);
+      $data = array_merge($samples, $stabilates, $cellCultures);
       die(json_encode(array('error' => $error, 'data' => $data, 'count' => $numResults, 'time' => $qTime), JSON_FORCE_OBJECT));
    }
    
