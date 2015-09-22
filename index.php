@@ -74,8 +74,8 @@
              <div class="fridge_freezers float_left"></div>
              <div class="equipments_rooms"></div>
              <div id="organism_chart_container" style="display: none;">
-                <div id="less_populus_organism_chart" class="organism_chart"></div>
                 <div id="more_populus_organism_chart" class="organism_chart"></div>
+                <div id="less_populus_organism_chart" class="organism_chart"></div>
              </div>
          </div>
          <div id="extra">
