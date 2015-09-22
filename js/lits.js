@@ -20,6 +20,7 @@ function LITS() {
    window.lits.mapCanvas = jQuery("#map");
    
    window.lits.setSelectionCtnr = jQuery("#set_select_container");
+   window.lits.setSelectionCtnr.hide();
    window.lits.setSelectionList = jQuery("#set_select_list");
    window.lits.setSelectionBtn = jQuery("#set_select_btn");
    
@@ -48,14 +49,35 @@ function LITS() {
    window.lits.genModAddBtn = jQuery("#gen_mod_add_btn");
    window.lits.genModCancelBtn = jQuery("#gen_mod_cancel_btn");
    window.lits.genModMode = jQuery("#gen_mod_mode");
+   //window.lits.mvmtTimeline = jQuery("#mvmt_timeline");
    window.lits.mvmtTimeline = jQuery("#mvmt_timeline");
+   window.lits.mvmtWindow = jQuery("#mvmt_window");
+   window.lits.mvmtWindow.hide();
    window.lits.loadingBox = jQuery("#loading_box");
    window.lits.searchBox = jQuery("#search_box_3d");
    window.lits.searchCanvas = jQuery("#lits_search_res");
    window.lits.animalDetails = jQuery("#animal_details");
-   
+   window.lits.animalDetailsWndw = jQuery("#animal_details_wndw");
+   window.lits.animalDetailsId = jQuery("#animal_details_id");
+   window.lits.polylines = [];
+   window.lits.markers = [];
+   window.lits.localityLabels = [];
+   window.lits.mvmtData = null;
+   window.lits.mvmtSettings = null;
+   window.lits.showDataPointsBtn = jQuery("#show_data_points");
+   window.lits.showDataPointsBtn.hide();
+   window.lits.showVillageHeatmapBtn = jQuery("#show_village_heatmap");
+   window.lits.showAbnormalData = jQuery("#show_abnormal_res");
+   window.lits.showVillageHeatmapBtn.hide();
+   window.lits.showAbnormalData.hide();
    window.lits.tooltip = jQuery("#mvmt_ttip");
-   
+   window.lits.heatmap = null;
+   window.lits.locations = null;
+   window.lits.villageCoords = [];
+   window.lits.searchResults = [];
+   window.lits.abnormalResults = [];
+   window.lits.visSearchTimeout = 0;
+   window.lits.abnormalResShowing = false;
    /*
     * how the forms object looks like:
     * 
@@ -121,6 +143,9 @@ function LITS() {
       window.lits.setModBtnClicked();
    });
    
+   window.lits.showAbnormalData.click(function() {
+      window.lits.visualizeAbnormalResults();
+   });
    window.lits.searchBox.keyup(function(){
       window.lits.searchCanvas.empty();
       if(window.lits.searchBox.val().length > 0){
@@ -128,9 +153,65 @@ function LITS() {
       }
       else {
          window.lits.searchCanvas.hide();
+         window.lits.visualizeAnimalData();
+         window.lits.animalDetailsWndw.hide();
       }
    });
+   
+   window.lits.showDataPointsBtn.click(function(){
+      window.lits.populateTimeline();
+   });
+   window.lits.showVillageHeatmapBtn.click(function() {
+      window.lits.toggleVillageHeatmap();
+   });
+   jQuery(document).ready(function(){
+      window.lits.loadingBox.show();
+      setTimeout(function(){
+         var formData = {
+            lits_market:{
+               ids:[
+                  "lits_market*lits_market_animal_details*animal_details-eartag_number"
+               ],
+               latitude: "lits_market*lits_market_core*gps_coord-Latitude",
+               longitude: "lits_market*lits_market_core*gps_coord-Longitude",
+               locality: "lits_market*lits_market_core*which_current_market",
+               time: "lits_market*lits_market_core*start"
+            },
+            lits_slaughter:{
+               ids:[
+                  "lits_slaughter*lits_slaughter_animal_details*animal_details-eartag_number"
+               ],
+               latitude: "lits_slaughter*lits_slaughter_core*gps_coord-Latitude",
+               longitude: "lits_slaughter*lits_slaughter_core*gps_coord-Longitude",
+               locality: "lits_slaughter*lits_slaughter_core*which_slaughterhouse",
+               time: "lits_slaughter*lits_slaughter_core*start"
+            }
+         };
+         window.lits.setModBtnClicked(formData);
+      },5000);
+      window.lits.loadingBox.hide();
+   });
 }
+
+LITS.prototype.toggleVillageHeatmap = function() {
+   if(window.lits.heatmap._latlngs.length == 0) {//no villages in heatmap
+      window.lits.redrawHeatmap();
+      window.lits.showVillageHeatmapBtn.html("Hide source villages");
+   }
+   else {
+      window.lits.heatmap._latlngs = new Array();
+      window.lits.heatmap.redraw();
+      window.lits.showVillageHeatmapBtn.html("Show source villages");
+   }
+};
+
+LITS.prototype.redrawHeatmap = function() {
+   window.lits.heatmap._latlngs = new Array();
+   for(var index = 0; index < window.lits.villageCoords.length; index++) {
+      window.lits.heatmap._latlngs.push(window.lits.villageCoords[index]);
+   }
+   window.lits.heatmap.redraw();
+};
 
 /**
  * This method is called whenever the window is resized.
@@ -156,14 +237,21 @@ LITS.prototype.windowResized = function () {
    window.lits.genModCtnr.css("left", ((wWidth/2) - (window.lits.genModCtnr.width() / 2)) + "px");
    window.lits.genModCtnr.css("top", ((wHeight/2) - (window.lits.genModCtnr.height() / 2)) + "px");
    
-   if(window.lits.mvmtTimeline.is(":visible")){
-      var timelineMinHeight = wHeight * 0.1;
-   
-      window.lits.mvmtTimeline.css('top', (wHeight - timelineMinHeight) + "px");
-   }
-   
    window.lits.loadingBox.css("left", ((wWidth/2) - (window.lits.loadingBox.width() / 2)) + "px");
    window.lits.loadingBox.css("top", ((wHeight/2) - (window.lits.loadingBox.height() / 2)) + "px");
+   var mvmtWindowPos = {
+      y:(window.innerHeight/2 - window.lits.mvmtWindow.height()/2)+"px",
+      x:(window.innerWidth/2 - window.lits.mvmtWindow.width()/2)+"px"
+   };
+   window.lits.mvmtWindow.jqxWindow({height: window.innerHeight+"px", width: window.innerWidth+"px", position: mvmtWindowPos, theme: ''});
+   window.lits.showDataPointsBtn.css("top", "20px");
+   window.lits.showVillageHeatmapBtn.css("top", "60px");
+   window.lits.showAbnormalData.css("top", "100px");
+   var animalDetailsWindowPos = {
+      y:(window.innerHeight/2 - window.lits.animalDetailsWndw.height()/2)+"px",
+      x:(window.innerWidth/2 - window.lits.animalDetailsWndw.width()/2)+"px"
+   };
+   window.lits.animalDetailsWndw.jqxWindow({height: window.innerHeight+"px", width: window.innerWidth+"px", position: animalDetailsWindowPos, theme: ''});
 };
 
 /**
@@ -311,7 +399,6 @@ LITS.prototype.showIdModDiv = function(idIndex) {
       window.lits.idModName.val(window.lits.data.ids[idIndex]);
       window.lits.idModAddBtn.html("Modify");
    }
-   console.log("id index = ", idIndex);
    for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
       var formTables = window.lits.data.tmp.schemas[formIDs[formIndex]];
       
@@ -357,8 +444,6 @@ LITS.prototype.showIdModDiv = function(idIndex) {
 
 LITS.prototype.idModAddBtnClicked = function(){
    var idIndex = window.lits.idModIndex.val();
-   console.log("idIndex = ", idIndex);
-   
    var idName = window.lits.idModName.val();
    
    var trimRegex = /(^\s+)|(\s+$)/g;
@@ -389,10 +474,7 @@ LITS.prototype.idModAddBtnClicked = function(){
       
       for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
          var currFormRadio = jQuery("input:radio[name='"+formIDs[formIndex]+"']:checked");
-         
          var columnID = currFormRadio.val();
-         console.log("columnID is", columnID);
-         
          if(typeof columnID != 'undefined'){
             var columnIndexes = columnID.split("*");
             if(columnIndexes.length == 3){//means you have the form id, table name and column name
@@ -404,8 +486,6 @@ LITS.prototype.idModAddBtnClicked = function(){
                }
 
                window.lits.forms[columnIndexes[0]].ids[idIndex] = columnID;
-
-               console.log(window.lits.forms);
             }
             else {
                goodForHiding = false;
@@ -429,12 +509,8 @@ LITS.prototype.getAnimalData = function(animalIndex){
    var animal = window.lits.data.animals[animalIndex];
    
    var forms = window.lits.forms;
-   /*var animalData = window.lits.getDataFromServer("get_animal_data", false, {data:animal, forms: forms});
-   
-   window.lits.showAnimalData(animalData.data);*/
-   
-   window.lits.getDataFromServer("get_animal_data", true, {data:animal, forms: forms}, function(animalData){
-      window.lits.showAnimalData(animalData.data);
+   window.lits.getDataFromServer("get_animal_data", true, {data:animal, forms: forms, animal_index:animalIndex}, function(animalData){
+      window.lits.showAnimalData(animalData.data, animalData.animal_index);
    });
 };
 
@@ -444,7 +520,6 @@ LITS.prototype.cleanAnimalData = function(animalData){
     *       - columns that have null
     *       - meta columns (prefixed with a _)
     */
-   console.log(animalData);
    var formIDs = Object.keys(animalData);
    
    var cleanData = {};
@@ -476,17 +551,29 @@ LITS.prototype.cleanAnimalData = function(animalData){
    return cleanData;
 };
 
-LITS.prototype.showAnimalData = function(animalData) {
+LITS.prototype.showAnimalData = function(animalData, animalIndex) {
    var cAnimalData = window.lits.cleanAnimalData(animalData);
    
    var formIDs = Object.keys(cAnimalData);
    
    window.lits.animalDetails.empty();
-   
+   window.lits.animalDetailsWndw.jqxWindow("setTitle", "");
+   //add details on source village
+   if(typeof window.lits.data.animals[animalIndex].src_village.name == 'undefined'
+           || window.lits.data.animals[animalIndex].src_village.name == null
+           || window.lits.data.animals[animalIndex].src_village.name.length == 0) {
+      window.lits.animalDetails.append("<div style='font-size: 20px; margin-top: 10px; margin-bottom: 5px;'>Source village unknown</div>");
+   }
+   else {
+      window.lits.animalDetails.append("<div style='font-size: 20px; margin-top: 10px; margin-bottom: 5px;'>Source village: "+window.lits.data.animals[animalIndex].src_village.name+"</div>");
+   }
+   var html = "";
    for(var fIndex = 0; fIndex < formIDs.length; fIndex++){
       var formHTML = "<div>";
-      formHTML = formHTML + "<div style='font-style:bold; font-size:14px;'>" + formIDs[fIndex] + "</div>";
-      
+      var formName = formIDs[fIndex];
+      if(formIDs[fIndex] == "lits_market") formName = "Data from Markets";
+      else if(formIDs[fIndex] == "lits_slaughter") formName = "Data from Slaughterhouse";
+      formHTML = formHTML + "<div id='form_data_"+formIDs[fIndex]+"' style='font-size: 20px; margin-top: 10px; margin-bottom: 5px;'>" + formName + "</div>";
       var columns = {};
       var rows = cAnimalData[formIDs[fIndex]];
       //go through all the rows and move the data to the columns object
@@ -512,7 +599,9 @@ LITS.prototype.showAnimalData = function(animalData) {
       for(var rIndex = 0; rIndex < rows.length; rIndex++){
          tHTML = tHTML + "<tr>";
          for(var cIndex = 0; cIndex < columnNames.length; cIndex++){
-            tHTML = tHTML + "<td>" + columns[columnNames[cIndex]][rIndex] + "</td>";
+            var value = columns[columnNames[cIndex]][rIndex];
+            if(typeof value == "undefine") value = "";
+            tHTML = tHTML + "<td>" + value + "</td>";
          }
          tHTML = tHTML + "</tr>";
       }
@@ -521,15 +610,25 @@ LITS.prototype.showAnimalData = function(animalData) {
       
       formHTML = formHTML + tHTML + "</div>";
       
-      window.lits.animalDetails.append(formHTML);
+      //window.lits.animalDetails.append(formHTML);
+      html = html + formHTML;
    }
    
    var wWidth = window.innerWidth;
    var wHeight = window.innerHeight;
    
-   window.lits.animalDetails.css("left", (wWidth/2 - window.lits.animalDetails.width()/2)+"px");
-   window.lits.animalDetails.css("top", (wHeight/2 - window.lits.animalDetails.height()/2)+"px");
-   window.lits.animalDetails.show();
+   /*window.lits.animalDetails.css("left", (wWidth - window.lits.animalDetails.width() - 100)+"px");
+   window.lits.animalDetails.css("top", "0px");*/
+   window.lits.animalDetailsWndw.jqxWindow("setContent", html);
+   var animalDetailsWindowPos = {
+      y:(window.innerHeight - window.lits.animalDetailsWndw.height() - 100)+"px",
+      x:(window.innerWidth - window.lits.animalDetailsWndw.width() - 100)+"px"
+   };
+   window.lits.animalDetailsWndw.jqxWindow({height: "250px"});
+   window.lits.animalDetailsWndw.jqxWindow("setTitle", window.lits.data.animals[animalIndex].ids[0]);
+   window.lits.animalDetails.css("height", "88%");
+   window.lits.animalDetailsWndw.show();
+   window.lits.visualizeAnimalData([window.lits.data.animals[animalIndex]]);
 };
 
 LITS.prototype.setModLocLatClicked = function() {
@@ -617,7 +716,6 @@ LITS.prototype.genModAddBtnClicked = function(){
       var currFormRadio = jQuery("input:radio[name='"+formIDs[formIndex]+"']:checked");
 
       var columnID = currFormRadio.val();
-      console.log("columnID is", columnID);
 
       if(typeof columnID != 'undefined'){
          var columnIndexes = columnID.split("*");
@@ -630,7 +728,6 @@ LITS.prototype.genModAddBtnClicked = function(){
             
             if(mode == "Latitude"){//try automatically setting longitude
                var latRegex = /_LAT$/g;
-               console.log("lat regex = ", columnID.match(latRegex));
                
                if(columnID.match(latRegex) != null){
                   var lonColumn = columnID.replace(latRegex, '_LNG');
@@ -651,8 +748,6 @@ LITS.prototype.genModAddBtnClicked = function(){
                   pairSet = false;
                }
             }
-
-            console.log(window.lits.forms);
          }
          else {
             goodForHiding = false;
@@ -665,9 +760,6 @@ LITS.prototype.genModAddBtnClicked = function(){
    
    if(goodForHiding){
       window.lits.genModCtnr.hide();
-      
-      console.log("mode = ", mode);
-      
       if(mode == "Latitude"){
          window.lits.setModLocLat.html("Latitude: Set");
          
@@ -688,49 +780,45 @@ LITS.prototype.genModAddBtnClicked = function(){
       else if(mode == "Locality"){
          window.lits.setModLocalityValue.html("Set");
       }
-      
-      console.log(window.lits.forms);
    }
 };
 
 
-LITS.prototype.setModBtnClicked = function() {
-   //check if longitude, latitude, time and ids are set
-   if(window.lits.data.ids.length == 0){
-      console.log("user needs to add at least one id");
-      return;
+LITS.prototype.setModBtnClicked = function(formData) {
+   if(typeof formData == 'undefined') {
+      //check if longitude, latitude, time and ids are set
+      if(window.lits.data.ids.length == 0){
+         console.log("user needs to add at least one id");
+         return;
+      }
+
+      var formIDs = Object.keys(window.lits.forms);
+
+      if(formIDs.length == 0){
+         console.log("No forms.. that's odd");
+         return;
+      }
+
+      if(typeof window.lits.forms[formIDs[0]].longitude == 'undefined' || window.lits.forms[formIDs[0]].longitude.length == 0){//going with the assumption that if longitude is set for one form then it is set for all other forms
+         console.log("user needs to set longitude");
+         return;
+      }
+      if(typeof window.lits.forms[formIDs[0]].latitude == 'undefined' || window.lits.forms[formIDs[0]].latitude.length == 0){
+         console.log("user needs to set latitude");
+         return;
+      }
+      if(typeof window.lits.forms[formIDs[0]].time == 'undefined' || window.lits.forms[formIDs[0]].time.length == 0){
+         console.log("user needs to set time");
+         return;
+      }
+      if(typeof window.lits.forms[formIDs[0]].locality == 'undefined' || window.lits.forms[formIDs[0]].locality.length == 0){
+         console.log("user needs to set locality");
+         return;
+      }
    }
-   
-   var formIDs = Object.keys(window.lits.forms);
-   
-   if(formIDs.length == 0){
-      console.log("No forms.. that's odd");
-      return;
+   else {
+      window.lits.forms = formData;
    }
-   
-   if(typeof window.lits.forms[formIDs[0]].longitude == 'undefined' || window.lits.forms[formIDs[0]].longitude.length == 0){//going with the assumption that if longitude is set for one form then it is set for all other forms
-      console.log("user needs to set longitude");
-      return;
-   }
-   if(typeof window.lits.forms[formIDs[0]].latitude == 'undefined' || window.lits.forms[formIDs[0]].latitude.length == 0){
-      console.log("user needs to set latitude");
-      return;
-   }
-   if(typeof window.lits.forms[formIDs[0]].time == 'undefined' || window.lits.forms[formIDs[0]].time.length == 0){
-      console.log("user needs to set time");
-      return;
-   }
-   if(typeof window.lits.forms[formIDs[0]].locality == 'undefined' || window.lits.forms[formIDs[0]].locality.length == 0){
-      console.log("user needs to set locality");
-      return;
-   }
-   
-   //if we've come this far, everything is fine
-   
-   /*var formData = window.lits.getDataFromServer("get_form_data", false, {forms: window.lits.forms});
-   window.lits.genAnimalArray(formData.data);
-   window.lits.setModCtnr.hide();*/
-   
    window.lits.getDataFromServer("get_form_data", true, {forms: window.lits.forms}, function(formData){
       window.lits.genAnimalArray(formData.data);
       window.lits.setModCtnr.hide();
@@ -740,25 +828,21 @@ LITS.prototype.setModBtnClicked = function() {
 
 LITS.prototype.genAnimalArray = function(formData) {
    var formIDs = Object.keys(window.lits.forms);
-   
+   console.log(formData);
    for(var formIndex = 0; formIndex < formIDs.length; formIndex++){
       var currFormData = formData[formIDs[formIndex]];
-      
-      console.log("*********** forms = ", window.lits.forms);
-      console.log("formID = ", formIDs[formIndex]);
-      
       var formsIDs = window.lits.forms[formIDs[formIndex]].ids;
-      
       for(var rowIndex = 0; rowIndex < currFormData.length; rowIndex++){
          //get the index of the animal ids in this row
          var latitude = currFormData[rowIndex].latitude;
          var longitude = currFormData[rowIndex].longitude;
          var time = currFormData[rowIndex].time;
          var locality = currFormData[rowIndex].locality;
-         
+         var srcVillageName = currFormData[rowIndex].src_village_name;
+         var srcVillageLat = currFormData[rowIndex].src_village_lat;
+         var srcVillageLon = currFormData[rowIndex].src_village_lon;
          var ids = new Array();
          for(var idIndex = 0; idIndex < formsIDs.length; idIndex++){
-            console.log("currFormData[rowIndex][formsIDs[idIndex]] = ", currFormData[rowIndex][formsIDs[idIndex]]);
             ids[idIndex] = currFormData[rowIndex][formsIDs[idIndex]];
          }
          
@@ -767,9 +851,42 @@ LITS.prototype.genAnimalArray = function(formData) {
          for(var animIndex = 0; animIndex < window.lits.data.animals.length; animIndex++){
             var compIDs = window.lits.data.animals[animIndex].ids;
             if(jQuery(compIDs).not(ids).length == 0 && jQuery(ids).not(compIDs).length == 0 ){
-               console.log("they match");
                window.lits.addPointToAnimal(animIndex, {time: time, locality: locality, latitude:latitude, longitude:longitude});
-               
+               if(typeof srcVillageName != 'undefined' && srcVillageName != null) {
+                  window.lits.data.animals[animIndex].src_village.name = srcVillageName;
+               }
+               if(typeof srcVillageLat != 'undefined' && srcVillageLat != null
+                       && typeof srcVillageLon != 'undefined' && srcVillageLon != null) {
+                  window.lits.data.animals[animIndex].src_village.latitude = srcVillageLat;
+                  window.lits.data.animals[animIndex].src_village.longitude = srcVillageLon;
+               }
+               /*if(typeof muscle != 'undefined' && muscle != null && muscle.length > 0) {
+                  currAnimal.results.muscle = muscle;
+               }
+               if(typeof kidney != 'undefined' && kidney != null && kidney.length > 0) {
+                  currAnimal.results.kidney = kidney;
+               }
+               if(typeof liver != 'undefined' && liver != null && liver.length > 0) {
+                  currAnimal.results.liver = liver;
+               }
+               if(typeof spleen != 'undefined' && spleen != null && spleen.length > 0) {
+                  currAnimal.results.spleen = spleen;
+               }*/
+               if(formIDs[formIndex] == "lits_slaughter") {
+                  window.lits.data.animals[animIndex].results = {
+                     muscle: currFormData[rowIndex].muscle,
+                     kidney: currFormData[rowIndex].kidney,
+                     liver: currFormData[rowIndex].liver,
+                     spleen: currFormData[rowIndex].spleen
+                  };
+               }
+               if(typeof window.lits.data.animals[animIndex].results != 'undefined' 
+                       && (window.lits.data.animals[animIndex].results.muscle == "abnormal" 
+                       || window.lits.data.animals[animIndex].results.kidney == "abnormal" 
+                       || window.lits.data.animals[animIndex].results.spleen == "abnormal" 
+                       || window.lits.data.animals[animIndex].results.liver == "abnormal")) {
+                  window.lits.abnormalResults[window.lits.abnormalResults.length] = animIndex;
+               }
                found = true;
                break;
             }
@@ -779,30 +896,85 @@ LITS.prototype.genAnimalArray = function(formData) {
             var currAnimal = {};
             currAnimal.ids = ids;
             currAnimal.points = new Array();
-            currAnimal.points.push({time: time, locality: locality, latitude:latitude, longitude:longitude});
-            
+            currAnimal.points.push({
+               time: time,
+               locality: locality,
+               latitude:latitude,
+               longitude:longitude,
+            });
+            currAnimal.src_village = {
+               name: srcVillageName,
+               latitude: srcVillageLat,
+               longitude: srcVillageLon
+            };
+            /*currAnimal.results = {
+               muscle: muscle,
+               kidney: kidney,
+               liver: liver,
+               spleen: spleen
+            };*/
+            if(formIDs[formIndex] == "lits_slaughter") {
+               currAnimal.results = {
+                  muscle: currFormData[rowIndex].muscle,
+                  kidney: currFormData[rowIndex].kidney,
+                  liver: currFormData[rowIndex].liver,
+                  spleen: currFormData[rowIndex].spleen
+               };
+            }
+            if(typeof currAnimal.results != 'undefined' && (currAnimal.results.muscle == "abnormal" || currAnimal.results.kidney == "abnormal" || currAnimal.results.spleen == "abnormal" || currAnimal.results.liver == "abnormal")) {
+               window.lits.abnormalResults[window.lits.abnormalResults.length] = window.lits.data.animals.length;
+            }
             window.lits.data.animals.push(currAnimal);
          }
       }
    }
-   
-   //console.log(window.lits.data.animals);
    window.lits.visualizeAnimalData();
+};
+
+LITS.prototype.visualizeAbnormalResults = function() {
+   var animals = [];
+   if(window.lits.abnormalResShowing == false) {
+      window.lits.searchCanvas.html("");
+      window.lits.showAbnormalData.html("Show all animals");
+      for(var index = 0; index < window.lits.abnormalResults.length; index++){
+         animals[animals.length] = window.lits.data.animals[window.lits.abnormalResults[index]];
+         window.lits.searchCanvas.append("<div id='res_"+window.lits.abnormalResults[index]+"' class='lits_search_res'>" + window.lits.data.animals[window.lits.abnormalResults[index]].ids[0] + "</div>");
+
+         jQuery("#res_"+window.lits.abnormalResults[index]).click({animalIndex:window.lits.abnormalResults[index]},function(e) {
+            var animIndex = e.data.animalIndex;
+            window.lits.getAnimalData(animIndex);
+
+         });
+
+         jQuery("#res_"+window.lits.abnormalResults[index]).mouseover(function(){
+            jQuery(this).css("text-decoration", "underline");
+         });
+
+         jQuery("#res_"+window.lits.abnormalResults[index]).mouseout(function(){
+            jQuery(this).css("text-decoration", "none");
+         });
+      }
+      window.lits.searchCanvas.show();
+      window.lits.visualizeAnimalData(animals);
+      window.lits.abnormalResShowing = true;
+   }
+   else {
+      window.lits.searchCanvas.hide();
+      window.lits.showAbnormalData.html("Track sick animals");
+      window.lits.visualizeAnimalData();
+      window.lits.abnormalResShowing = false;
+   }
 };
 
 LITS.prototype.addPointToAnimal = function(animalIndex, point) {
    
    if(window.lits.data.animals[animalIndex].points.length > 0){
-      console.log("about to push ", point, " into ", window.lits.data.animals[animalIndex].points);
       
       var added = false;
       
       for(var index = 0; index < window.lits.data.animals[animalIndex].points.length; index++){
          var pointDate = new Date(point.time);
          var currIndexDate = new Date(window.lits.data.animals[animalIndex].points[index].time);
-         
-         console.log("Comparing ", pointDate.getTime(), " with ", currIndexDate.getTime());
-         
          if(pointDate.getTime() < currIndexDate.getTime()){
             window.lits.data.animals[animalIndex].points.splice(index, 0, point);
             added = true;
@@ -813,8 +985,6 @@ LITS.prototype.addPointToAnimal = function(animalIndex, point) {
       if(added == false){
          window.lits.data.animals[animalIndex].points.push(point);
       }
-      
-      console.log("points after push = ", window.lits.data.animals[animalIndex].points);
    }
    else {
       window.lits.data.animals[animalIndex].points.push(point);
@@ -826,39 +996,59 @@ LITS.prototype.initMap = function() {
    //init the map object
    window.lits.map = L.map(window.lits.mapCanvas[0].id, {
       center: location,
-      zoom: 6
+      zoom: 8
    });
    
    L.tileLayer( 'http://{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="http://osm.org/copyright" title="OpenStreetMap" target="_blank">OpenStreetMap</a> contributors | Tiles Courtesy of <a href="http://www.mapquest.com/" title="MapQuest" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png" width="16" height="16">',
       subdomains: ['otile1','otile2','otile3','otile4']
    }).addTo( window.lits.map );
+   window.lits.heatmap = L.heatLayer([],{
+      radius:60
+   }).addTo(window.lits.map);
+   window.lits.locations = L.geoJson.ajax("../js/models/kenya_locations.json",{ style: {
+    "color": "#ff7800",
+    "weight": 1,
+    "opacity": 0.4,
+    "stroke-width": 1,
+   }}).addTo(window.lits.map);
 };
 
 LITS.prototype.visualizeAnimalData = function(animalData){
    var data = animalData;
-   
+   window.clearTimeout(window.lits.visSearchTimeout);
    if(typeof data == 'undefined'){
       data = window.lits.data.animals;
    }
-   
-   
+   var panLocation = null;
    var maxTimeDiff = 0;
+   window.lits.clearMap();
+   window.lits.mvmtWindow.hide();
+   window.lits.villageCoords = [];
+   var mvmntTimelineData = [];
    for(var animIndex = 0; animIndex < data.length; animIndex++){
       var currAnimal = data[animIndex];
-      
+      var timelineData = {
+         ids: currAnimal.ids,
+         no_points: currAnimal.points.length
+      };
+      mvmntTimelineData[mvmntTimelineData.length] = timelineData;
+      if(animIndex == Math.floor(data.length/2)) {
+         var pIndex = Math.floor(currAnimal.points.length/2);
+         if(currAnimal.points[pIndex].latitude.length > 0 && currAnimal.points[pIndex].longitude.length > 0) {
+            panLocation = new L.LatLng(currAnimal.points[pIndex].latitude, currAnimal.points[pIndex].longitude);
+         }
+      }
       if(currAnimal.points.length > 1){
-         
          var timeDiff = new Date(currAnimal.points[currAnimal.points.length - 1].time).getTime() - new Date(currAnimal.points[0].time).getTime();
-         
          if(timeDiff > maxTimeDiff) maxTimeDiff = timeDiff;
-         
          var pointList = new Array();
          for(var pointIndex = 0; pointIndex < currAnimal.points.length; pointIndex++){
-            pointList.push(new L.LatLng(currAnimal.points[pointIndex].latitude, currAnimal.points[pointIndex].longitude));
+            if(currAnimal.points[pointIndex].latitude.length > 0 && currAnimal.points[pointIndex].longitude.length > 0) {
+               window.lits.addMarker(new L.LatLng(currAnimal.points[pointIndex].latitude, currAnimal.points[pointIndex].longitude), currAnimal.points[pointIndex].locality);
+               pointList.push(new L.LatLng(currAnimal.points[pointIndex].latitude, currAnimal.points[pointIndex].longitude));
+            }
          }
-
-         console.log("pointList", pointList);
 
          var animPolyline = new L.Polyline(pointList, {
             color: 'red',
@@ -866,20 +1056,90 @@ LITS.prototype.visualizeAnimalData = function(animalData){
             opacity: 0.5,
             smoothFactor: 1
          });
-
-         animPolyline.addTo(window.lits.map);
+         animPolyline.on('mouseover', function () {
+            this.setText('  ►  ', {repeat: true, attributes: {fill: 'blue', 'font-size': 14}});
+         });
+         animPolyline.on('mouseout', function () {
+            this.setText(null);
+         });
+         //animPolyline.addTo(window.lits.map);
+         window.lits.map.addLayer(animPolyline);
+         window.lits.polylines[window.lits.polylines.length] = animPolyline;
+         //add markers for the first and last points in the polyline
+         //first check if the marker is already labeled
+         /*window.lits.addMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude), currAnimal.points[0].locality);
+         window.lits.addMarker(new L.LatLng(currAnimal.points[currAnimal.points.length - 1].latitude, currAnimal.points[currAnimal.points.length - 1].longitude), currAnimal.points[currAnimal.points.length - 1].locality);*/
       }
       else {
-         var circleMarker = new L.CircleMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude));
-         circleMarker.setRadius(2);
-         circleMarker.addTo(window.lits.map);
+         if(currAnimal.points[0].latitude.length > 0 && currAnimal.points[0].longitude.length > 0) {
+            window.lits.addMarker(new L.LatLng(currAnimal.points[0].latitude, currAnimal.points[0].longitude), currAnimal.points[0].locality);
+         }
+      }
+      //add village coordinates to village coords array
+      if(typeof currAnimal.src_village.latitude != 'undefined'
+              && currAnimal.src_village.latitude != null
+              && currAnimal.src_village.latitude.length > 0
+              && typeof currAnimal.src_village.longitude != 'undefined'
+              && currAnimal.src_village.longitude != null
+              && currAnimal.src_village.longitude.length > 0){
+         window.lits.villageCoords[window.lits.villageCoords.length] = new L.LatLng(currAnimal.src_village.latitude, currAnimal.src_village.longitude);
+         window.lits.addMarker(new L.LatLng(currAnimal.src_village.latitude, currAnimal.src_village.longitude), currAnimal.src_village.name);
+      }
+      if(data.length == 1) {//showing only details for one animal
+        window.lits.showSrcVillage(currAnimal); 
       }
    }
-   
-   window.lits.populateTimeline(maxTimeDiff);
-   
+   if(panLocation != null) {
+      window.lits.map.panTo(panLocation);
+   }
+   window.lits.mvmtData = mvmntTimelineData;
+   //TODO: make the timeline more interesting
    window.lits.searchBox.show();
+   window.lits.showDataPointsBtn.show();
+   window.lits.showVillageHeatmapBtn.show();
+   window.lits.showAbnormalData.show();
+   window.lits.redrawHeatmap();
 };
+
+LITS.prototype.showSrcVillage = function(animal) {
+   if(typeof animal.src_village.name != 'undefined'
+           && animal.src_village.name != null
+           && animal.src_village.name.length > 0) {
+      if(typeof animal.src_village.latitude != 'undefined'
+           && animal.src_village.latitude != null
+           && animal.src_village.latitude.length > 0
+           && animal.src_village.longitude.length > 0) {
+           window.lits.addMarker(new L.LatLng(animal.src_village.latitude, animal.src_village.longitude), animal.src_village.name);
+      }
+   }
+};
+
+LITS.prototype.addMarker = function(latLnt, label) {
+   var circleMarker = null;
+   if(label != null && $.inArray(label, window.lits.localityLabels) === -1) {
+      circleMarker = new L.CircleMarker(latLnt).bindLabel(label, {noHide: true});
+      window.lits.localityLabels[window.lits.localityLabels.length] = label;
+   }
+   else {
+      circleMarker = new L.CircleMarker(latLnt);
+   }
+   circleMarker.setRadius(4);
+   circleMarker.addTo(window.lits.map);
+   //window.lits.map.addLayer(circleMarker);
+   window.lits.markers[window.lits.markers.length] = circleMarker;
+};
+
+LITS.prototype.clearMap = function() {
+   for(var index = 0; index < window.lits.polylines.length; index++) {
+      window.lits.map.removeLayer(window.lits.polylines[index]);
+   }
+   window.lits.polylines = [];
+   for(var index = 0; index < window.lits.markers.length; index++) {
+      window.lits.map.removeLayer(window.lits.markers[index]);
+   }
+   window.lits.markers = [];
+   window.lits.localityLabels = [];
+}
 
 /**
  * This method facilitates the searching of animal IDs in the window.lits.data.animals object
@@ -890,18 +1150,30 @@ LITS.prototype.visualizeAnimalData = function(animalData){
 LITS.prototype.search = function(query) {
    
    var results = new Array();
-   
+   window.lits.searchResults = [];
+   var maxResults = 30;
    for(var animIndex = 0; animIndex < window.lits.data.animals.length; animIndex++){
       var currAnimal =  window.lits.data.animals[animIndex];
       
       var animScore = 0;
-      
+      //search the animal ids
       for(var idIndex = 0; idIndex < currAnimal.ids.length; idIndex++){
          var score = window.lits.fuzzySearch(currAnimal.ids[idIndex], query);
          
          animScore = animScore + score;
       }
+      //search the locality
+      for(var pointIndex = 0; pointIndex < currAnimal.points.length; pointIndex++){
+         var score = window.lits.fuzzySearch(currAnimal.points[pointIndex].locality, query);
+         animScore = animScore + score;
+      }
       
+      //search source village
+      if(typeof currAnimal.src_village.name != 'undefined'
+              && currAnimal.src_village.name != null
+              && currAnimal.src_village.name.length > 0) {
+         animScore = animScore + window.lits.fuzzySearch(currAnimal.src_village.name, query);
+      }
       if(animScore > 0) {
          var inserted = false;
          for(var resIndex = 0; resIndex < results.length; resIndex++){
@@ -914,11 +1186,26 @@ LITS.prototype.search = function(query) {
 
          if(inserted == false){
             results.push({score:animScore, animalIndex:animIndex});
+            window.lits.searchResults[window.lits.searchResults.length] = currAnimal;
          }
+      }
+      if(results.length > maxResults) {
+         break;
       }
    }
    
    window.lits.showSearchResults(results);
+   window.clearTimeout(window.lits.visSearchTimeout);
+   window.lits.visSearchTimeout = window.setTimeout(function(){window.lits.visualizeSearchResults();}, 500);
+};
+
+LITS.prototype.visualizeSearchResults = function() {
+   if(window.lits.searchResults.length  > 0) {
+      window.lits.visualizeAnimalData(window.lits.searchResults);
+   }
+   else {
+      window.lits.visualizeAnimalData();
+   }
 };
 
 /**
@@ -928,8 +1215,6 @@ LITS.prototype.search = function(query) {
  * @returns {undefined}
  */
 LITS.prototype.showSearchResults = function (results) {
-   
-   console.log("search results = ",results);
    
    if(results.length > 0){
       window.lits.searchCanvas.show();
@@ -946,12 +1231,20 @@ LITS.prototype.showSearchResults = function (results) {
             else idText = window.lits.data.ids[idIndex] + ": " + animal.ids[idIndex]; 
          }
       }
-      
+      if(typeof animal.src_village.name != 'undefined'
+              && animal.src_village.name != null
+              && animal.src_village.name.length > 0) {
+         idText = idText+" *";
+      }
+      if(typeof animal.src_village.latitude != 'undefined'
+              && animal.src_village.latitude != null
+              && animal.src_village.latitude.length > 0) {
+         idText = idText+"*";
+      }
       window.lits.searchCanvas.append("<div id='res_"+results[resIndex].animalIndex+"' class='lits_search_res'>" + idText + "</div>");
       
       jQuery("#res_"+results[resIndex].animalIndex).click({animalIndex:results[resIndex].animalIndex},function(e) {
          var animIndex = e.data.animalIndex;
-         
          window.lits.getAnimalData(animIndex);
          
       });
@@ -976,84 +1269,66 @@ LITS.prototype.fuzzySearch = function(string, query){
          return (query.length/string.length) * score;
       }
    }
-   
-   else {
-      return 0;
-   }
+   return 0;
 };
 
-LITS.prototype.populateTimeline = function(maxTimeDiff) {
-   
-   console.log("maxTimeDiff = ", maxTimeDiff);
-   
-   window.lits.mvmtTimeline.empty();
-   
-   var maxAnimalsTimeline = 20;
-   
-   var lastIndex = window.lits.data.tmp.mvmntLastIndex + maxAnimalsTimeline;
-   
-   var tWidth = window.lits.mvmtTimeline.width();
-   
-   var timeDiffWidth = 0;
-   if(maxTimeDiff > 0){
-      timeDiffWidth = (tWidth - 200) / maxTimeDiff;
-      
-      console.log("timeDiffWidth = ", timeDiffWidth);
-   }
-   
-   var noTimelineAnims = maxAnimalsTimeline;
-   if(window.lits.data.animals.length < noTimelineAnims){
-      noTimelineAnims = window.lits.data.animals.length;
-   }
-   
-   var timelineHeight = noTimelineAnims * 20;
-   
-   window.lits.mvmtTimeline.css("height", timelineHeight + "px");
-   
-   for(var index = (window.lits.data.tmp.mvmntLastIndex + 1); index <= lastIndex && index < window.lits.data.animals.length; index++){
-      var currAnimal = window.lits.data.animals[index];
-         
-      var lineWidth = (new Date(currAnimal.points[currAnimal.points.length - 1].time).getTime() - new Date(currAnimal.points[0].time).getTime()) * timeDiffWidth;
-      console.log("lineWidth = ", lineWidth);
-      
-      var lineDiv = "<div style='height:1px; width="+lineWidth+"px; background-color:blue;'></div><br />";
-      
-      //window.lits.mvmtTimeline.append(lineDiv);
-      
-      for(var pointIndex = 0; pointIndex < currAnimal.points.length; pointIndex++){
-         var left = (new Date(currAnimal.points[pointIndex].time).getTime() - new Date(currAnimal.points[0].time).getTime()) * timeDiffWidth;      
-         
-         var top = index * (100 / noTimelineAnims);
-         
-         var pointTime = new Date(currAnimal.points[pointIndex].time).getTime();
-         
-         var pointHTML = "<div id="+index+"_"+pointTime+" class='mvmt_point' style='left:"+left+"px; top:"+top+"%'></div>";
-         
-         window.lits.mvmtTimeline.append(pointHTML);
-         
-         
-         var tmpData = currAnimal.points[pointIndex];
-         tmpData.ids = currAnimal.ids;
-         
-         jQuery("#"+index+"_"+pointTime).mouseover({data:tmpData}, function(e){
-            var data = e.data.data;
-            console.log("data = ", e);
-            
-            window.lits.showTooltip(data, {left:(e.pageX + 20)+"px", top:(e.pageY - 80)+"px"});
-         });
-         
-         jQuery("#"+index+"_"+pointTime).mouseout(function(){
-            window.lits.tooltip.hide();
-         });
+LITS.prototype.populateTimeline = function() {
+   window.lits.loadingBox.show();
+   if(window.lits.mvmtSettings == null) {
+      var timelineData = window.lits.mvmtData;
+      var data = [];
+      for(var index = 0; index < timelineData.length; index++) {
+         var currPoint = {
+            animal: timelineData[index].ids[0],
+            no_points: timelineData[index].no_points
+         };
+         data[index] = currPoint;
       }
+      // prepare jqxChart settings
+      var settings = {
+         title: "Number of contact points",
+         description: "",
+         enableAnimations: true,
+         animationDuration: 1000,
+         enableAxisTextAnimation: true,
+         showLegend: true,
+         padding: { left: 5, top: 5, right: 5, bottom: 5 },
+         titlePadding: { left: 0, top: 0, right: 0, bottom: 10 },
+         source: data,
+         xAxis:
+         {
+             dataField: "animal",
+             displayText: "Animal",
+             gridLines: {visible: false},
+             flip: false
+         },
+         valueAxis: {
+            flip: true,
+            minValue: 0
+         },
+         colorScheme: "scheme01",
+         seriesGroups:[{
+               type: 'column',
+               orientation: 'horizontal',
+               columnsGapPercent: 30,
+               seriesGapPercent: 0,
+               series: [
+                  { dataField: 'no_points', displayText: 'Number of points'},
+               ]}]
+      };
+      window.lits.mvmtSettings = settings;
+      window.lits.mvmtTimeline.jqxChart(window.lits.mvmtSettings);
    }
-   
-   window.lits.showMvmtTimeline();
+   else {
+      window.lits.mvmtSettings.source = window.lits.mvmtData;
+      window.lits.mvmtTimeline.jqxChart("refresh");
+   }
+   // create the chart
+   window.lits.mvmtWindow.show();
+   window.lits.loadingBox.hide();
 };
 
 LITS.prototype.showTooltip = function(data, position){
-   console.log("position = ", position);
-   
    window.lits.tooltip.empty();
    window.lits.tooltip.show();
    
@@ -1072,20 +1347,6 @@ LITS.prototype.showTooltip = function(data, position){
    window.lits.tooltip.append(html);
 };
 
-LITS.prototype.showMvmtTimeline = function() {
-   var windowHeight = window.innerHeight;
-   
-   var top = windowHeight - window.lits.mvmtTimeline.height();
-   
-   window.lits.mvmtTimeline.show();
-   
-   window.lits.mvmtTimeline.animate({
-      'top' : top + "px"
-   }, 200);
-   
-   
-};
-
 /**
  * This method is responsible for performing ajax requests
  * 
@@ -1101,14 +1362,12 @@ LITS.prototype.getDataFromServer = function(uri, async, data, onComplete) {
    
    var fullURL = window.lits.serverURL + uri;
    var returnData = {};
-   console.log(fullURL);
    jQuery.ajax ({
       url: fullURL,
       type: 'POST',
       async: async,
       data: data
    }).done(function(data){
-//      console.log("data from server = ", data);
       var jsonObject = jQuery.parseJSON(data);
 
       if(typeof onComplete !== 'undefined') {
