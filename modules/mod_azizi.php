@@ -864,6 +864,19 @@ class Azizi{
          $res['collection'] = 'stabilates';
          die(json_encode(array('error' => false, 'data' => $res), JSON_NUMERIC_CHECK));
       }
+      else if($ids[1] == 'cculture') {
+         $database = Config::$stabilatesDb;
+         $query = "select culture_name, cell_type_details, animal_id, history, date_stored, no_vials, growth_medium, storage_medium, reference_cultures, comments"
+               . " from $database.cultures"
+               . " where id = :id";
+         $fetchedRows = $this->Dbase->ExecuteQuery($query, array("id" => $ids[2]));
+         
+         if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         //we are all good. lets return this data
+         $fetchedRows[0]['collection'] = 'cell_cultures';
+         
+         die(json_encode(array('error' => false, 'data' => $fetchedRows[0]), JSON_NUMERIC_CHECK));
+      }
    }
 
    /**

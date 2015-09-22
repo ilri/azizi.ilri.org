@@ -530,7 +530,7 @@ var Azizi = {
       if(t.storage_medium !== null) others += sprintf("  <span>Storage Med.: %s</span>", t.storage_medium);
       access = 'open-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
-         <a href='javascript:;' class='cell_culture_%s'>Cell culture: <span>%s:</span><span>%s,</span> %s</a>\n\
+         <a href='javascript:;' class='cculture_%s'>Cell culture: <span>%s:</span><span>%s,</span> %s</a>\n\
       </div>\n\
       <div class='second_line'>\n\
          %s\n\
@@ -581,6 +581,10 @@ var Azizi = {
             else if(data.data.collection === 'azizi'){
                Azizi.showSampleDetails(data);
             }
+            else if(data.data.collection === 'cell_cultures') {
+               console.log("called");
+               Azizi.showCellCultureDetails(data);
+            }
          }
       });
    },
@@ -605,6 +609,31 @@ var Azizi = {
       }
       else {
          html = html + "<tr><td><span class='result_lables'>All data open: </span></td><td>No</td></tr>";
+      }
+      html = html + "</table>";
+      
+      $('#results .right').html(html);
+   },
+
+   showCellCultureDetails: function(data){
+      var months = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+      console.log("showSampleDetails called");
+      var sample = data.data;
+      
+      var date = new Date(sample.date_stored);
+      var dateString = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
+      var html = "<table class='search_details' style='font-size: 17px;margin-top: 50px;'>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Culture name: </span></td><td>"+sample.culture_name+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Cell type: </span></td><td>"+sample.cell_type_details+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Animal: </span></td><td>"+sample.animal_id+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>No. of Vials: </span></td><td>"+sample.no_vials+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Growth medium: </span></td><td>"+sample.growth_medium+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Storage medium: </span></td><td>"+sample.storage_medium+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Ref cultures: </span></td><td>"+sample.reference_cultures+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>History: </span></td><td>"+sample.history+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Date collected: </span></td><td>"+dateString+"</td></tr>";//get the date, discard the time
+      if(sample.comments != null){
+         html = html + "<tr><td colspan='2'>" + sample.comments + "</td></tr>";
       }
       html = html + "</table>";
       
