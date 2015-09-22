@@ -72,6 +72,7 @@ function LITS() {
    window.lits.showAbnormalData.hide();
    window.lits.tooltip = jQuery("#mvmt_ttip");
    window.lits.heatmap = null;
+   window.lits.locations = null;
    window.lits.villageCoords = [];
    window.lits.searchResults = [];
    window.lits.abnormalResults = [];
@@ -1005,6 +1006,12 @@ LITS.prototype.initMap = function() {
    window.lits.heatmap = L.heatLayer([],{
       radius:60
    }).addTo(window.lits.map);
+   window.lits.locations = L.geoJson.ajax("../js/models/kenya_locations.json",{ style: {
+    "color": "#ff7800",
+    "weight": 1,
+    "opacity": 0.4,
+    "stroke-width": 1,
+   }}).addTo(window.lits.map);
 };
 
 LITS.prototype.visualizeAnimalData = function(animalData){

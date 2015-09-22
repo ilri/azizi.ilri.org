@@ -415,6 +415,7 @@ else {
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/label/leaflet.label.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.textpath.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet-heat.js"></script>';?>
+      <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'leaflet/leaflet.ajax.min.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxcore.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxdraw.js"></script>';?>
       <?php echo '<script src="'.OPTIONS_COMMON_FOLDER_PATH.'jquery/jqwidgets/jqxdata.js"></script>';?>
