@@ -27,7 +27,7 @@ class LITS {
       $this->Dbase->InitializeLogs();
       
       //Config::$config['user'] = Config::$config['ro_user']; Config::$config['pass'] = Config::$config['ro_pass'];
-      Config::$config['dbase'] = Config::$config['odk_db'];
+      Config::$config['dbase'] = Config::$config['session_dbase'];
       
       $this->Dbase->InitializeConnection();
       
