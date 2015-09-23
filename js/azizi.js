@@ -417,6 +417,7 @@ var Azizi = {
          if(t.collection === 'samples') Azizi.displayAziziSamples(t);
          else if(t.collection === 'stabilates') Azizi.displayStabilatesSamples(t);
          else if(t.collection === 'cell_cultures') Azizi.displayCellCulture(t);
+         else if(t.collection === 'tstabilates') Azizi.displayTickStabilate(t);
       }
 
       //construct the aziiiizi tings
@@ -489,6 +490,12 @@ var Azizi = {
          $('#results_count').empty();
       }
    },
+   
+   getDateString: function(rawDateString) {
+      var date = new Date(rawDateString);
+      var months = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+      return date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
+   },
 
    /**
     * Displays a sample from the stabilate database
@@ -501,8 +508,8 @@ var Azizi = {
       var content = '', others, access;
       /*Cater for the stabilates*/
       if(t.locality !== null) others += sprintf("  <span>Loc: %s</span>", t.locality);
-      if(t.isolation_date !== null) others += sprintf("  <span>Iso. Date: %s</span>", t.isolation_date);
-      if(t.preservation_date !== null) others += sprintf("  <span>Pres. Date: %s</span>", t.preservation_date);
+      if(t.isolation_date !== null) others += sprintf("  <span>Iso. Date: %s</span>", Azizi.getDateString(t.isolation_date));
+      if(t.preservation_date !== null) others += sprintf("  <span>Pres. Date: %s</span>", Azizi.getDateString(t.preservation_date));
       if(t.number_frozen !== null) others += sprintf("  <span>No. frozn: %s</span>", t.number_frozen);
       access = 'open-access.png';
       content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
@@ -522,10 +529,8 @@ var Azizi = {
     * @returns {undefined}
     */
    displayCellCulture: function(t){
-      console.log(t);
       var content = '', others = '', access;
-      /*Cater for the stabilates*/
-      if(t.date_stored !== null) others += sprintf("  <span>Date stored: %s</span>", t.date_stored);
+      if(t.date_stored !== null) others += sprintf("  <span>Date stored: %s</span>", Azizi.getDateString(t.date_stored));
       if(t.growth_medium !== null) others += sprintf("  <span>Growth Med.: %s</span>", t.growth_medium);
       if(t.storage_medium !== null) others += sprintf("  <span>Storage Med.: %s</span>", t.storage_medium);
       access = 'open-access.png';
@@ -536,6 +541,28 @@ var Azizi = {
          %s\n\
       </div></div>",
          access, t.culture_id, t.culture_name, t.cell_type_details, t.animal_id, others);
+      $('#results .left').append(content);
+   },
+   
+   /**
+    * Displays a sample from the stabilate database
+    *
+    * @param   object   t     The sample details to be displayed
+    * @returns {undefined}
+    */
+   displayTickStabilate: function(t){
+      var content = '', others = '', access;
+      if(t.date_prepared !== null) others += sprintf("  <span>Date prepared: %s</span>", Azizi.getDateString(t.date_prepared));
+      if(t.source !== null) others += sprintf("  <span>Source: %s</span>", t.source);
+      if(t.medium_used !== null) others += sprintf("  <span>Med. Used: %s</span>", t.medium_used);
+      access = 'open-access.png';
+      content = sprintf("<div class='result_set'><div class='access'><img src='/azizi/images/%s'></div><div class='first_line'>\n\
+         <a href='javascript:;' class='tstabilates_%s'>Tick stabilates: <span>%s:</span><span>%s,</span> %s</a>\n\
+      </div>\n\
+      <div class='second_line'>\n\
+         %s\n\
+      </div></div>",
+         access, t.tick_stabilate_id, t.stabilate_no, t.material_frozen, t.origin, others);
       $('#results .left').append(content);
    },
 
@@ -549,7 +576,7 @@ var Azizi = {
       var content = '', others = "", access;
       //cater for azizi samples
       if(t.organism !== "") others += sprintf("  <span>A: %s</span>", t.organism);
-      if(t.date_created !== "") others += sprintf("  <span>Col. Date: %s</span>", t.date_created);
+      if(t.date_created !== "") others += sprintf("  <span>Col. Date: %s</span>", Azizi.getDateString(t.date_created));
       if(t.origin !== "") others += sprintf("  <span>Origin: %s</span>", t.origin);
       
       access = (t.open_access === '1') ? 'open-access.png' : 'closed-access.png';
@@ -585,24 +612,24 @@ var Azizi = {
                console.log("called");
                Azizi.showCellCultureDetails(data);
             }
+            else if(data.data.collection === 'tstabilates') {
+               console.log("called");
+               Azizi.showTickStabilateDetails(data);
+            }
          }
       });
    },
 
    showSampleDetails: function(data){
-      var months = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
       console.log("showSampleDetails called");
       var sample = data.data;
-      
-      var date = new Date(sample.date_created);
-      var dateString = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
       var html = "<table class='search_details' style='font-size: 17px;margin-top: 50px;'>";
       html = html + "<tr><td><span class='result_lables'>Label: </span></td><td>"+sample.label+"</td></tr>";
       html = html + "<tr><td><span class='result_lables'>Cryobox label: </span></td><td>"+sample.box_name+"</td></tr>";
       html = html + "<tr><td><span class='result_lables'>Organism: </span></td><td>"+sample.org_name+"</td></tr>";
       html = html + "<tr><td><span class='result_lables'>Sample type: </span></td><td>"+sample.sample_type+"</td></tr>";
       html = html + "<tr><td><span class='result_lables'>Project: </span></td><td>"+sample.Project+"</td></tr>";
-      html = html + "<tr><td><span class='result_lables'>Date collected: </span></td><td>"+dateString+"</td></tr>";//get the date, discard the time
+      html = html + "<tr><td><span class='result_lables'>Date collected: </span></td><td>"+Azizi.getDateString(sample.date_created)+"</td></tr>";//get the date, discard the time
       if(sample.open_access == 1){
          html = html + "<tr><td><span class='result_lables'>All data open: </span></td><td>Yes</td></tr>";
          html = html + "<tr><td colspan='2'>" + sample.comments + "</td></tr>";
@@ -616,12 +643,7 @@ var Azizi = {
    },
 
    showCellCultureDetails: function(data){
-      var months = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
-      console.log("showSampleDetails called");
       var sample = data.data;
-      
-      var date = new Date(sample.date_stored);
-      var dateString = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear();
       var html = "<table class='search_details' style='font-size: 17px;margin-top: 50px;'>";
       html = html + "<tr><td style='width:150px;'><span class='result_lables'>Culture name: </span></td><td>"+sample.culture_name+"</td></tr>";
       html = html + "<tr><td style='width:150px;'><span class='result_lables'>Cell type: </span></td><td>"+sample.cell_type_details+"</td></tr>";
@@ -631,9 +653,31 @@ var Azizi = {
       html = html + "<tr><td style='width:150px;'><span class='result_lables'>Storage medium: </span></td><td>"+sample.storage_medium+"</td></tr>";
       html = html + "<tr><td style='width:150px;'><span class='result_lables'>Ref cultures: </span></td><td>"+sample.reference_cultures+"</td></tr>";
       html = html + "<tr><td style='width:150px;'><span class='result_lables'>History: </span></td><td>"+sample.history+"</td></tr>";
-      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Date collected: </span></td><td>"+dateString+"</td></tr>";//get the date, discard the time
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Date collected: </span></td><td>"+Azizi.getDateString(sample.date_stored)+"</td></tr>";//get the date, discard the time
       if(sample.comments != null){
          html = html + "<tr><td colspan='2'>" + sample.comments + "</td></tr>";
+      }
+      html = html + "</table>";
+      
+      $('#results .right').html(html);
+   },
+   
+   showTickStabilateDetails: function(data){
+      var sample = data.data;
+      var html = "<table class='search_details' style='font-size: 17px;margin-top: 50px;'>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Stab. No.: </span></td><td>"+sample.stabilate_no+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Parasite: </span></td><td>"+sample.parasite+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Stock: </span></td><td>"+sample.stock+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Material Frzn.: </span></td><td>"+sample.material_frozen+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Source: </span></td><td>"+sample.source+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Origin: </span></td><td>"+sample.origin+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Medium Used: </span></td><td>"+sample.medium_used+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Cryoprotectant: </span></td><td>"+sample.cryoprotectant+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Infected acin: </span></td><td>"+sample.infected_acin+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Vol. prepared: </span></td><td>"+sample.vol_prepared+"</td></tr>";
+      html = html + "<tr><td style='width:150px;'><span class='result_lables'>Date prepared: </span></td><td>"+Azizi.getDateString(sample.date_prepared)+"</td></tr>";//get the date, discard the time
+      if(sample.remarks != null){
+         html = html + "<tr><td colspan='2'>" + sample.remarks + "</td></tr>";
       }
       html = html + "</table>";
       
@@ -703,7 +747,7 @@ var Azizi = {
       var preservationDetails = Array();
       var preservationLabels = Array();
       preservationLabels.push("Preservation Date: ");
-      preservationDetails.push(stabilate.preservation_date);
+      preservationDetails.push(Azizi.getDateString(stabilate.preservation_date));
       preservationLabels.push("Number Preserved: ");
       preservationDetails.push(stabilate.number_frozen);
       preservationLabels.push("Preserved Type: ");

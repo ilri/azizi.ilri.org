@@ -690,8 +690,81 @@ class Azizi{
          $error = true;
       }
       
+      //search tick stabilates
+      //clean the search query
+      $rawQuery = preg_replace("/\s\s+/", " ", $_GET['q']);
+      
+      $size = $size - count($cellCultures);
+      $start = $start - $numResults;
+      
+      $strings = explode(" ", $rawQuery);
+      $query = "";
+      foreach($strings as $string){
+         if(strlen($query) == 0){
+            $query .= "(stabilate_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+         else {
+            $query .= " AND (stabilate_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         }
+
+         $query .= " OR date_prepared:*".$string."*";
+         $query .= " OR parasite:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR stock:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR material_frozen:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR source:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR origin:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR experiment_no:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR medium_used:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR cryoprotectant:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR colour:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR ticks_ground:*".$string."*";
+         $query .= " OR mean_infect:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR infected_acin:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR remarks:*".$string."*";
+         $query .= " OR testing_experiment:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR testing_date:*".$string."*";
+         $query .= " OR parasite_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR material_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR species_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*)";
+      }
+
+      if($start<0){//done to prevent errors on the solr side
+         $start = 0;
+         $size = 0;
+      }
+      $tickStabilates = array();
+      
+      $fieldList = "";
+      if($_GET['light'] == 1){
+         $fieldList = "&fl=stab_id";//only get the sample id
+      }
+      
+      $query = str_replace(" ", "+", Config::$config['solr_tick_stabilates']."/select?wt=json&start=".$start."&rows=".$size.$fieldList."&q=".urlencode($query));//implement pagenation
+      $this->Dbase->CreateLogEntry("Tick stabilates query = ".$query,"debug");
+      $ch = curl_init();
+
+      curl_setopt($ch, CURLOPT_URL, $query);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, "Codular Sample cURL Request");
+      $curlResult = curl_exec($ch);
+      $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+
+      if($http_status == 200){
+         $raw = json_decode($curlResult, true);
+         $qTime = $qTime + $raw['responseHeader']['QTime'];
+         $tickStabilates = $raw["response"]["docs"];
+         for($index = 0; $index < count($tickStabilates); $index++){
+            $tickStabilates[$index]['collection'] = "tstabilates";
+         }
+         $numResults = $numResults + $raw["response"]['numFound'];
+      }
+      else {
+         $error = true;
+      }
+      
       //we are all good. lets return this data
-      $data = array_merge($samples, $stabilates, $cellCultures);
+      $data = array_merge($samples, $stabilates, $cellCultures, $tickStabilates);
       die(json_encode(array('error' => $error, 'data' => $data, 'count' => $numResults, 'time' => $qTime), JSON_FORCE_OBJECT));
    }
    
@@ -874,6 +947,25 @@ class Azizi{
          if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
          //we are all good. lets return this data
          $fetchedRows[0]['collection'] = 'cell_cultures';
+         
+         die(json_encode(array('error' => false, 'data' => $fetchedRows[0]), JSON_NUMERIC_CHECK));
+      }
+      else if($ids[1] == 'tstabilates') {
+         $database = Config::$stabilatesDb;
+         $query = "select a.stabilate_no, a.date_prepared, a.parasite, a.stock, a.material_frozen, a.source, a.origin, a.experiment_no, a.medium_used, cryoprotectant, a.colour, a.ticks_ground, a.mean_infect, a.infected_acin, a.remarks, a.testing_experiment, a.testing_date, a.vol_prepared, a.no_stored,
+                     b.parasite_name, 
+                     c.material_name,
+                     d.species_name
+                     from $database.tick_stabilates as a
+                     left join $database.tick_parasites as b on a.parasite_id = b.id
+                     left join $database.tick_frozen_material as c on a.frozen_material_id = c.id
+                     left join $database.tick_species as d on a.source_species_id = d.id
+                     where a.id = :id";
+         $fetchedRows = $this->Dbase->ExecuteQuery($query, array("id" => $ids[2]));
+         
+         if($fetchedRows == 1) die(json_encode(array('error' => true, 'data' => $this->Dbase->lastError)));
+         //we are all good. lets return this data
+         $fetchedRows[0]['collection'] = 'tstabilates';
          
          die(json_encode(array('error' => false, 'data' => $fetchedRows[0]), JSON_NUMERIC_CHECK));
       }
