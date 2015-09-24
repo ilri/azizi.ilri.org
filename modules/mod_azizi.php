@@ -645,13 +645,13 @@ class Azizi{
             $query .= " AND (culture_name:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
          }
 
-         $query .= " OR cell_type_details:*".$string."*";
-         $query .= " OR animal_id:*".$string."*";
+         $query .= " OR cell_type_details:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR animal_id:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
          $query .= " OR history:*".$string."*";
          $query .= " OR date_stored:*".$string."*";
-         $query .= " OR growth_medium:*".$string."*";
-         $query .= " OR storage_medium:*".$string."*";
-         $query .= " OR reference_cultures:*".$string."*";
+         $query .= " OR growth_medium:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR storage_medium:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
+         $query .= " OR reference_cultures:*".preg_replace("/[^a-zA-Z0-9]/", "", $string)."*";
          $query .= " OR comments:*".$string."*)";
       }
 
