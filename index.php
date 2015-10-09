@@ -18,7 +18,7 @@
       <script type='text/javascript' src='/azizi/js/azizi.js'></script>
 	</head>
 
-  <body>
+<body>
      <div id="top" class="transform_slow">
         <div id="search">
            <input type="text" class="search form-control" name="azizi_search" id="azizi_search" placeholder="Search our repository" style="width: 350px;" />
@@ -46,20 +46,13 @@
          <div id="links" class="center">
            <span><a href="/labcollector" target="_blank">Biorepository LIMS</a></span>
            <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>ILRI's Research Computing Cluster</a></span>
-           <span><a id='doc_link'>Documentation</a></span>
+           <span><a href="/azizi/documentation.html" id='doc_link'>Documentation</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
-           <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
            <span><a href="/repository/mod_ajax.php?page=repository_3d" target="_blank">Bio-Repository in 3D</a></span>
            <span><a href="/repository/mod_ajax.php?page=samples_vis" target="_blank">Collected Samples</a></span>
          </div>
 	<!-- div class="center bold">Our monitoring system is down for maintenance for the time being. Sorry for the inconveniences caused.</div -->
-   </div>
-   <div id='documentation' class='hidden center'>
-      <div class='desc'><a href="/azizi/documentation.html#infrastructure"><img src="/azizi/images/doc.png"></a><br /><span>Infrastructure</span></div>
-      <div class='desc'><a href="/azizi/documentation.html#sample_storage"><img src="/azizi/images/doc1.png"></a><br /><span>Sample Storage</span></div>
-      <div class='desc'><a href="/azizi/documentation.html#sampling_protocol"><img src="/azizi/images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
-      <div class='desc'><a href="/azizi/dmp.html"><img src="/azizi/images/doc2.png"></a><br /><span>DMP</span></div>
    </div>
 
          <div id='equipment_status'>
@@ -136,7 +129,7 @@
          </div>
       </div>
      <div id="loading_box">Loading</div>
-	</body>
+</body>
 
 <!--Google analytics. Script block purposely placed here to improve the page load time, even if it is by milli second  -->
 <script type="text/javascript">
@@ -148,7 +141,6 @@
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-  Azizi.sysConfig = <?php require_once 'azizi_config';  echo json_encode(Config::$sysConfig); ?>;
   Azizi.searchTimoutID = 0;
   $('[name=azizi_search]').focus().live('keyup', function(){
      window.clearTimeout(Azizi.searchTimoutID);
@@ -157,7 +149,6 @@
   $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
-  $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
 
    $('#search_results_download').click(function(){
      $('#email_dialog').show();
