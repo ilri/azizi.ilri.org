@@ -56,7 +56,7 @@ td.search_columns {min-width: 200px;}
 #results_count .iis{font-size: 0.8em; color: #428BCA;}
 .iis a{font-size: 0.7em;}
 #results_count .iis_selected{font-size: 1em; color: #666;}
-#documentation{height: 100px; width: 400px; min-width: 100px; text-align: center; margin: 2px auto 25px;}
+#documentation{height: 100px; width: 500px; min-width: 100px; text-align: center; margin: 2px auto 25px;}
 #documentation .desc{width: 115px; margin: 5px 0px; float: left;}
 #documentation img{width: 72px; height: 72px;}
 .tab-content{ margin-left: 200px; }

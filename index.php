@@ -46,7 +46,7 @@
          <div id="links" class="center">
            <span><a href="/labcollector" target="_blank">Biorepository LIMS</a></span>
            <span><a href="http://hpc.ilri.cgiar.org/" target='_blank'>ILRI's Research Computing Cluster</a></span>
-           <span><a href="javascript:;" id='doc_link'>Documentation</a></span>
+           <span><a id='doc_link'>Documentation</a></span>
            <span><a href="/wx" target='_blank'>Latest weather satellite images</a></span>
            <!--span><a href="/graphs/">Graphical summary of AVID sample collection</a></span-->
            <span><a href="/photo_gallery/">AVID's photo gallery</a></span>
@@ -59,6 +59,7 @@
       <div class='desc'><a href="/azizi/documentation.html#infrastructure"><img src="/azizi/images/doc.png"></a><br /><span>Infrastructure</span></div>
       <div class='desc'><a href="/azizi/documentation.html#sample_storage"><img src="/azizi/images/doc1.png"></a><br /><span>Sample Storage</span></div>
       <div class='desc'><a href="/azizi/documentation.html#sampling_protocol"><img src="/azizi/images/doc2.png"></a><br /><span>Sampling Protocol</span></div>
+      <div class='desc'><a href="/azizi/dmp.html"><img src="/azizi/images/doc2.png"></a><br /><span>DMP</span></div>
    </div>
 
          <div id='equipment_status'>
@@ -153,10 +154,11 @@
      window.clearTimeout(Azizi.searchTimoutID);
      Azizi.searchTimoutID = window.setTimeout(Azizi.startSearch, 1000);
   });
+  $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
   $('.first_line a').live('click', Azizi.getSampleDetails);
   $('.iis').live('click', Azizi.nextSamples);
   $('#doc_link').live('click', function(){ $('#documentation').toggle('slow'); });
-  
+
    $('#search_results_download').click(function(){
      $('#email_dialog').show();
    });
@@ -182,7 +184,7 @@
       Azizi.addQueryToMTA();
       $("#mta_dialog").show();
    });
-  
+
   Azizi.windowResized();
   $(window).resize(function(){
      Azizi.windowResized();
