@@ -727,6 +727,6 @@ td.search_columns {min-width: 200px;}
 }
 
 .azizi_docs { position: relative; padding-bottom: 56.25%; padding-top: 35px; height: 0; overflow: hidden; }
-#dmp iframe, #sampling_protocol iframe, #infrastructure iframe, #sample_storage iframe, #samples_template iframe, #odk_workflow iframe, #mta_template iframe, #about_us iframe
+#dmp iframe, #sampling_protocol iframe, #infrastructure iframe, #sample_storage iframe, #samples_template iframe, #odk_workflow iframe, #mta_template iframe, #about_us iframe, #odk_manual iframe
 { position: absolute; top:0; left: 0; width: 100%; height: 100%; border: none; }
 
