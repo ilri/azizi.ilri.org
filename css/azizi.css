@@ -15,7 +15,7 @@ html {height: 100%; }
 #links{margin-bottom: 20px;}
 #links span{padding: 2px 10px;}
 .ln2_fridges, .ancilliary, .fridge_freezers, .equipments_rooms, #organism_chart_container, .general{ margin-left: 20px; margin-right: 20px;}
-#organism_chart_container {display: none;width: 550px; height: 350px; margin-left: 170px; cursor: pointer;}
+#organism_chart_container {display: none;width: 550px; height: 350px; margin-left: 200px; cursor: pointer;}
 .general{ width: 100%; text-align: center; }
 .ancilliary{ min-height: 270px;}
 .ln2_fridges{ margin-left: 110px; }
