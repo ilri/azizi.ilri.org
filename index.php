@@ -58,7 +58,7 @@
    </div>
 
          <div id='equipment_status'>
-             <div class="status center hidden">
+             <div class="status center hidden" id="sytem_statuses">
                 System status at <span class="time"></span>: LN2 Monitoring <span class="ln2_monitor"></span>  SMS Alerts <span class="sms_alerts"></span>
              </div>
              <div class="ln2_fridges float_left"></div>
