@@ -245,7 +245,7 @@ var Azizi = {
       var additionalTopHeader = (headerCount !== 0) ? sprintf("<td colspan='%d' class='center'>Others</td>", headerCount) : '';
 
       var content = sprintf("\
-         <h2 class='center'> Ancilliary LN<sub>2</sub> systems</h2>\n\
+         <h2> Ancilliary LN<sub>2</sub> systems</h2>\n\
          <table cellpadding='4' cellspacing='1' style='vertical-align:top'>\n\
          <tr bgcolor='#AAAAAA'><td colspan = '2' align = 'center'>Bulk Tank</td><td>Room</td><td colspan='2' class='center'>LN Supply</td>%s</tr>\n\
          <tr bgcolor='#AAAAAA'><td>Contents</td><td>Pressure</td><td> O<sub>2</sub></td><td>LN Plant</td><td>Last Report</td>%s</tr>", additionalTopHeader, headers);
@@ -309,7 +309,7 @@ var Azizi = {
    updateEquipmentsAndRoomsStatuses: function(data){
       var content, cfg = Azizi.sysConfig, use_colour;
       content ="\
-      <h2 class='text_right'>GS FLX equipment and rooms <a href='/azizi/labfreezers/?type=room' > more</a></h2>\n\
+      <h2>GS FLX equipment and rooms <a href='/azizi/labfreezers/?type=room' > more</a></h2>\n\
       <table cellpadding='4' cellspacing='1'>\n\
       <tr bgcolor='#AAAAAA'><td>id</td><td>Location</td><td>Description</td><td>Temp</td><td>CO2</td><td>O2</td><td>Last Report</td></tr>";
 
