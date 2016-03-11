@@ -857,7 +857,7 @@ class Azizi{
       if($_GET['populous'] == 0) {
          $data = $data1;
       }
-      else {
+      else if($_GET['populous'] == 1) {
          $data = $data2;
       }
       die(json_encode(array('error' => $error, 'data' => $data)));
