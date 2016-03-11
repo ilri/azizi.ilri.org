@@ -126,7 +126,7 @@ class Azizi{
       $total_up_duty = round( (100*$row["running"])/ ($row["running"] + $row["stopped"]), 0);
       $total_running_hours = number_format($row["running"]);*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_plant']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_plant']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
@@ -194,7 +194,7 @@ class Azizi{
 
       return array('fillPointUsage' => $fillPointUsage, 'fillPointTotalUsage' => $fillPointTotalUsage);*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_fill_point']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_fill_point']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
@@ -264,7 +264,7 @@ class Azizi{
 
       return $fridgeStatuses;*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_ln2_freezers']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
@@ -324,7 +324,7 @@ class Azizi{
 
       return $ancilliaryStatus[0];*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_ancillary']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
@@ -384,7 +384,7 @@ class Azizi{
 
       return $fridgeStatuses;*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_fridges']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
@@ -441,7 +441,7 @@ class Azizi{
 
       return $otherStatuses;*/
       
-      $query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*");
+      $query = str_replace(" ", "+", Config::$config['solr_monitor_rooms']."/select?wt=json&q=*:*&rows=10000000");
       
       $ch = curl_init();
 
