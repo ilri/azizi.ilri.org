@@ -20,96 +20,31 @@ var Azizi = {
     * @returns {undefined}
     */
    initOrganismChart: function() {
-      var source = {
-         datatype: "json",
-         datafields: [
-            {name: "organism", type: "string"},
-            {name: "open_access", type: "integer"},
-            {name: "closed_access", type: "integer"}
-         ],
-         root: "data",
-         url: "/azizi/mod_ajax.php?page=organism_data&populous=0"
-      };
-      Azizi.lessPopOrganismDataAdapter = new $.jqx.dataAdapter(source,{
-         async: true,
-         autoBind: true,
-         loadError: function() {
-            console.log("Could not get organism data");
-         }
-      });
-      var settings = {
-         title: "Diversity of samples in the Biorepository",
-         description: "Less popular organisms",
-         enableAnimations: true,
-         showLegend: true,
-         padding: { left: 5, top: 5, right: 5, bottom: 5 },
-         titlePadding: { left: 0, top: 0, right: 0, bottom: 5 },
-         source: Azizi.lessPopOrganismDataAdapter,
-         xAxis: {
-             dataField: 'organism',
-             valuesOnTicks: true,
-             labels: { autoRotate: true }
-         },
-         colorScheme: 'scheme02',
-         seriesGroups: [{
-               polar: true,
-               radius: 140,
-               type: 'splinearea',
-               enableSeriesToggle: false,
-               series: [
-                  { dataField: 'open_access', displayText: 'Open Access', opacity: 0.9, lineWidth: 3 },
-                  { dataField: 'closed_access', displayText: 'Closed Access', opacity: 0.9, lineWidth: 3 }
-               ]
+      $.ajax({url: "azizi/mod_ajax.php?page=organism_data&populous=-1", success: function(result) {
+        var jsonData = JSON.parse(result);
+        if(jsonData.error == false) {
+            var formattedData = [];
+            for(var i = 0; i < jsonData.data.length; i++) {
+                var title = "";
+                if(jsonData.data[i].open_access > 0){
+                    title = jsonData.data[i].open_access+" Open Access";
+                }
+                if(jsonData.data[i].closed_access > 0) {
+                    if(title.length > 0) title = title+" and ";
+                    title = title + jsonData.data[i].closed_access+" Closed Access";
+                }
+                if(title.length > 0) title = title + " samples";
+                var currOrg = {
+                    "text":jsonData.data[i].organism,
+                    "weight":jsonData.data[i].open_access + jsonData.data[i].closed_access,
+                    "html": {"title":title}
+                };
+                formattedData[i] = currOrg;
             }
-         ]
-      };
-      $("#less_populus_organism_chart").jqxChart(settings);
-      
-      var source2 = {
-         datatype: "json",
-         datafields: [
-            {name: "organism", type: "string"},
-            {name: "open_access", type: "integer"},
-            {name: "closed_access", type: "integer"}
-         ],
-         root: "data",
-         url: "/azizi/mod_ajax.php?page=organism_data&populous=1"
-      };
-      Azizi.morePopOrganismDataAdapter = new $.jqx.dataAdapter(source2,{
-         async: true,
-         autoBind: true,
-         loadError: function() {
-            console.log("Could not get organism data");
-         }
-      });
-      var settings = {
-         title: "Diversity of samples in the Biorepository",
-         description: "More popular organisms",
-         enableAnimations: true,
-         showLegend: true,
-         padding: { left: 5, top: 5, right: 5, bottom: 5 },
-         titlePadding: { left: 0, top: 0, right: 0, bottom: 5 },
-         source: Azizi.morePopOrganismDataAdapter,
-         xAxis: {
-             dataField: 'organism',
-             valuesOnTicks: true,
-             labels: { autoRotate: true }
-         },
-         colorScheme: 'scheme02',
-         seriesGroups: [{
-               polar: true,
-               radius: 140,
-               type: 'splinearea',
-               enableSeriesToggle: false,
-               series: [
-                  { dataField: 'open_access', displayText: 'Open Access', opacity: 0.9, lineWidth: 3 },
-                  { dataField: 'closed_access', displayText: 'Closed Access', opacity: 0.9, lineWidth: 3 }
-               ]
-            }
-         ]
-      };
-      $("#more_populus_organism_chart").jqxChart(settings);
-      $("#organism_chart_container").show();
+            $("#organism_chart_container").jQCloud(formattedData);
+            $("#organism_chart_container").show();
+        }
+      }});
    },
    communicationError: function(data){
       //Keep asking for data
