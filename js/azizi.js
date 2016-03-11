@@ -165,7 +165,6 @@ var Azizi = {
       hpcContent = (data.hpcDiskCount == Azizi.sysConfig.raidDisksCount) ? "<img src='/azizi/images/ok.jpg' height='15' />" : "<img src='/azizi/images/not_ok.jpg' height='15' />";
       $('.ln2_monitor').html(systemContent);
       $('.sms_alerts').html(smsContent);
-      $('.hpc_status').html(hpcContent);
    },
 
    /**
