@@ -61,7 +61,7 @@
              </div>
              <div class="ln2_fridges float_left"></div>
              <div class="ancilliary"></div>
-             <div class="general hidden">
+             <div id="plant_status_text" class="general hidden">
                 The LN plant ran for <span class="latest_plant_uptime bold"></span>&#37; of the time in the last <span class="latest_plant_days"></span> days. It has logged a total of <span class="total_plant_hours bold"></span> hours since 2011-02-16 (<span class="total_plant_uptime"></span>% duty).<br />
                 The external fill point was used for <span class="latest_fillpoint_hours"></span> hours in the last <span class="latest_fillpoint_days"></span> days. Since 2011-03-16 it has been in use for <span class="total_fillpoint_hours"></span> hours.
              </div>
