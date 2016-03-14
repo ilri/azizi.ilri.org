@@ -772,95 +772,14 @@ class Azizi{
     * This function gets organism graph data from Solr
     */
    private function getOrganismData() {
-      //"http://192.168.5.43:8080/solr/samples/select?q=open_access%3A0&wt=json&indent=true&group=true&group.field=organism";
-      //$openAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=!organism%3Acow AND open_access%3A1&wt=json&indent=true&group=true&group.field=organism");//open access samples grouped by organism
-      $openAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=open_access%3A1&wt=json&indent=true&group=true&group.field=organism");//open access samples grouped by organism
-      //$closedAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=!organism%3Acow AND open_access%3A0&wt=json&indent=true&group=true&group.field=organism");//closed access samples group by organism
-      $closedAccessQuery = str_replace(" ", "+", Config::$config['solr_samples']."/select?q=open_access%3A0&wt=json&indent=true&group=true&group.field=organism");//closed access samples group by organism
-      $organisms = array();
-      //fetch the open access samples
-      $oaCH = curl_init();
-      curl_setopt($oaCH, CURLOPT_URL, $openAccessQuery);
-      curl_setopt($oaCH, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($oaCH, CURLOPT_USERAGENT, "Codular Sample cURL Request");
-      $curlResult = curl_exec($oaCH);
-      $http_status = curl_getinfo($oaCH, CURLINFO_HTTP_CODE);
-      curl_close($oaCH);
-      $error = false;
-      if($http_status == 200){
-         $raw = json_decode($curlResult, true);
-         $organismGroups = $raw['grouped']['organism']['groups'];
-         foreach($organismGroups as $currGroup) {
-            $organism = $currGroup['groupValue'];
-            if(strlen($organism) == 0) $organism = "unknown";
-            if(!isset($organisms[$organism])) {
-               $organisms[$organism] = array(
-                  "open_access" => 0,
-                  "closed_access" => 0
-               );
-            }
-            $organisms[$organism]['open_access'] = $currGroup['doclist']['numFound'];
-         }
-      }
-      else {
-         $this->Dbase->CreateLogEntry("An error occurred while trying to get organism details from solr for open access samples","fatal");
-         $error = true;
-      }
-      
-      //fetch the closed access samples
-      $caCH = curl_init();
-      curl_setopt($caCH, CURLOPT_URL, $closedAccessQuery);
-      curl_setopt($caCH, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($caCH, CURLOPT_USERAGENT, "Codular Sample cURL Request");
-      $curlResult2 = curl_exec($caCH);
-      $http_status2 = curl_getinfo($caCH, CURLINFO_HTTP_CODE);
-      curl_close($caCH);
-      if($http_status2 == 200){
-         $raw = json_decode($curlResult2, true);
-         $organismGroups = $raw['grouped']['organism']['groups'];
-         foreach($organismGroups as $currGroup) {
-            $organism = $currGroup['groupValue'];
-            if(strlen($organism) == 0) $organism = "unknown";
-            if(!isset($organisms[$organism])) {
-               $organisms[$organism] = array(
-                  "open_access" => 0,
-                  "closed_access" => 0
-               );
-            }
-            $organisms[$organism]['closed_access'] = $currGroup['doclist']['numFound'];
-         }
-      }
-      else {
-         $this->Dbase->CreateLogEntry("An error occurred while trying to get organism details from solr for closed access samples","fatal");
-         $error = true;
-      }
-      
-      $organismKeys = array_keys($organisms);
       $data = array();
-      foreach($organismKeys as $currKey) {
-         $data[] = array("organism" => $currKey, "open_access" => $organisms[$currKey]['open_access'], "closed_access" => $organisms[$currKey]['closed_access']);
+      $query = "select count(*) as number, org_name as organism from ".Config::$aziziDb.".samples as s inner join ".Config::$aziziDb.".organisms as o on s.org = o.org_id group by s.org";
+      $res = $this->Dbase->ExecuteQuery($query);
+      $error = true;
+      if($res != 1) {
+         $error = false;
       }
-      function sortByOpenAccess($a, $b) {
-         return ($a['open_access'] + $a['closed_access']) - ($b['open_access'] + $b['closed_access']);
-      }
-      usort($data, 'sortByOpenAccess');
-      $data1 = array();
-      $data2 = array();
-      foreach($data as $currOrganism) {
-         if(($currOrganism['open_access'] + $currOrganism['closed_access']) > 3000) {
-            $data2[] = $currOrganism;
-         }
-         else {
-            $data1[] = $currOrganism;
-         }
-      }
-      if($_GET['populous'] == 0) {
-         $data = $data1;
-      }
-      else if($_GET['populous'] == 1) {
-         $data = $data2;
-      }
-      die(json_encode(array('error' => $error, 'data' => $data)));
+      die(json_encode(array('error' => $error, 'data' => $res)));
    }
 
    /**

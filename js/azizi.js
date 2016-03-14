@@ -25,18 +25,10 @@ var Azizi = {
         if(jsonData.error == false) {
             var formattedData = [];
             for(var i = 0; i < jsonData.data.length; i++) {
-                var title = "";
-                if(jsonData.data[i].open_access > 0){
-                    title = jsonData.data[i].open_access+" Open Access";
-                }
-                if(jsonData.data[i].closed_access > 0) {
-                    if(title.length > 0) title = title+" and ";
-                    title = title + jsonData.data[i].closed_access+" Closed Access";
-                }
-                if(title.length > 0) title = title + " samples";
+                var title = jsonData.data[i].number + " samples";
                 var currOrg = {
                     "text":jsonData.data[i].organism,
-                    "weight":jsonData.data[i].open_access + jsonData.data[i].closed_access,
+                    "weight":jsonData.data[i].number,
                     "html": {"title":title}
                 };
                 formattedData[i] = currOrg;
