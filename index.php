@@ -9,12 +9,14 @@
 	   <link rel="stylesheet" type="text/css" href="/azizi/css/bootstrap.min.css" />
       <link rel="stylesheet" type="text/css" href="/common/jquery/jqwidgets/styles/jqx.base.css" />
       <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,800' rel='stylesheet' type='text/css' />
+      <link rel="stylesheet" type="text/css" href="/common/jQCloud/dist/jqcloud.min.css" />
       <script type='text/javascript' src='/common/jquery/jquery-1.8.3.min.js'></script>
       <script type='text/javascript' src='/common/sprintf.js'></script>
       <script type='text/javascript' src='/common/jquery/jqwidgets/jqxcore.js'></script>
       <script type='text/javascript' src='/common/jquery/jqwidgets/jqxdata.js'></script>
       <script type='text/javascript' src='/common/jquery/jqwidgets/jqxdraw.js'></script>
       <script type='text/javascript' src='/common/jquery/jqwidgets/jqxchart.core.js'></script>
+      <script type='text/javascript' src='/common/jQCloud/dist/jqcloud.min.js'></script>
       <script type='text/javascript' src='/azizi/js/azizi.js'></script>
 	</head>
 
@@ -67,9 +69,8 @@
              </div>
              <div class="fridge_freezers float_left"></div>
              <div class="equipments_rooms"></div>
-             <div id="organism_chart_container" style="display: none;">
-                <div id="more_populus_organism_chart" class="organism_chart"></div>
-                <div id="less_populus_organism_chart" class="organism_chart"></div>
+             <div id="organism_chart_container">
+                <h4 id="smpl_diversity_title">Azizi's Sample Diversity</h4>
              </div>
          </div>
          <div id="extra">
